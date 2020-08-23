@@ -1,0 +1,5 @@
+
+message IpcInvoke {
+  required string module = 1;
+  required string method = 2;
+}
