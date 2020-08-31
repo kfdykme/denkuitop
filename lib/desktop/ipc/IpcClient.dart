@@ -7,36 +7,44 @@ class IpcClient {
 
   List<Function> listeners = new List();
 
+  var inited = false;
+
   IpcClient() {
     init();
   }
-  
-  init() async {
-     mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:8089");
 
+  init() async {
+    if (inited) {
+      // print("IpcClient has already inited");
+      return;
+    }
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:8082");
+    print("IpcClient init");
+    inited = true;
     mWebSocket.stream.listen((message) {
+      print("IpcClient  message ${message}");
       listeners.forEach((callback) {
         callback(message);
       });
-      send("received: ${message}");
     });
+    this.send("DENKUI_START");
+    this.addCallback((String message) async {
+      this.send("RECEIVE");
+      await new Future.delayed(const Duration(seconds: 5));
+      this.send("DENKUI_ON_ATTACH_VIEW_END");
+    });
+
   }
 
   send(dynamic data) {
     if (mWebSocket != null) {
-      var invoke = IpcInvoke.create();
-      invoke.module = "test";
-      invoke.method = "print(${data})";
-
-      var a = invoke.writeToJson();
-      print(a);
-      mWebSocket.sink.add(a);
+      print("IpcClient send ${data}");
+      print(mWebSocket.hashCode);
+      mWebSocket.sink.add(data);
     }
   }
 
   addCallback(Function callback) {
     listeners.add(callback);
   }
-
-
 }
