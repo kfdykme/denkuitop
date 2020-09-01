@@ -1,9 +1,4 @@
-import 'dart:convert';
-
-import 'package:denkuitop/desktop/data/IpcData.dart';
-import 'package:denkuitop/desktop/data/View.dart';
 import 'package:flutter/material.dart';
-import 'ipc/IpcClient.dart';
 
 void main() {
   runApp(MyApp());
@@ -56,9 +51,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  var ipcClient = IpcClient();
-
-  String _bodyView = "";
 
   void _incrementCounter() {
     setState(() {
@@ -68,28 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-
-      ipcClient.send(_counter);
     });
-  }
-
-  void handleIpcMessage(IpcData ipcData) {
-    switch(ipcData.method) {
-      case "RENDER_VIEW":
-        renderView(ipcData.data);
-        break;
-      default:
-        print("Main handleIpcMessage: ${ipcData.toString()}");
-    }
-  }
-
-  void renderView(dynamic data) {
-    View view = new View(jsonDecode(data));
-
-    setState(() {
-      _bodyView = view.toString();
-    });
-    ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
   }
 
   @override
@@ -100,17 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    ipcClient.init();
-    ipcClient.addCallback((String message) async {
-      Map<String,dynamic> data = jsonDecode(message);
-//      var view = View(data);
-//      this.send("RECEIVE: ${view}");
-        var ipcData = new IpcData(message);
-        handleIpcMessage(ipcData);
-//      await new Future.delayed(const Duration(seconds: 5));
-//      this.send("DENKUI_ON_ATTACH_VIEW_END");
-    });
-
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -138,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              _bodyView,
+              'You have pushed the button this many times:',
             ),
             Text(
               '$_counter',

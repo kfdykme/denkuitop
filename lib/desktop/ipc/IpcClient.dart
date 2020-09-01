@@ -1,7 +1,5 @@
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/status.dart' as status;
-import 'package:denkuitop/proto/ipc.pb.dart';
 
+import 'package:web_socket_channel/io.dart';
 class IpcClient {
   var mWebSocket;
 
@@ -18,7 +16,9 @@ class IpcClient {
       // print("IpcClient has already inited");
       return;
     }
-    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:8082");
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:8082", headers:  {
+      'Origin':'http://127.0.0.1'
+    });
     print("IpcClient init");
     inited = true;
     mWebSocket.stream.listen((message) {
@@ -28,11 +28,6 @@ class IpcClient {
       });
     });
     this.send("DENKUI_START");
-    this.addCallback((String message) async {
-      this.send("RECEIVE");
-      await new Future.delayed(const Duration(seconds: 5));
-      this.send("DENKUI_ON_ATTACH_VIEW_END");
-    });
 
   }
 
