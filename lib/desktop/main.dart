@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:denkuitop/desktop/data/IpcData.dart';
+import 'package:denkuitop/desktop/data/TestRenderData.dart';
 import 'package:denkuitop/desktop/data/View.dart';
 import 'package:flutter/material.dart';
 import 'ipc/IpcClient.dart';
@@ -76,7 +77,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void handleIpcMessage(IpcData ipcData) {
     switch(ipcData.method) {
       case "RENDER_VIEW":
-        renderView(ipcData.data);
+        if (ipcData.data != null) {
+          renderView(ipcData.data);
+        } else {
+          print ("RENDER_VIEW NULL");
+        }
         break;
       default:
         print("Main handleIpcMessage: ${ipcData.toString()}");
@@ -84,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void renderView(dynamic data) {
+    print(data);
     View view = new View(jsonDecode(data));
 
     setState(() {
@@ -100,58 +106,56 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    ipcClient.init();
+//    ipcClient.init();
     ipcClient.addCallback((String message) async {
       Map<String,dynamic> data = jsonDecode(message);
 //      var view = View(data);
 //      this.send("RECEIVE: ${view}");
-        var ipcData = new IpcData(message);
-        handleIpcMessage(ipcData);
+      var ipcData = new IpcData(message);
+      handleIpcMessage(ipcData);
 //      await new Future.delayed(const Duration(seconds: 5));
 //      this.send("DENKUI_ON_ATTACH_VIEW_END");
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              _bodyView,
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    var json = TestRenderData.get();
+    var center = buildViewFrom(json);
+    Scaffold scaffold = Scaffold(
+        appBar: AppBar(
+          title: Text("TEST_RENDER_DATA"),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        body: center
     );
+
+    return scaffold;
+  }
+
+  buildViewFrom(json) {
+    View view = View.fromString(json);
+    return buildView(view);
+
+  }
+
+  buildView(View view) {
+    print("BuildView form ${view.name}");
+    List<Widget> childs = [];
+
+    view.childs.forEach((element) {
+      childs.add(buildView(element));
+    });
+    var res;
+    if (view.name == "text") {
+      print("BuidView build as text: ${view.name} -> ${view.content}");
+      res = Text(view.content);
+      return res;
+    } else {
+      print("BuildView build as center");
+      res = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: childs,
+        ),
+      );
+    }
+    return res;
   }
 }

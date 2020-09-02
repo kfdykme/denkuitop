@@ -12,3 +12,4 @@ class IpcData {
     data = map['data'];
 
 }
+

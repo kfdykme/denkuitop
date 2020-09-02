@@ -8,6 +8,7 @@ class View {
   String name = "";
   List<View> childs = new List.empty();
 
+  View.fromString(String jsonString): this(jsonDecode(jsonString));
 
   View.from(dynamic e): this(e as Map<String,dynamic>);
 

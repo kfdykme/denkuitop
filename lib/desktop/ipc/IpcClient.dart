@@ -8,7 +8,7 @@ class IpcClient {
   var inited = false;
 
   IpcClient() {
-    init();
+//    init();
   }
 
   init() async {
