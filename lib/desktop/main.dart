@@ -82,6 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
         } else {
           print ("RENDER_VIEW NULL");
         }
+        ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
         break;
       default:
         print("Main handleIpcMessage: ${ipcData.toString()}");
@@ -106,15 +107,11 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-//    ipcClient.init();
+    ipcClient.init();
     ipcClient.addCallback((String message) async {
-      Map<String,dynamic> data = jsonDecode(message);
-//      var view = View(data);
-//      this.send("RECEIVE: ${view}");
       var ipcData = new IpcData(message);
       handleIpcMessage(ipcData);
 //      await new Future.delayed(const Duration(seconds: 5));
-//      this.send("DENKUI_ON_ATTACH_VIEW_END");
     });
 
     var json = TestRenderData.get();
