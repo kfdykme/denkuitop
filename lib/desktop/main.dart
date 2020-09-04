@@ -84,6 +84,16 @@ class _MyHomePageState extends State<MyHomePage> {
         }
         ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
         break;
+      case "UPDATE_VIEW":
+        if (ipcData.data != null) {
+          var map = ipcData.data as Map<String,dynamic>;
+          var key = map['key'] as String;
+          var value = map['value'].toString() ;
+          setState(() {
+            _bodyView = _bodyView.replaceAll("{{${key}}}", value);
+          });
+        }
+        break;
       default:
         print("Main handleIpcMessage: ${ipcData.toString()}");
     }
@@ -94,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
     View view = new View(jsonDecode(data));
 
     setState(() {
-      _bodyView = view.toString();
+      _bodyView = data;
     });
     ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
   }
@@ -114,8 +124,14 @@ class _MyHomePageState extends State<MyHomePage> {
 //      await new Future.delayed(const Duration(seconds: 5));
     });
 
-    var json = TestRenderData.get();
-    var center = buildViewFrom(json);
+//    var json = TestRenderData.get();
+    var center;
+    if (_bodyView != '') {
+      center = buildViewFrom(_bodyView);
+    } else {
+      center = Center();
+    }
+
     Scaffold scaffold = Scaffold(
         appBar: AppBar(
           title: Text("TEST_RENDER_DATA"),
