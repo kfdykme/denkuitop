@@ -37,8 +37,9 @@ pubspec.lock
 
 # Flutter generate files
 android 
-iOS
+ios
 windows
+linux
 
 # Web related
 lib/generated_plugin_registrant.dart
