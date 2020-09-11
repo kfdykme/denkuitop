@@ -165,9 +165,23 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if (view.name == "view" ||
       view.name == "template" ||
       view.name == "div"){
+        
+      String emptyTextView = "${view.name}";
+      if (view.jsonParams.values.length != 0) 
+        emptyTextView += "->${view.jsonParams}";
+        childs.insert(0,Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              emptyTextView,
+              textAlign:TextAlign.start,
+              textWidthBasis: TextWidthBasis.longestLine,
+            )
+          ]
+        ));
         res = Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: childs,
         ),
       );
