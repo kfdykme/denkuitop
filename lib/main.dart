@@ -146,12 +146,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   buildViewFrom(json) {
+    print("BuildViewFrom\n ${json}");
     View view = View.fromString(json);
     return buildView(view);
   }
 
   buildView(View view) {
-    print("BuildView form ${view.name}");
+    print("BuildView form {${view.name}}");
     List<Widget> childs = [];
 
     view.childs.forEach((element) {
@@ -160,17 +161,47 @@ class _MyHomePageState extends State<MyHomePage> {
     var res;
     if (view.name == "text") {
       print("BuidView build as text: ${view.name} -> ${view.content}");
-      res = Text(view.content);
-      return res;
-    } else {
-      print("BuildView build as center");
-      res = Center(
+      res = Text(view.content); 
+    } else if (view.name == "view" ||
+      view.name == "template" ||
+      view.name == "div"){
+        res = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: childs,
         ),
       );
-    }
+    } else if (view.name == "input") {
+      var type = "text";
+      if (view.jsonParams["type"] != null) {
+        type = view.jsonParams["type"];
+      }
+
+      if (type == "text" || type == "password") {
+        return TextField(
+          obscureText: true,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: '${view.jsonParams["placeholder"]}',
+          ),
+        );
+      } else if (type == "button") {
+      
+        return RaisedButton(
+            onPressed: () {
+              print(view.jsonParams["onclick"]);
+            },
+            child:  Text(view.jsonParams["value"], style: TextStyle(fontSize: 20)),
+          );
+      }
+
+      return Text("${view.name} -> ${type} -> ${view.jsonParams}");
+    } else {
+      String emptyTextView = "${view.name}";
+      if (view.jsonParams.values.length != 0) 
+        emptyTextView += "->${view.jsonParams}";
+      res = Text(emptyTextView);
+    }  
     return res;
   }
 }
