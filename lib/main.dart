@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:denkuitop/desktop/data/IpcData.dart';
 import 'package:denkuitop/desktop/data/TestRenderData.dart';
 import 'package:denkuitop/desktop/data/View.dart';
+import 'package:denkuitop/desktop/render/BaseRender.dart';
 import 'package:flutter/material.dart';
 import 'package:denkuitop/desktop/ipc/IpcClient.dart';
 
@@ -59,6 +60,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   var ipcClient = IpcClient();
+  var baseRender = BaseRender();
 
   String _bodyView = "";
 
@@ -128,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
       handleIpcMessage(ipcData);
 //      await new Future.delayed(const Duration(seconds: 5));
     });
+    baseRender.bindIpc(ipcClient);
 
 //    var json = TestRenderData.get();
     var center;
@@ -152,26 +155,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   buildView(View view) {
-    print("BuildView form ${view.name}");
-    List<Widget> childs = [];
-
-    view.childs.forEach((element) {
-      childs.add(buildView(element));
-    });
-    var res;
-    if (view.name == "text") {
-      print("BuidView build as text: ${view.name} -> ${view.content}");
-      res = Text(view.content);
-      return res;
-    } else {
-      print("BuildView build as center");
-      res = Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: childs,
-        ),
-      );
-    }
-    return res;
+    return baseRender.RenderView(view);
   }
 }

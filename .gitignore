@@ -33,7 +33,7 @@
 
 # 
 
-pubspec.lock
+./pubspec.lock
 
 # Flutter generate files
 android 
