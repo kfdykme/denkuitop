@@ -84,8 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
           renderView(ipcData.data);
         } else {
           print("RENDER_VIEW NULL");
+          ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
         }
-        ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
         break;
       case "UPDATE_VIEW":
         if (ipcData.data != null) {
@@ -125,7 +125,13 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     ipcClient.init();
-    ipcClient.addCallback((String message) async {
+//     ipcClient.addCallback((String message) async {
+//       var ipcData = new IpcData(message);
+//       handleIpcMessage(ipcData);
+// //      await new Future.delayed(const Duration(seconds: 5));
+//     });
+
+    ipcClient.setCallback("onmessage", (String message) async {
       var ipcData = new IpcData(message);
       handleIpcMessage(ipcData);
 //      await new Future.delayed(const Duration(seconds: 5));
