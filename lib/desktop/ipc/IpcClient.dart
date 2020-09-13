@@ -38,7 +38,6 @@ class IpcClient {
   send(dynamic data) {
     if (mWebSocket != null) {
       print("IpcClient send ${data}");
-      print(mWebSocket.hashCode);
       mWebSocket.sink.add(data);
     }
   }
