@@ -53,15 +53,58 @@ class BaseRender {
     );
   }
 
+  GetFunction(View view, String type) {
+    String func = view.jsonParams['@' + type];
+    if (func == null) {
+      func = view.jsonParams['on' + type];
+    }
+
+    if (func != null && func.indexOf("(") != -1) { 
+      func = func.substring(0, func.indexOf("("));
+    }
+
+    return func;
+  }
+
+  GetParams(View view, String type) {
+    String params = '{}';
+    String func = view.jsonParams['@' + type];
+    if (func == null) {
+      func = view.jsonParams['on' + type];
+    }
+
+    if (func != null && func.indexOf("(") != -1) {
+      params =  func.substring(func.indexOf("(") +1, func.length-1); 
+    }
+    return params;
+  }
+
   RenderText(View view) {
-    print("BuidView build as text: ${view.name} -> ${view.content}");
-    return Text(view.content);
+    print("BuidView build as text: ${view.name} -> ${view.jsonParams}");
+    
+    var text = view.content;
+    if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
+    
+    if (GetFunction(view, "click") != null) {
+
+      return RaisedButton(
+          onPressed: () {
+            InvokeMethod(view, 
+              GetFunction(view, "click"),
+              GetParams(view, "click"));
+          },
+          child: Text(text));
+    } else {
+      return Text(text);
+    }
   }
 
   RenderButton(View view) {
     return RaisedButton(
         onPressed: () {
-          InvokeMethod(view, "onclick", "{}");
+            InvokeMethod(view, 
+              GetFunction(view, "click"),
+              GetParams(view, "click"));
         },
         child: Text(view.jsonParams['value']));
   }
@@ -91,10 +134,11 @@ class BaseRender {
     ipc.send(jsonEncode(map));
   }
 
-  InvokeMethod(View view, String type, String params) {
+  InvokeMethod(View view, String func, String params) {
     Map<String, dynamic> map = new Map();
+   
     map["mod"] = "invoke";
-    map["function"] = view.jsonParams[type];
+    map["function"] = func;
     map["param"] = params;
     ipc?.send(jsonEncode(map));
   }
