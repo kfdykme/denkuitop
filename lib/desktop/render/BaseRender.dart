@@ -21,6 +21,14 @@ class BaseRender {
     return view.name == "template" || view.name == "view" || view.name == "div";
   }
 
+  IsTabs(View view) {
+    return view.name == "tabs";
+  }
+
+  IsTabContent(View view) {
+    return view.name == "tab-content";
+  }
+
   IsButton(View view) {
     return view.name == 'input' &&
         view.jsonParams["type"] != null &&
@@ -36,6 +44,27 @@ class BaseRender {
 
   IsStack(View view) {
     return view.name == 'stack';
+  }
+
+  
+  IsShow(View view) {
+    print("BuildView IsShow ${view.name} ${view.jsonParams["show"]} ${view.jsonParams["show"] == "false"}");
+    return !(view.jsonParams["show"] == "false"); 
+  }
+ 
+
+  RenderTabs(View view, List<Widget> childs) {
+    View tabContentView = view.childs.singleWhere((element) => element.name == "tab-content");
+    if (tabContentView == null) {
+      return Text(view.name);
+    } else {
+      int tabIndex = int.parse(view.jsonParams["index"]);
+      
+      print("BuildView RenderTabs index: ${tabIndex}");
+      return Center(
+        child:RenderView(tabContentView.childs[tabIndex])
+      );
+    }
   }
 
   RenderInput(View view) {
@@ -92,8 +121,11 @@ class BaseRender {
             InvokeMethod(view, 
               GetFunction(view, "click"),
               GetParams(view, "click"));
-          },
-          child: Text(text));
+          }, 
+          color: Colors.white,
+          hoverColor:Colors.white12,
+          child: Text(text),
+          );
     } else {
       return Text(text);
     }
@@ -117,7 +149,7 @@ class BaseRender {
 
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
-    childs.insert(0, RenderNull(view));
+    // childs.insert(0, RenderNull(view));
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -143,18 +175,23 @@ class BaseRender {
     ipc?.send(jsonEncode(map));
   }
 
+
   RenderView(View view) {
     print("BuildView form ${view.name}");
     List<Widget> childs = [];
 
     view.childs.forEach((element) {
-      childs.add(RenderView(element));
+      if (IsShow(element)) {
+        childs.add(RenderView(element));
+      }
     });
     var res;
     if (IsText(view)) {
       return RenderText(view);
     } else if (IsContainor(view)) {
       return RenderContainor(view, childs);
+    } else if (IsTabs(view)) {
+      return RenderTabs(view, childs);
     } else if (IsButton(view)) {
       return RenderButton(view);
     } else if (IsInput(view)) {
