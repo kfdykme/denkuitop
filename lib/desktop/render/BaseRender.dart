@@ -1,11 +1,14 @@
 import 'package:denkuitop/desktop/data/View.dart';
 import 'package:denkuitop/desktop/ipc/IpcClient.dart';
+import 'package:denkuitop/desktop/render/Components.dart';
+import 'package:denkuitop/desktop/render/RenderCheck.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:convert';
 
 class BaseRender {
   IpcClient ipc = null;
+  RenderCheck renderCheck = RenderCheck();
 
   BaseRender() {}
 
@@ -13,57 +16,16 @@ class BaseRender {
     this.ipc = ipcClient;
   }
 
-  IsText(View view) {
-    return view.name == "text";
-  }
-
-  IsContainor(View view) {
-    return view.name == "template" || view.name == "view" || view.name == "div";
-  }
-
-  IsTabs(View view) {
-    return view.name == "tabs";
-  }
-
-  IsTabContent(View view) {
-    return view.name == "tab-content";
-  }
-
-  IsButton(View view) {
-    return view.name == 'input' &&
-        view.jsonParams["type"] != null &&
-        view.jsonParams["type"] == "button";
-  }
-
-  IsInput(View view) {
-    return view.name == 'input' &&
-        (view.jsonParams["type"] == null ||
-            view.jsonParams["type"] == "text" ||
-            view.jsonParams["type"] == "password");
-  }
-
-  IsStack(View view) {
-    return view.name == 'stack';
-  }
-
-  
-  IsShow(View view) {
-    print("BuildView IsShow ${view.name} ${view.jsonParams["show"]} ${view.jsonParams["show"] == "false"}");
-    return !(view.jsonParams["show"] == "false"); 
-  }
- 
-
   RenderTabs(View view, List<Widget> childs) {
-    View tabContentView = view.childs.singleWhere((element) => element.name == "tab-content");
+    View tabContentView =
+        view.childs.singleWhere((element) => element.name == "tab-content");
     if (tabContentView == null) {
       return Text(view.name);
     } else {
       int tabIndex = int.parse(view.jsonParams["index"]);
-      
+
       print("BuildView RenderTabs index: ${tabIndex}");
-      return Center(
-        child:RenderView(tabContentView.childs[tabIndex])
-      );
+      return Center(child: RenderView(tabContentView.childs[tabIndex]));
     }
   }
 
@@ -88,7 +50,7 @@ class BaseRender {
       func = view.jsonParams['on' + type];
     }
 
-    if (func != null && func.indexOf("(") != -1) { 
+    if (func != null && func.indexOf("(") != -1) {
       func = func.substring(0, func.indexOf("("));
     }
 
@@ -103,29 +65,27 @@ class BaseRender {
     }
 
     if (func != null && func.indexOf("(") != -1) {
-      params =  func.substring(func.indexOf("(") +1, func.length-1); 
+      params = func.substring(func.indexOf("(") + 1, func.length - 1);
     }
     return params;
   }
 
   RenderText(View view) {
     print("BuidView build as text: ${view.name} -> ${view.jsonParams}");
-    
+
     var text = view.content;
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
-    
-    if (GetFunction(view, "click") != null) {
 
+    if (GetFunction(view, "click") != null) {
       return RaisedButton(
-          onPressed: () {
-            InvokeMethod(view, 
-              GetFunction(view, "click"),
-              GetParams(view, "click"));
-          }, 
-          color: Colors.white,
-          hoverColor:Colors.white12,
-          child: Text(text),
-          );
+        onPressed: () {
+          InvokeMethod(
+              view, GetFunction(view, "click"), GetParams(view, "click"));
+        },
+        color: Colors.white,
+        hoverColor: Colors.white12,
+        child: Text(text),
+      );
     } else {
       return Text(text);
     }
@@ -134,9 +94,8 @@ class BaseRender {
   RenderButton(View view) {
     return RaisedButton(
         onPressed: () {
-            InvokeMethod(view, 
-              GetFunction(view, "click"),
-              GetParams(view, "click"));
+          InvokeMethod(
+              view, GetFunction(view, "click"), GetParams(view, "click"));
         },
         child: Text(view.jsonParams['value']));
   }
@@ -168,35 +127,46 @@ class BaseRender {
 
   InvokeMethod(View view, String func, String params) {
     Map<String, dynamic> map = new Map();
-   
+
     map["mod"] = "invoke";
     map["function"] = func;
     map["param"] = params;
     ipc?.send(jsonEncode(map));
   }
 
-
   RenderView(View view) {
     print("BuildView form ${view.name}");
     List<Widget> childs = [];
 
-    view.childs.forEach((element) {
-      if (IsShow(element)) {
+    view?.childs.forEach((element) {
+      if (renderCheck.IsShow(element)) {
         childs.add(RenderView(element));
       }
     });
+
+    view?.components?.forEach((element) {
+      Components.register(element);
+    });
     var res;
-    if (IsText(view)) {
+    if (renderCheck.IsText(view)) {
       return RenderText(view);
-    } else if (IsContainor(view)) {
+    } else if (renderCheck.IsContainor(view)) {
       return RenderContainor(view, childs);
-    } else if (IsTabs(view)) {
+    } else if (renderCheck.IsTabs(view)) {
       return RenderTabs(view, childs);
-    } else if (IsButton(view)) {
+    } else if (renderCheck.IsButton(view)) {
       return RenderButton(view);
-    } else if (IsInput(view)) {
+    } else if (renderCheck.IsInput(view)) {
       return RenderInput(view);
-    } else if (IsStack(view)) {
+    } else if (renderCheck.IsStack(view)) {
+      return RenderContainor(view, childs);
+    } else if (renderCheck.IsComponents(view)) {
+      View component = Components.get(view.name);
+      component.name = "view";
+      return RenderView(component);
+    } else if (renderCheck.IsRefresh(view)) {
+      return RenderContainor(view, childs);
+    } else if (renderCheck.IsList(view)) {
       return RenderContainor(view, childs);
     } else {
       return RenderNull(view);
