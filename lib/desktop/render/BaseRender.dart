@@ -35,7 +35,8 @@ class BaseRender {
       onChanged: (value) {
         // UpdateValue(view, key, value)
         UpdateValue(view, view.jsonParams["id"], value);
-        InvokeMethod(view, "onchange", "{ \"value\": \"${value}\"}");
+        InvokeMethod(
+            view, GetFunction(view, "change"), "{ \"value\": \"${value}\"}");
       },
       decoration: InputDecoration(
         border: OutlineInputBorder(),
@@ -106,10 +107,18 @@ class BaseRender {
     return Text(text);
   }
 
+  static RenderEmpty() {
+    return Container(
+      width: 350,
+      color: Colors.red,
+    );
+  }
+
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
     // childs.insert(0, RenderNull(view));
-    return Center(
+    return Container(
+      width: 350,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: childs,

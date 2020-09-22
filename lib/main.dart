@@ -58,23 +58,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   var ipcClient = IpcClient();
   var baseRender = BaseRender();
 
-  String _bodyView = "";
+  List<Widget> viewStack;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  Scaffold view;
 
-      ipcClient.send(_counter);
-    });
+  String promptText = "";
+
+  bool isFirst = true;
+  _MyHomePageState() {
+    viewStack = [BaseRender.RenderEmpty(), BaseRender.RenderEmpty()];
   }
 
   void handleIpcMessage(IpcData ipcData) {
@@ -93,11 +88,26 @@ class _MyHomePageState extends State<MyHomePage> {
           var key = map['key'] as String;
           var value = map['value'].toString();
 
-          print(
-              "handleIpcMessage UPDATE_VIEW: ${ipcData.data} -> {{${key}}} :${value}");
+          // print(
+          //     "handleIpcMessage UPDATE_VIEW: ${ipcData.data} -> {{${key}}} :${value}");
+          // setState(() {
+          //   _bodyView = _bodyView.replaceAll("{{${key}}}",
+          //       "${Utf8Decoder().convert(Utf8Encoder().convert(value))}");
+          // });
+        }
+        break;
+      case "RENDER_VIEW_REPLACE":
+        if (ipcData.data != null) {
+          this.renderView(ipcData.data, isReplace: true);
+        } else {
+          print("RENDER_VIEW NULL");
+          ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
+        }
+        break;
+      case "PROMPT":
+        if (ipcData.data != null) {
           setState(() {
-            _bodyView = _bodyView.replaceAll("{{${key}}}",
-                "${Utf8Decoder().convert(Utf8Encoder().convert(value))}");
+            promptText = ipcData.data.toString();
           });
         }
         break;
@@ -106,13 +116,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void renderView(dynamic data) {
-    print(data);
+  void renderView(dynamic data, {bool isReplace = false}) {
     View view = new View(jsonDecode(data));
+    //1
 
     setState(() {
-      _bodyView = data;
+      if (!isReplace && isFirst) {
+        viewStack[0] = buildView(view);
+      } else {
+        viewStack[1] = buildView(view);
+      }
+      isFirst = false;
     });
+
     ipcClient.send("DENKUI_ON_ATTACH_VIEW_END");
   }
 
@@ -125,11 +141,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     ipcClient.init();
-//     ipcClient.addCallback((String message) async {
-//       var ipcData = new IpcData(message);
-//       handleIpcMessage(ipcData);
-// //      await new Future.delayed(const Duration(seconds: 5));
-//     });
 
     ipcClient.setCallback("onmessage", (String message) async {
       var ipcData = new IpcData(message);
@@ -138,21 +149,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     baseRender.bindIpc(ipcClient);
 
-//    var json = TestRenderData.get();
-    var center;
-    if (_bodyView != '') {
-      center = buildViewFrom(_bodyView);
-    } else {
-      center = Center();
-    }
-
-    Scaffold scaffold = Scaffold(
+    view = Scaffold(
         appBar: AppBar(
-          title: Text("TEST_RENDER_DATA"),
+          title: new Text(promptText),
         ),
-        body: center);
+        body: Row(
+          children: viewStack,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        ));
 
-    return scaffold;
+    return view;
   }
 
   buildViewFrom(json) {
