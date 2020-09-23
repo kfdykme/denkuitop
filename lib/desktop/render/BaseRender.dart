@@ -22,8 +22,12 @@ class BaseRender {
     if (tabContentView == null) {
       return Text(view.name);
     } else {
-      int tabIndex = int.parse(view.jsonParams["index"]);
-
+      int tabIndex = 0;
+      try {
+        tabIndex = int.parse(view.jsonParams["index"]);
+      } on Exception catch (e) {
+        print(e);
+      }
       print("BuildView RenderTabs index: ${tabIndex}");
       return Center(child: RenderView(tabContentView.childs[tabIndex]));
     }
@@ -116,14 +120,17 @@ class BaseRender {
 
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
-    // childs.insert(0, RenderNull(view));
-    return Container(
-      width: 350,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: childs,
-      ),
-    );
+    childs.insert(0, RenderNull(view));
+
+    return SingleChildScrollView(
+      child: Container(
+        width: 350,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: childs,
+        ),
+      )
+    ) ;
   }
 
   UpdateValue(View view, String key, String value) {
