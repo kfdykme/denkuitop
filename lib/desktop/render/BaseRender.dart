@@ -8,12 +8,18 @@ import 'dart:convert';
 
 class BaseRender {
   IpcClient ipc = null;
+  BuildContext context = null;
   RenderCheck renderCheck = RenderCheck();
+  SnackBar lastSnackBar = null;
 
   BaseRender() {}
 
   bindIpc(IpcClient ipcClient) {
     this.ipc = ipcClient;
+  }
+
+  bindContext(BuildContext context) {
+    this.context = context;
   }
 
   RenderTabs(View view, List<Widget> childs) {
@@ -75,6 +81,17 @@ class BaseRender {
     return params;
   }
 
+  _ShowText(BuildContext context, String text) {
+    if (lastSnackBar != null) {
+      Scaffold.of(context).removeCurrentSnackBar();
+      lastSnackBar = null;
+    }
+    lastSnackBar = new SnackBar(
+      content: new Text(text), 
+    );
+    Scaffold.of(context).showSnackBar(lastSnackBar);
+  }
+
   RenderText(View view) {
     print("BuidView build as text: ${view.name} -> ${view.jsonParams}");
 
@@ -82,14 +99,19 @@ class BaseRender {
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
 
     if (GetFunction(view, "click") != null) {
-      return RaisedButton(
-        onPressed: () {
-          InvokeMethod(
-              view, GetFunction(view, "click"), GetParams(view, "click"));
-        },
-        color: Colors.white,
-        hoverColor: Colors.white12,
-        child: Text(text),
+      return new Center(
+        child: new Builder(builder: (BuildContext context) {
+          return RaisedButton(
+            onPressed: () {
+              _ShowText(context, "${view.jsonParams}");
+              InvokeMethod(
+                  view, GetFunction(view, "click"), GetParams(view, "click"));
+            },
+            color: Colors.white,
+            hoverColor: Colors.white12,
+            child: Text(view.content),
+          );
+        }),
       );
     } else {
       return Text(text);
@@ -99,6 +121,14 @@ class BaseRender {
   RenderButton(View view) {
     return RaisedButton(
         onPressed: () {
+          Scaffold.of(this.context).showSnackBar(new SnackBar(
+            content: new Text("SanckBar is Showing "),
+            action: new SnackBarAction(
+                label: "撤销",
+                onPressed: () {
+                  print("点击撤回---------------");
+                }),
+          ));
           InvokeMethod(
               view, GetFunction(view, "click"), GetParams(view, "click"));
         },
@@ -108,29 +138,42 @@ class BaseRender {
   RenderNull(View view) {
     var text = view.name;
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
-    return Text(text);
+    return new Builder(builder: (BuildContext context) {
+      return TextButton(
+        onPressed: () {
+          _ShowText(context, text);
+        },
+        child: Text(view.name),
+      );
+    });
   }
 
   static RenderEmpty() {
     return Container(
       width: 350,
-      color: Colors.red,
+      // color: Colors.red,
     );
   }
 
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
-    childs.insert(0, RenderNull(view));
+    if (childs.length > 2) childs.insert(0, RenderNull(view));
 
     return SingleChildScrollView(
-      child: Container(
-        width: 350,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: childs,
-        ),
-      )
-    ) ;
+        child: Container(
+      width: 350,
+      decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF))),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: childs,
+      ),
+    ));
+  }
+
+  RenderProgress(View view) {
+    return CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[200]));
   }
 
   UpdateValue(View view, String key, String value) {
@@ -164,6 +207,9 @@ class BaseRender {
       Components.register(element);
     });
     var res;
+    if (renderCheck.IsForView(view)) {
+      return RenderNull(view);
+    }
     if (renderCheck.IsText(view)) {
       return RenderText(view);
     } else if (renderCheck.IsContainor(view)) {
@@ -184,6 +230,8 @@ class BaseRender {
       return RenderContainor(view, childs);
     } else if (renderCheck.IsList(view)) {
       return RenderContainor(view, childs);
+    } else if (renderCheck.IsProgress(view)) {
+      return RenderProgress(view);
     } else {
       return RenderNull(view);
     }

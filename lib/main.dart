@@ -15,8 +15,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    return MaterialApp( 
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -148,7 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
 //      await new Future.delayed(const Duration(seconds: 5));
     });
     baseRender.bindIpc(ipcClient);
-
+    baseRender.bindContext(context);
     view = Scaffold(
         appBar: AppBar(
           title: new Text(promptText),

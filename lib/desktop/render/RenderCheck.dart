@@ -11,7 +11,8 @@ class RenderCheck {
         _IsName(view, "view") ||
         _IsName(view, "div") ||
         IsList(view) ||
-        _IsName(view, "block");
+        _IsName(view, "block") ||
+        _IsName(view, "list-item");
   }
 
   IsTabs(View view) {
@@ -20,6 +21,10 @@ class RenderCheck {
 
   IsTabContent(View view) {
     return _IsName(view, "tab-content");
+  }
+
+  IsForView(View view) {
+    return view.jsonParams.containsKey("for");
   }
 
   IsButton(View view) {
@@ -33,6 +38,10 @@ class RenderCheck {
         (_HasValue(view, "type") ||
             _ValueEqual(view, "type", "text") ||
             _ValueEqual(view, "type", "password"));
+  }
+
+  IsProgress(View view) {
+    return _IsName(view, "progress");
   }
 
   IsStack(View view) {
