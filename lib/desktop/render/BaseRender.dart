@@ -150,12 +150,26 @@ class BaseRender {
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
     if (childs.length > 2) childs.insert(0, RenderNull(view));
+    var height = null;
+    view.styles.where((element) => element.hasHeight()).forEach((element) {
+      height = element.height();
+    });
 
+    var backgroundColor = null;
+    view.styles
+        .where((element) => element.hasBackgroundColor())
+        .forEach((element) {
+      backgroundColor = element.backgroundColor();
+    });
+
+    // childs.insert(0, new Text("${height}"));
     return SingleChildScrollView(
         child: Container(
       width: 350,
+      height: height,
       decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF))),
+          border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF)),
+          color: backgroundColor),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: childs,

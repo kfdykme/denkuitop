@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'package:denkuitop/desktop/data/Style.dart';
+
 class View {
   String content = "";
   Map<String, dynamic> jsonParams = new Map();
   String name = "";
   List<View> childs = new List.empty();
   List<View> components = new List.empty();
+  List<Style> styles = new List.empty();
 
   View.fromString(String jsonString) : this(jsonDecode(jsonString));
 
@@ -21,7 +24,10 @@ class View {
         components = (data['components'] as List<dynamic>)
             ?.where((element) => element != null)
             ?.map((dynamic e) => View.from(e))
-            ?.toList(); //.map((dynamic e) => new View(e as Map<String,dynamic>));
+            ?.toList(),
+        styles = (data['styleTags'] as List<dynamic>)
+            ?.map((dynamic e) => Style.from(e))
+            .toList(); //.map((dynamic e) => new View(e as Map<String,dynamic>));
 
   @override
   String toString() {
