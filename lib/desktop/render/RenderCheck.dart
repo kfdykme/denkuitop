@@ -35,7 +35,7 @@ class RenderCheck {
 
   IsInput(View view) {
     return view.name == 'input' &&
-        (_HasValue(view, "type") ||
+        (!_HasValue(view, "type") ||
             _ValueEqual(view, "type", "text") ||
             _ValueEqual(view, "type", "password"));
   }
@@ -66,8 +66,8 @@ class RenderCheck {
     return view.name == name;
   }
 
-  _HasValue(View view, String key ) {
-    return view.jsonParams[key] != null; 
+  _HasValue(View view, String key) {
+    return view.jsonParams[key] != null;
   }
 
   _ValueEqual(View view, String key, String value) {

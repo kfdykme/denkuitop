@@ -87,7 +87,7 @@ class BaseRender {
       lastSnackBar = null;
     }
     lastSnackBar = new SnackBar(
-      content: new Text(text), 
+      content: new Text(text),
     );
     Scaffold.of(context).showSnackBar(lastSnackBar);
   }
@@ -121,14 +121,6 @@ class BaseRender {
   RenderButton(View view) {
     return RaisedButton(
         onPressed: () {
-          Scaffold.of(this.context).showSnackBar(new SnackBar(
-            content: new Text("SanckBar is Showing "),
-            action: new SnackBarAction(
-                label: "撤销",
-                onPressed: () {
-                  print("点击撤回---------------");
-                }),
-          ));
           InvokeMethod(
               view, GetFunction(view, "click"), GetParams(view, "click"));
         },
