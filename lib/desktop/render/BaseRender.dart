@@ -40,18 +40,51 @@ class BaseRender {
   }
 
   RenderInput(View view) {
-    return TextField(
-      obscureText: view.jsonParams["type"] == "password",
-      onChanged: (value) {
-        // UpdateValue(view, key, value)
-        UpdateValue(view, view.jsonParams["id"], value);
-        InvokeMethod(
-            view, GetFunction(view, "change"), "{ \"value\": \"${value}\"}");
-      },
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: view.jsonParams["placeholder"],
+    var margin = null;
+    view.styles.where((element) => element.hasCss("margin")).forEach((element) {
+      margin = element.getCssSize("margin");
+    });
+
+    var padding = null;
+    view.styles
+        .where((element) => element.hasCss("padding"))
+        .forEach((element) {
+      padding = element.getCssSize("padding");
+    });
+
+    var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    var height = null;
+    view.styles.where((element) => element.hasCss("height")).forEach((element) {
+      height = element.getCssSize("height");
+    });
+
+    print("RenderInput ${view} ${margin} ${padding} ${width} ${height}");
+    view.styles.forEach((element) {
+      print(element);
+    });
+
+    return new Container(
+      child: TextField(
+        obscureText: view.jsonParams["type"] == "password",
+        onChanged: (value) {
+          // UpdateValue(view, key, value)
+          UpdateValue(view, view.jsonParams["id"], value);
+          InvokeMethod(
+              view, GetFunction(view, "change"), "{ \"value\": \"${value}\"}");
+        },
+        decoration: InputDecoration(
+          // border: OutlineInputBorder(),
+          labelText: view.jsonParams["placeholder"],
+        ),
       ),
+      height: height,
+      width: width,
+      padding: padding == null ? null : new EdgeInsets.all(padding),
+      margin: margin == null ? null : new EdgeInsets.all(margin),
     );
   }
 
@@ -96,7 +129,7 @@ class BaseRender {
     print("BuidView build as text: ${view.name} -> ${view.jsonParams}");
 
     var text = view.content;
-    if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
+    // if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
     var color = null;
     view.styles.where((element) => element.hasCss("color")).forEach((element) {
       color = element.getCssColor("color");
@@ -112,7 +145,7 @@ class BaseRender {
       text,
       style: new TextStyle(color: color, fontSize: fontSize),
     );
-    print("RenderText Color: ${color} with ${view.content} at ${fontSize}");
+    print("RenderText Color: ${color} with ${text} at ${fontSize}");
 
     if (GetFunction(view, "click") != null) {
       return new Center(
@@ -133,12 +166,66 @@ class BaseRender {
   }
 
   RenderButton(View view) {
-    return RaisedButton(
+    var margin = null;
+    view.styles.where((element) => element.hasCss("margin")).forEach((element) {
+      margin = element.getCssSize("margin");
+    });
+
+    var padding = null;
+    view.styles
+        .where((element) => element.hasCss("padding"))
+        .forEach((element) {
+      padding = element.getCssSize("padding");
+    });
+
+    var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    var height = null;
+    view.styles.where((element) => element.hasCss("height")).forEach((element) {
+      height = element.getCssSize("height");
+    });
+
+    var background = null;
+    view.styles
+        .where((element) => element.hasCss("background-color"))
+        .forEach((element) {
+      background = element.getCssColor("background-color");
+    });
+
+    var color = null;
+    view.styles.where((element) => element.hasCss("color")).forEach((element) {
+      color = element.getCssColor("color");
+    });
+    var fontSize = null;
+    view.styles
+        .where((element) => element.hasCss("font-size"))
+        .forEach((element) {
+      fontSize = element.getCssSize("font-size");
+    });
+    print(
+        "RenderButton ${view.name} -> ${view.jsonParams} ${margin} ${padding} ${width} ${height} ${color} ${background}");
+    return ButtonTheme(
+      child: RaisedButton(
         onPressed: () {
           InvokeMethod(
               view, GetFunction(view, "click"), GetParams(view, "click"));
         },
-        child: Text(view.jsonParams['value']));
+        child: Text(
+          view.jsonParams['value'],
+          style: new TextStyle(
+              color: color, backgroundColor: background, fontSize: fontSize),
+        ),
+      ),
+      buttonColor: background,
+
+      height: height == null ? 36.0 : height,
+      minWidth: width == null ? 88.0 : width,
+      padding: padding == null ? null : new EdgeInsets.all(padding),
+      // margin: margin == null ? null : new EdgeInsets.all(margin),
+    );
   }
 
   RenderNull(View view) {
@@ -157,19 +244,20 @@ class BaseRender {
   static RenderEmpty() {
     return Container(
       width: 350,
+      color: Colors.white,
       // color: Colors.red,
     );
   }
 
   RenderContainor(View view, List<Widget> childs) {
     print("BuildView build as center");
-    if (childs.length > 2) childs.insert(0, RenderNull(view));
+    // if (childs.length > 2) childs.insert(0, RenderNull(view));
     var height = null;
     view.styles.where((element) => element.hasHeight()).forEach((element) {
       height = element.height();
     });
 
-    var backgroundColor = null;
+    var backgroundColor = Colors.white;
     view.styles
         .where((element) => element.hasBackgroundColor())
         .forEach((element) {
@@ -182,7 +270,7 @@ class BaseRender {
       width: 350,
       height: height,
       decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF)),
+          // border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF)),
           color: backgroundColor),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

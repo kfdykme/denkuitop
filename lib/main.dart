@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp( 
+    return MaterialApp(
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -27,7 +27,9 @@ class MyApp extends StatelessWidget {
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         primarySwatch: Colors.blue,
+        backgroundColor: Colors.white,
         fontFamily: 'ZCOOL',
+        appBarTheme: null,
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
@@ -149,9 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
     baseRender.bindIpc(ipcClient);
     baseRender.bindContext(context);
     view = Scaffold(
-        appBar: AppBar(
-          title: new Text(promptText),
-        ),
+        backgroundColor: Colors.white,
         body: Row(
           children: viewStack,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

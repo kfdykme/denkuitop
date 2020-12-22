@@ -52,7 +52,7 @@ class Style {
   hasCss(String name) {
     return this
             .body
-            ?.where((element) => (element as String).contains(name))
+            ?.where((element) => (element as String).trim().startsWith(name))
             .length >
         0;
   }
@@ -61,14 +61,14 @@ class Style {
     if (hasCss(name)) {
       var size = (this
               .body
-              ?.where((element) => (element as String).contains(name))
+              ?.where((element) => (element as String).trim().startsWith(name))
               .last as String)
           .split(":")[1]
           .trim()
           .toUpperCase()
           .replaceAll(";", "")
           .replaceAll("PX", "");
-      print(size);
+      print('getCssSize $name $size');
       return double.parse(size) / 2;
     }
     return null;
@@ -78,14 +78,14 @@ class Style {
     if (hasCss(name)) {
       var color = (this
               .body
-              ?.where((element) => (element as String).contains(name))
+              ?.where((element) => (element as String).trim().startsWith(name))
               .last as String)
           .split(":")[1]
           .trim()
-          .toUpperCase()
-          .replaceAll("#", "FF")
+          // .toUpperCase()
+          .replaceAll("\#", "FF")
           .replaceAll(";", "");
-      print(color);
+      print("getCssColor ${name} ${color} from ${body}");
       return Color(int.parse(color.trim(), radix: 16));
     }
     return null;
