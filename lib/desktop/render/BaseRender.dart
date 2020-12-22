@@ -97,6 +97,22 @@ class BaseRender {
 
     var text = view.content;
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
+    var color = null;
+    view.styles.where((element) => element.hasCss("color")).forEach((element) {
+      color = element.getCssColor("color");
+    });
+
+    var fontSize = null;
+    view.styles
+        .where((element) => element.hasCss("font-size"))
+        .forEach((element) {
+      fontSize = element.getCssSize("font-size");
+    });
+    var textView = Text(
+      text,
+      style: new TextStyle(color: color, fontSize: fontSize),
+    );
+    print("RenderText Color: ${color} with ${view.content} at ${fontSize}");
 
     if (GetFunction(view, "click") != null) {
       return new Center(
@@ -107,14 +123,12 @@ class BaseRender {
               InvokeMethod(
                   view, GetFunction(view, "click"), GetParams(view, "click"));
             },
-            color: Colors.white,
-            hoverColor: Colors.white12,
-            child: Text(view.content),
+            child: textView,
           );
         }),
       );
     } else {
-      return Text(text);
+      return textView;
     }
   }
 

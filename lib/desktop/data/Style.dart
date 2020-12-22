@@ -49,6 +49,48 @@ class Style {
     }
   }
 
+  hasCss(String name) {
+    return this
+            .body
+            ?.where((element) => (element as String).contains(name))
+            .length >
+        0;
+  }
+
+  getCssSize(String name) {
+    if (hasCss(name)) {
+      var size = (this
+              .body
+              ?.where((element) => (element as String).contains(name))
+              .last as String)
+          .split(":")[1]
+          .trim()
+          .toUpperCase()
+          .replaceAll(";", "")
+          .replaceAll("PX", "");
+      print(size);
+      return double.parse(size) / 2;
+    }
+    return null;
+  }
+
+  getCssColor(String name) {
+    if (hasCss(name)) {
+      var color = (this
+              .body
+              ?.where((element) => (element as String).contains(name))
+              .last as String)
+          .split(":")[1]
+          .trim()
+          .toUpperCase()
+          .replaceAll("#", "FF")
+          .replaceAll(";", "");
+      print(color);
+      return Color(int.parse(color.trim(), radix: 16));
+    }
+    return null;
+  }
+
   hasBackgroundColor() {
     return this
             .body

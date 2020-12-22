@@ -27,7 +27,9 @@ class View {
             ?.toList(),
         styles = (data['styleTags'] as List<dynamic>)
             ?.map((dynamic e) => Style.from(e))
-            .toList(); //.map((dynamic e) => new View(e as Map<String,dynamic>));
+            .toList() {
+    print("View ${this.styles}");
+  } //.map((dynamic e) => new View(e as Map<String,dynamic>));
 
   @override
   String toString() {
