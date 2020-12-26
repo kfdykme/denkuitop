@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
         backgroundColor: Colors.white,
-        fontFamily: 'ZCOOL',
+        fontFamily: 'msyh',
         appBarTheme: null,
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
@@ -70,7 +70,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isFirst = true;
   _MyHomePageState() {
-    viewStack = [BaseRender.RenderEmpty(), BaseRender.RenderEmpty()];
+    viewStack = [BaseRender.RenderEmpty(),
+      SizedBox(
+          width: 1,
+          height: double.infinity,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+             boxShadow: <BoxShadow>[
+    	 BoxShadow(
+         	color: Colors.black
+         ),
+         BoxShadow(
+         	color: Colors.white,
+         ),
+	]),
+            
+          ),
+        ),
+     BaseRender.RenderEmpty()];
   }
 
   void handleIpcMessage(IpcData ipcData) {
@@ -125,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (!isReplace && isFirst) {
         viewStack[0] = buildView(view);
       } else {
-        viewStack[1] = buildView(view);
+        viewStack[2] = buildView(view);
       }
       isFirst = false;
     });

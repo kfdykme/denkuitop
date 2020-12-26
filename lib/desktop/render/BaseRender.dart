@@ -143,7 +143,7 @@ class BaseRender {
     });
     var textView = Text(
       text,
-      style: new TextStyle(color: color, fontSize: fontSize),
+      style: new TextStyle(color: color, fontSize: fontSize ),
     );
     print("RenderText Color: ${color} with ${text} at ${fontSize}");
 
@@ -216,7 +216,8 @@ class BaseRender {
         child: Text(
           view.jsonParams['value'],
           style: new TextStyle(
-              color: color, backgroundColor: background, fontSize: fontSize),
+            letterSpacing: 10,
+              color: color, fontSize: fontSize),
         ),
       ),
       buttonColor: background,
@@ -284,6 +285,36 @@ class BaseRender {
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[200]));
   }
 
+  RenderStack(View view, List<Widget> childs) {
+     print("BuildView build as center");
+    // if (childs.length > 2) childs.insert(0, RenderNull(view));
+    var height = null;
+    view.styles.where((element) => element.hasHeight()).forEach((element) {
+      height = element.height();
+    });
+
+    var backgroundColor = Colors.white;
+    view.styles
+        .where((element) => element.hasBackgroundColor())
+        .forEach((element) {
+      backgroundColor = element.backgroundColor();
+    });
+
+    // childs.insert(0, new Text("${height}"));
+    return SingleChildScrollView(
+        child: Container(
+      width: 350,
+      height: height,
+      decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: const Color(0xff00bcd4)),
+          color: backgroundColor),
+      child: Stack( 
+        alignment: AlignmentDirectional.bottomStart,
+        children: childs,
+      ),
+    ));
+  }
+
   UpdateValue(View view, String key, String value) {
     Map<String, dynamic> map = new Map();
     map["mod"] = "changevalue";
@@ -329,7 +360,7 @@ class BaseRender {
     } else if (renderCheck.IsInput(view)) {
       return RenderInput(view);
     } else if (renderCheck.IsStack(view)) {
-      return RenderContainor(view, childs);
+      return RenderStack(view, childs);
     } else if (renderCheck.IsComponents(view)) {
       View component = Components.get(view.name);
       component.name = "view";
