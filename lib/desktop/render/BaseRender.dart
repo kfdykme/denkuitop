@@ -1,3 +1,4 @@
+import 'package:denkuitop/desktop/data/Style.dart';
 import 'package:denkuitop/desktop/data/View.dart';
 import 'package:denkuitop/desktop/ipc/IpcClient.dart';
 import 'package:denkuitop/desktop/render/Components.dart';
@@ -231,13 +232,40 @@ class BaseRender {
 
   RenderNull(View view) {
     var text = view.name;
+    var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    if (width != null && width < 0) {
+      width = 350 * (-1 * width);
+    }
+    var height = null;
+    view.styles.where((element) => element.hasHeight()).forEach((element) {
+      height = element.height();
+    });
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
     return new Builder(builder: (BuildContext context) {
-      return TextButton(
+      return SizedBox(
+        height: 64,
+        width: 64,
+        child: TextButton(
         onPressed: () {
           _ShowText(context, text);
+          showDialog(context: context,
+          builder: (_) => AlertDialog(
+            title: Text(view.name),
+            content: SingleChildScrollView(
+              child: Column(children: [
+                Text('${view.name}=>${width}x${height}'),
+                Text(view.styles.toString()),
+              ],)
+            ),
+          ));
         },
+      
         child: Text(view.name),
+      ),
       );
     });
   }
@@ -250,9 +278,21 @@ class BaseRender {
     );
   }
 
-  RenderContainor(View view, List<Widget> childs) {
+  RenderContainor(View view, List<Widget> childs, {
+    double maxWidth,
+    String defaultFlexDirection = Style.FLEX_DIRECTION_COLUMN
+  }) {
     print("BuildView build as center");
-    // if (childs.length > 2) childs.insert(0, RenderNull(view));
+    var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    if (width != null && width < 0) {
+      width = maxWidth * (-1 * width);
+    }
+    if (childs.length > 2 || view.jsonParams['class'] == 'search' || view.jsonParams['class'] == 'shadown-to-right')
+     childs.insert(0, RenderNull(view));
     var height = null;
     view.styles.where((element) => element.hasHeight()).forEach((element) {
       height = element.height();
@@ -264,19 +304,43 @@ class BaseRender {
         .forEach((element) {
       backgroundColor = element.backgroundColor();
     });
+    
+    var borderRadius = 0.0;
+      view.styles
+        .where((element) => element.hasCss("border-radius"))
+        .forEach((element) {
+      borderRadius = element.getCssSize("border-radius");
+    });
 
+    var flexDirection = defaultFlexDirection;
+      view.styles
+        .where((element) => element.hasCss(Style.FLEX_DIRECTION))
+        .forEach((element) {
+      flexDirection = element.flexDirection();
+    });
+
+    var containor = null;
+
+    if (flexDirection == Style.FLEX_DIRECTION_ROW) {
+      containor =  Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: childs,
+      );
+    } else {
+      containor =  Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: childs,
+      );
+    }
+    
     // childs.insert(0, new Text("${height}"));
     return SingleChildScrollView(
         child: Container(
-      width: 350,
-      height: height,
-      decoration: BoxDecoration(
-          // border: Border.all(width: 2.0, color: const Color(0xFFFFFFFF)),
-          color: backgroundColor),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: childs,
-      ),
+           decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: const Color(0xffbc00d4))),
+      width: width,
+      height: height, 
+      child: containor
     ));
   }
 
@@ -285,9 +349,12 @@ class BaseRender {
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[200]));
   }
 
-  RenderStack(View view, List<Widget> childs) {
+  RenderStack(View view, List<Widget> childs, {
+    double maxWidth
+  }) {
      print("BuildView build as center");
-    // if (childs.length > 2) childs.insert(0, RenderNull(view));
+    // if (childs.length > 2) 
+    childs.insert(childs.length, RenderNull(view));
     var height = null;
     view.styles.where((element) => element.hasHeight()).forEach((element) {
       height = element.height();
@@ -300,16 +367,26 @@ class BaseRender {
       backgroundColor = element.backgroundColor();
     });
 
+    var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    if (width != null && width < 0) {
+      width = maxWidth * (-1 * width);
+    }
+
     // childs.insert(0, new Text("${height}"));
     return SingleChildScrollView(
         child: Container(
-      width: 350,
+      width: width,
       height: height,
       decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: const Color(0xff00bcd4)),
+          border: Border.all(width: 2.0, color: const Color(0xffbcd400)),
           color: backgroundColor),
       child: Stack( 
         alignment: AlignmentDirectional.bottomStart,
+        
         children: childs,
       ),
     ));
@@ -332,13 +409,61 @@ class BaseRender {
     ipc?.send(jsonEncode(map));
   }
 
-  RenderView(View view) {
+  RenderImage(View view) {
+     var width = null;
+    view.styles.where((element) => element.hasCss("width")).forEach((element) {
+      width = element.getCssSize("width");
+    });
+
+    var height = null;
+    view.styles.where((element) => element.hasCss("height")).forEach((element) {
+      height = element.getCssSize("height");
+    });
+
+    var background = null;
+    view.styles
+        .where((element) => element.hasCss("background-color"))
+        .forEach((element) {
+      background = element.getCssColor("background-color");
+    });
+    return SizedBox(height: height, width: width
+    ,child: Container(child:  TextButton(
+        onPressed: () { 
+          showDialog(context: context,
+          builder: (_) => AlertDialog(
+            title: Text(view.name),
+            content: SingleChildScrollView(
+              child:Text(view.jsonParams.toString())
+            ),
+          ));
+        },
+        child: Text(view.name),
+      ),
+    decoration: BoxDecoration(color: background),));
+  }
+
+  double MAX_WIDTH_LEFT = 350;
+  double MAX_WIDTH_RIGHT = 350;
+  RenderView(View view, {
+    bool isLeftView = false,
+    String defaultFlexDirection = Style.FLEX_DIRECTION_COLUMN
+  }) {
     print("BuildView form ${view.name}");
     List<Widget> childs = [];
 
+    double maxWidth = isLeftView ? MAX_WIDTH_LEFT : MAX_WIDTH_RIGHT;
+
+   var flexDirection = defaultFlexDirection;
+      view.styles
+        .where((element) => element.hasCss("border-radius"))
+        .forEach((element) {
+      flexDirection = element.flexDirection();
+    });
+
     view?.childs.forEach((element) {
       if (renderCheck.IsShow(element)) {
-        childs.add(RenderView(element));
+        childs.add(RenderView(element,
+        defaultFlexDirection: flexDirection));
       }
     });
 
@@ -352,7 +477,9 @@ class BaseRender {
     if (renderCheck.IsText(view)) {
       return RenderText(view);
     } else if (renderCheck.IsContainor(view)) {
-      return RenderContainor(view, childs);
+      return RenderContainor(view, childs, 
+        maxWidth: maxWidth,
+        defaultFlexDirection: flexDirection);
     } else if (renderCheck.IsTabs(view)) {
       return RenderTabs(view, childs);
     } else if (renderCheck.IsButton(view)) {
@@ -360,7 +487,8 @@ class BaseRender {
     } else if (renderCheck.IsInput(view)) {
       return RenderInput(view);
     } else if (renderCheck.IsStack(view)) {
-      return RenderStack(view, childs);
+      return RenderStack(view, childs, 
+        maxWidth: maxWidth);
     } else if (renderCheck.IsComponents(view)) {
       View component = Components.get(view.name);
       component.name = "view";
@@ -371,6 +499,8 @@ class BaseRender {
       return RenderContainor(view, childs);
     } else if (renderCheck.IsProgress(view)) {
       return RenderProgress(view);
+    } else if (renderCheck.IsImage(view)) {
+      return RenderImage(view);
     } else {
       return RenderNull(view);
     }

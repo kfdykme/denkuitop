@@ -40,6 +40,10 @@ class RenderCheck {
             _ValueEqual(view, "type", "password"));
   }
 
+  IsImage(View view) {
+    return _IsName(view, 'image');
+  }
+
   IsProgress(View view) {
     return _IsName(view, "progress");
   }

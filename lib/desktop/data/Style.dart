@@ -9,6 +9,10 @@ class Style {
 
   Style.empty();
 
+  static const FLEX_DIRECTION = "flex-direction";
+  static const FLEX_DIRECTION_ROW = 'row';
+  static const FLEX_DIRECTION_COLUMN = 'column';
+
   Style(Map<String, dynamic> data)
       : header = data['header'],
         body = (data['body'] as List<dynamic>),
@@ -57,6 +61,27 @@ class Style {
         0;
   }
 
+  getCssAsString(String name) {
+    return (this.body
+        ?.where((element) => (element as String).trim().startsWith(name))
+        .last as String);
+  
+  }
+
+  flexDirection() {
+    var direction = FLEX_DIRECTION_ROW;
+    if (hasCss(FLEX_DIRECTION)) {
+      direction = getCssAsString(FLEX_DIRECTION)
+      .split(":")[1]
+      .replaceAll(";", "")
+      .trim();
+      print("get $FLEX_DIRECTION $direction");
+    }
+
+    return direction;
+  }
+ 
+
   getCssSize(String name) {
     if (hasCss(name)) {
       var size = (this
@@ -69,6 +94,9 @@ class Style {
           .replaceAll(";", "")
           .replaceAll("PX", "");
       print('getCssSize $name $size');
+      if (size.contains("%")) {
+        return -1 * double.parse(size.replaceAll('%', '')) / 100;
+      }
       return double.parse(size) / 2;
     }
     return null;
@@ -82,9 +110,11 @@ class Style {
               .last as String)
           .split(":")[1]
           .trim()
-          // .toUpperCase()
+          .toUpperCase()
           .replaceAll("\#", "FF")
-          .replaceAll(";", "");
+          .replaceAll(";", "")
+          // TODO
+          .replaceAll('@PRIMARYCOLOR','FF00bcd4');
       print("getCssColor ${name} ${color} from ${body}");
       return Color(int.parse(color.trim(), radix: 16));
     }
@@ -111,7 +141,8 @@ class Style {
           .trim()
           .toUpperCase()
           .replaceAll("#", "FF")
-          .replaceAll(";", "");
+          .replaceAll(";", "")
+          .replaceAll('@PRIMARYCOLOR','FF00bcd4');
       print(color);
       return Color(int.parse(color.trim(), radix: 16));
     }
