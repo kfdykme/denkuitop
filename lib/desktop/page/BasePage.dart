@@ -35,10 +35,12 @@ class BasePageState extends State<BasePage> {
   Scaffold view;
 
   String promptText = "";
+  
+  bool isSinglePage = true;
 
   bool isFirst = true;
   BasePageState() {
-    viewStack = [BaseRender.RenderEmpty(),
+    viewStack = isSinglePage ? [BaseRender.RenderEmpty()] :[BaseRender.RenderEmpty(),
       SizedBox(
           width: 1,
           height: double.infinity,
@@ -107,7 +109,7 @@ class BasePageState extends State<BasePage> {
     //1
 
     setState(() {
-      if (!isReplace && isFirst) {
+      if ((!isReplace && isFirst) || isSinglePage) {
         viewStack[0] = buildViewLeft(view);
       } else {
         viewStack[2] = buildView(view);

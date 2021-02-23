@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:convert';
 
+bool IS_DEV_CSS = false; 
+
 class BaseRender {
   IpcClient ipc = null;
   BuildContext context = null;
@@ -291,7 +293,7 @@ class BaseRender {
     if (width != null && width < 0) {
       width = maxWidth * (-1 * width);
     }
-    if (childs.length > 2 || view.jsonParams['class'] == 'search' || view.jsonParams['class'] == 'shadown-to-right')
+    if (IS_DEV_CSS && childs.length > 2 || view.jsonParams['class'] == 'search' || view.jsonParams['class'] == 'shadown-to-right')
      childs.insert(0, RenderNull(view));
     var height = null;
     view.styles.where((element) => element.hasHeight()).forEach((element) {
@@ -337,7 +339,8 @@ class BaseRender {
     return SingleChildScrollView(
         child: Container(
            decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: const Color(0xffbc00d4))),
+          // border: Border.all(width: 2.0, color: const Color(0xffbc00d4))
+          ),
       width: width,
       height: height, 
       child: containor
