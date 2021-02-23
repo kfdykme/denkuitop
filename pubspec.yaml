@@ -71,6 +71,10 @@ flutter:
       fonts:
         - asset: fonts/ZCOOLQingKeHuangYou-Regular.ttf
           weight: 700
+    - family: msyh
+      fonts:
+        - asset: fonts/msyh.ttc
+
 
   # fonts:
   #   - family: Schyler
