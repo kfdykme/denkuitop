@@ -4,6 +4,7 @@ import 'dart:convert';
 
 class View {
   String content = "";
+  String renderContent = "";
   Map<String,dynamic> jsonParams = new Map();
   String name = "";
   List<View> childs = new List.empty();
@@ -16,6 +17,7 @@ class View {
       name = data['name'],
       jsonParams = data['jsonParams'],
       content = data['content'],
+      renderContent = data['renderContent'],
       childs = (data['childs'] as List<dynamic>)
           .map((dynamic e) =>  View.from(e))
           .toList();//.map((dynamic e) => new View(e as Map<String,dynamic>));

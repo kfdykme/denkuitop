@@ -111,7 +111,7 @@ class BaseRender {
   RenderText(View view) {
     print("BuidView build as text: ${view.name} -> ${view.jsonParams}");
     
-    var text = view.content;
+    var text = view.renderContent;
     if (view.jsonParams.values.length != 0) text += "-> ${view.jsonParams}";
     
     if (GetFunction(view, "click") != null) {
