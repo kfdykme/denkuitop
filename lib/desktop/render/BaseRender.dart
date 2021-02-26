@@ -282,6 +282,7 @@ class BaseRender {
 
   RenderContainor(View view, List<Widget> childs, {
     double maxWidth,
+    bool isRootView = false,
     String defaultFlexDirection = Style.FLEX_DIRECTION_COLUMN
   }) {
     print("BuildView build as center");
@@ -293,8 +294,8 @@ class BaseRender {
     if (width != null && width < 0) {
       width = maxWidth * (-1 * width);
     }
-    if (IS_DEV_CSS && childs.length > 2 || view.jsonParams['class'] == 'search' || view.jsonParams['class'] == 'shadown-to-right')
-     childs.insert(0, RenderNull(view));
+    // if (IS_DEV_CSS && childs.length > 2 || view.jsonParams['class'] == 'search' || view.jsonParams['class'] == 'shadown-to-right')
+    //  childs.insert(0, RenderNull(view));
     var height = null;
     view.styles.where((element) => element.hasHeight()).forEach((element) {
       height = element.height();
@@ -335,16 +336,27 @@ class BaseRender {
       );
     }
     
+    if (isRootView) {
+      height = 700.0;
+    }
     // childs.insert(0, new Text("${height}"));
-    return SingleChildScrollView(
+    var scrollView =  SingleChildScrollView(
         child: Container(
            decoration: BoxDecoration(
-          // border: Border.all(width: 2.0, color: const Color(0xffbc00d4))
+          border: IS_DEV_CSS ? Border.all(width: 2.0, color: const Color(0xffbc00d4)) : null
           ),
       width: width,
       height: height, 
       child: containor
     ));
+
+    if (isRootView) {
+      return Expanded(
+        child: scrollView
+      );
+    } else {
+      return scrollView;
+    }
   }
 
   RenderProgress(View view) {
@@ -447,9 +459,12 @@ class BaseRender {
 
   double MAX_WIDTH_LEFT = 350;
   double MAX_WIDTH_RIGHT = 350;
+
+
   RenderView(View view, {
     bool isLeftView = false,
-    String defaultFlexDirection = Style.FLEX_DIRECTION_COLUMN
+    String defaultFlexDirection = Style.FLEX_DIRECTION_COLUMN,
+    bool isRootView = false
   }) {
     print("BuildView form ${view.name}");
     List<Widget> childs = [];
@@ -463,10 +478,15 @@ class BaseRender {
       flexDirection = element.flexDirection();
     });
 
+    if (view.name == 'view' || view.name == 'template') {
+      isRootView = true;
+    }
+
     view?.childs.forEach((element) {
       if (renderCheck.IsShow(element)) {
         childs.add(RenderView(element,
-        defaultFlexDirection: flexDirection));
+        defaultFlexDirection: flexDirection,
+        isRootView: isRootView));
       }
     });
 
@@ -482,7 +502,8 @@ class BaseRender {
     } else if (renderCheck.IsContainor(view)) {
       return RenderContainor(view, childs, 
         maxWidth: maxWidth,
-        defaultFlexDirection: flexDirection);
+        defaultFlexDirection: flexDirection,
+        isRootView: isRootView);
     } else if (renderCheck.IsTabs(view)) {
       return RenderTabs(view, childs);
     } else if (renderCheck.IsButton(view)) {

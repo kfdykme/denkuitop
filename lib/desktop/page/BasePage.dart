@@ -153,12 +153,14 @@ class BasePageState extends State<BasePage> {
   }
 
   buildView(View view) {
-    return baseRender.RenderView(view);
+    return baseRender.RenderView(view,
+    isLeftView: true);
   }
 
   buildViewLeft(View view) {
     return baseRender.RenderView(view, 
     isLeftView :true,
+    isRootView: true,
     );
   }
 }
