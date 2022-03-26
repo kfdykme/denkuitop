@@ -1,8 +1,8 @@
-import 'package:denkuitop/desktop/data/Style.dart';
-import 'package:denkuitop/desktop/data/View.dart';
-import 'package:denkuitop/desktop/ipc/IpcClient.dart';
-import 'package:denkuitop/desktop/render/Components.dart';
-import 'package:denkuitop/desktop/render/RenderCheck.dart';
+import 'package:denkuitop/denkui/data/Style.dart';
+import 'package:denkuitop/denkui/data/View.dart';
+import 'package:denkuitop/denkui/ipc/IpcClient.dart';
+import 'package:denkuitop/denkui/render/Components.dart';
+import 'package:denkuitop/denkui/render/RenderCheck.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:convert';

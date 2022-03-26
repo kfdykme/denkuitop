@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:denkuitop/desktop/data/View.dart';
+import 'package:denkuitop/denkui/data/View.dart';
 
 class Components {
   static Map<String, View> _components = new HashMap();

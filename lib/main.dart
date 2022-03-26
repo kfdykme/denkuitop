@@ -1,8 +1,8 @@
  
-import 'package:denkuitop/desktop/page/DenkuiPage.dart';
+import 'package:denkuitop/denkui/page/DenkuiPage.dart';
 import 'package:flutter/material.dart';
 
-import 'package:denkuitop/desktop/child_process/ChildProcess.dart';
+import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 
 void main() {
     //child process

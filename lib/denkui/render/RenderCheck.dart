@@ -1,5 +1,5 @@
-import 'package:denkuitop/desktop/data/View.dart';
-import 'package:denkuitop/desktop/render/Components.dart';
+import 'package:denkuitop/denkui/data/View.dart';
+import 'package:denkuitop/denkui/render/Components.dart';
 
 class RenderCheck {
   IsText(View view) {

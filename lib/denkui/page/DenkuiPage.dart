@@ -1,4 +1,4 @@
-import 'package:denkuitop/desktop/page/BasePage.dart';
+import 'package:denkuitop/denkui/page/BasePage.dart';
 import 'package:flutter/widgets.dart'; 
 
 class DenkuiPage extends BasePage {

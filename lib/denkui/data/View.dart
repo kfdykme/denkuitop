@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:denkuitop/desktop/data/Style.dart';
+import 'package:denkuitop/denkui/data/Style.dart';
 
 class View {
   String content = "";

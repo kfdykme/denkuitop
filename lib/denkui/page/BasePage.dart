@@ -1,10 +1,10 @@
 
 import 'dart:convert';
 
-import 'package:denkuitop/desktop/data/IpcData.dart';
-import 'package:denkuitop/desktop/data/View.dart';
-import 'package:denkuitop/desktop/ipc/IpcClient.dart';
-import 'package:denkuitop/desktop/render/BaseRender.dart';
+import 'package:denkuitop/denkui/data/IpcData.dart';
+import 'package:denkuitop/denkui/data/View.dart';
+import 'package:denkuitop/denkui/ipc/IpcClient.dart';
+import 'package:denkuitop/denkui/render/BaseRender.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
