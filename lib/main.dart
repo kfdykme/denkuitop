@@ -2,8 +2,12 @@
 import 'package:denkuitop/desktop/page/DenkuiPage.dart';
 import 'package:flutter/material.dart';
 
+import 'package:denkuitop/desktop/child_process/ChildProcess.dart';
 
 void main() {
+    //child process
+  var childProcess = new ChildProcess(ChildProcess.DENO_COMMAND);
+  childProcess.run();
   runApp(MyApp());
 }
 

@@ -40,6 +40,9 @@ class IpcClient {
       // print("IpcClient has already inited");
       return;
     }
+
+    // start deno process
+
     Timer.periodic(const Duration(milliseconds: 1000), (timer) {
         print("Try Connect Socket");
         try {
