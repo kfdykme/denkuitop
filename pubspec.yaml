@@ -24,7 +24,8 @@ dependencies:
   flutter:
     sdk: flutter
   web_socket_channel: ^1.1.0
-  protobuf:
+  zefyrka: ^1.1.1 
+  quill_delta: ^2.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

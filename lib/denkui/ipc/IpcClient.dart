@@ -4,10 +4,13 @@ import 'package:web_socket_channel/io.dart';
 import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+
+
 class IpcClient {
   var mWebSocket;
 
-  List<Function> listeners = new List();
+  List<Function> listeners = <Function>[];
 
   Map<String, Function> callbacks = new HashMap();
 
@@ -18,21 +21,20 @@ class IpcClient {
   }
 
   initSocket() {
-    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:8082", headers:  {
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:7999", headers:  {
                   'Origin':'http://127.0.0.1'
                 });
 
     print("IpcClient init");
     inited = true;
     mWebSocket.stream.listen((message) {
-      print("IpcClient  message ${message}");
-      // listeners.forEach((callback) {
-      //   callback(message);
-      // });
-      print(callbacks["onmessage"]);
+      // print("IpcClient  message ${message}");
+      listeners.forEach((callback) {
+        callback(message);
+      });
       if (callbacks["onmessage"] != null) callbacks["onmessage"](message);
     });
-    this.send("DENKUI_START");
+    // this.send("DENKUI_START");
   }
 
   init() async {
@@ -62,6 +64,7 @@ class IpcClient {
       mWebSocket.sink.add(data);
     }
   }
+ 
 
   addCallback(Function callback) {
     listeners.add(callback);

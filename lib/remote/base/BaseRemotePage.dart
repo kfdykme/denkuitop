@@ -1,4 +1,6 @@
 
+import 'package:denkuitop/denkui/ipc/IpcClient.dart';
+import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:flutter/material.dart';
 
 class BaseRemotePage extends StatefulWidget {
@@ -21,6 +23,33 @@ class BaseRemotePage extends StatefulWidget {
 
 
 class BaseRemotePageState extends State<BaseRemotePage> {
+  
+  IpcClient _ipcClient = null;
+
+  void init ({
+    IpcClient client = null
+  }) {
+    print("BaseRemotePageState init");
+    _ipcClient = client;
+    if (_ipcClient == null) {
+      _ipcClient = IpcClient();
+    }
+    _ipcClient.init();
+    
+    _ipcClient.setCallback("onmessage", (String message) async {
+      print(message);
+//      await new Future.delayed(const Duration(seconds: 5));
+    });
+  }
+
+  IpcClient ipc() {
+    return _ipcClient;
+  }
+
+  BaseRemotePage() {
+    init();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Container(child: Text('BaseRemotePageState'));

@@ -1,5 +1,6 @@
  
 import 'package:denkuitop/denkui/page/DenkuiPage.dart';
+import 'package:denkuitop/kfto/page/KfToHomePage.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: BaseRemotePage()
+      home: KfToHomePage()
     );
   }
 }
