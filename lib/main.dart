@@ -1,5 +1,6 @@
  
 import 'package:denkuitop/denkui/page/DenkuiPage.dart';
+import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 
 void main() {
-    //child process
-  var childProcess = new ChildProcess(ChildProcess.DENO_COMMAND);
-  childProcess.run();
+  //child process
+  // SubModuleManager().setup(setupCallback: () {
+  //   ChildProcess(ChildProcess.DENO_COMMAND).run(callback: () {
+  //     print("Run Success");
+  //   });
+  // });
   runApp(MyApp());
 }
 

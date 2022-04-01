@@ -6,6 +6,7 @@ import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
 import 'package:denkuitop/common/Toast.dart';
+import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
@@ -33,6 +34,8 @@ class KfToHomeState extends BaseRemotePageState {
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
   TextEditingController _currentPathcontroller;
+
+  var highLightColor = const Color(0xFF6200EE);
 
   KfToHomeState() {
     super.init(client: new AsyncIpcClient());
@@ -118,8 +121,10 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildSingleListItem(ListItemData itemData) {
+    var backColor = currentFilePath == itemData.path ? Colors.black.withOpacity(0.6): Colors.white;
+    var forColor = currentFilePath == itemData.path ? Colors.white: Colors.black.withOpacity(0.6);
     return FlatButton(
-      textColor: Color.fromARGB(255, 129, 46, 247),
+      textColor: this.highLightColor,
       onPressed: () {
         var map = new Map<String, dynamic>();
         map['invokeName'] = 'readFile';
@@ -150,14 +155,15 @@ class KfToHomeState extends BaseRemotePageState {
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
+        color: backColor,
         child: Column(
           children: [
             ListTile(
-              leading: Icon(Icons.arrow_drop_down_sharp),
-              title: Text('${itemData.title}'),
+              leading: Icon(Icons.arrow_drop_down_sharp, color:forColor),
+              title: Text('${itemData.title}', style:  TextStyle(color:forColor)),
               subtitle: Text(
                 '${itemData.date}\n${GetFileNameFromPath(itemData.path)}',
-                style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                style: TextStyle(color:forColor),
               ),
             ),
           ],
@@ -173,7 +179,7 @@ class KfToHomeState extends BaseRemotePageState {
       child: Column(
         children: [
           FlatButton(
-            textColor: const Color(0xFF6200EE),
+            textColor: this.highLightColor,
             onPressed: () {
               var map = new Map();
               map['invokeName'] = "getNewBlogTemplate";
@@ -195,11 +201,12 @@ class KfToHomeState extends BaseRemotePageState {
 
   Widget buildDeleteButtonItem(ListItemData itemData, BuildContext context) {
     return FlatButton(
-      textColor: const Color(0xFF6200EE),
+      textColor: this.highLightColor,
       onPressed: () {
         Navigator.of(context).pop();
+        handleRemoveThis(itemData);
       },
-      child: const Text('Remote This'),
+      child: const Text('Remove This'),
     );
   }
 
@@ -236,6 +243,11 @@ class KfToHomeState extends BaseRemotePageState {
     const RIGHT_WIDTH = 1280 * 0.618;
     const LEFT_WIDTH = MAX_WIDTH - RIGHT_WIDTH;
     _controller.formatText(0, 1, NotusAttribute.block.code);
+
+    // if (!File('../denkui').existsSync()) {
+    //   ChildProcess(ChildProcess.PRE_PARE_DENKUI).run();
+    // }
+    
     var childs = [
       new Container(
         width: LEFT_WIDTH,
@@ -268,9 +280,18 @@ class KfToHomeState extends BaseRemotePageState {
                           child: TextField(
                             controller: _currentPathcontroller,
                             decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              focusColor: Color.fromARGB(60, 61, 57, 57),
+                              fillColor: this.highLightColor,
+                              border: OutlineInputBorder(
+                                borderRadius: const BorderRadius.all(Radius.circular(8))
+                              ),
+                              focusColor: this.highLightColor,
                               labelText: filePathLabelText,
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: this.highLightColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              )
                             ),
                             onChanged: _onFilePathInputChange,
                           )),
@@ -278,7 +299,7 @@ class KfToHomeState extends BaseRemotePageState {
                     ),
                     new Builder(builder: (BuildContext context2) {
                       return FlatButton(
-                        textColor: const Color(0xFF6200EE),
+                        textColor: this.highLightColor,
                         onPressed: () {
                           _saveFile();
                         },
@@ -304,5 +325,19 @@ class KfToHomeState extends BaseRemotePageState {
         children: childs,
       ),
     );
+  }
+
+  void handleRemoveThis(ListItemData itemData) {
+
+      var map = Map<String, dynamic>();
+      map['path'] = itemData.path;
+      var omap = Map<String, dynamic>();
+
+      omap['data'] = map;
+      omap['invokeName'] = 'deleteItem';
+      this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
+          callback: (AsyncIpcData data) {
+        _refresh();
+      });
   }
 }
