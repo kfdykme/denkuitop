@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
@@ -41,9 +42,14 @@ class KfToHomeState extends BaseRemotePageState {
   LibraryLoader lib ;
 
   KfToHomeState() {
+
+    var port = 7999 + new Random().nextInt(8000);
+
+    // TODO make sure port is not be used
+
     this.lib = LibraryLoader();
-    this.lib.libMain("deno run -A --import-map=../de2/import_map.json --unstable ..\\de2\\src\\start\\run.ts --port=8082");
-    super.init(client: new AsyncIpcClient(), port: 8082);
+    this.lib.libMain("deno run -A --import-map=../de2/import_map.json --unstable ..\\de2\\src\\start\\run.ts --port=${port}");
+    super.init(client: new AsyncIpcClient(), port: port);
 
     this.ipc().setCallback("onmessage", (String message) async {
       print(message);
