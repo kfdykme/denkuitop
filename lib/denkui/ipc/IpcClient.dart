@@ -20,8 +20,8 @@ class IpcClient {
 //    init();
   }
 
-  initSocket() {
-    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:7999", headers:  {
+  initSocket(int port ) {
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${ port}", headers:  {
                   'Origin':'http://127.0.0.1'
                 });
 
@@ -37,7 +37,7 @@ class IpcClient {
     // this.send("DENKUI_START");
   }
 
-  init() async {
+  init({ int port = 7999 }) async {
     if (inited) {
       // print("IpcClient has already inited");
       return;
@@ -49,7 +49,7 @@ class IpcClient {
         print("Try Connect Socket");
         try {
 
-            this.initSocket();
+            this.initSocket(port);
             timer.cancel();
         } on WebSocketChannelException catch(e) {
           print("Try Connect Socket fail" + e.toString());

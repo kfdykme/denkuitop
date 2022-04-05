@@ -1,7 +1,8 @@
  
 import 'package:denkuitop/denkui/page/DenkuiPage.dart';
-import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
+// import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
+import 'package:denkuitop/libdeno/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,7 @@ void main() {
   //   ChildProcess(ChildProcess.DENO_COMMAND).run(callback: () {
   //     print("Run Success");
   //   });
-  // });
+  // }); 
   runApp(MyApp());
 }
 

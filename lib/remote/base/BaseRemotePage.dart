@@ -27,14 +27,15 @@ class BaseRemotePageState extends State<BaseRemotePage> {
   IpcClient _ipcClient = null;
 
   void init ({
-    IpcClient client = null
+    IpcClient client = null,
+    int port: 7999
   }) {
     print("BaseRemotePageState init");
     _ipcClient = client;
     if (_ipcClient == null) {
       _ipcClient = IpcClient();
     }
-    _ipcClient.init();
+    _ipcClient.init(port: port);
     
     _ipcClient.setCallback("onmessage", (String message) async {
       print(message);

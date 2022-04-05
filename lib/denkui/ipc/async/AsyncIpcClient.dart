@@ -14,8 +14,8 @@ class AsyncIpcClient extends IpcClient {
   Map<String, AsyncIpcCallback> asyncCallbacks = new Map<String,AsyncIpcCallback>();
 
   @override
-  init() {
-    super.init();
+  init({ int port = 7999}) {
+    super.init( port: port);
     
     addCallback((String message) {
       logger.log('AsyncIpcClient base callback: ' + message);

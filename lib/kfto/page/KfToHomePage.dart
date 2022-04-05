@@ -10,6 +10,7 @@ import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
+import 'package:denkuitop/libdeno/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 import 'package:quill_delta/quill_delta.dart';
@@ -37,14 +38,19 @@ class KfToHomeState extends BaseRemotePageState {
 
   var highLightColor = const Color(0xFF6200EE);
 
+  LibraryLoader lib ;
+
   KfToHomeState() {
-    super.init(client: new AsyncIpcClient());
+    this.lib = LibraryLoader();
+    this.lib.libMain("deno run -A --import-map=../de2/import_map.json --unstable ..\\de2\\src\\start\\run.ts --port=8082");
+    super.init(client: new AsyncIpcClient(), port: 8082);
 
     this.ipc().setCallback("onmessage", (String message) async {
       print(message);
       handleIpcMessage(new KfToDoIpcData(message));
     });
     this._currentPathcontroller = TextEditingController();
+
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
