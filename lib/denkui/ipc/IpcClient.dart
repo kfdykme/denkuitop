@@ -5,8 +5,6 @@ import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-
-
 class IpcClient {
   var mWebSocket;
 
@@ -15,20 +13,21 @@ class IpcClient {
   Map<String, Function> callbacks = new HashMap();
 
   var inited = false;
+  var isConnected = false;
 
   IpcClient() {
 //    init();
   }
 
-  initSocket(int port ) {
-    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${ port}", headers:  {
-                  'Origin':'http://127.0.0.1'
-                });
+  initSocket(int port) {
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${port}",
+        headers: {'Origin': 'http://127.0.0.1'});
 
     print("IpcClient init");
     inited = true;
     mWebSocket.stream.listen((message) {
       // print("IpcClient  message ${message}");
+      isConnected = true;
       listeners.forEach((callback) {
         callback(message);
       });
@@ -37,7 +36,7 @@ class IpcClient {
     // this.send("DENKUI_START");
   }
 
-  init({ int port = 7999 }) async {
+  init({int port = 7999}) async {
     if (inited) {
       // print("IpcClient has already inited");
       return;
@@ -45,17 +44,18 @@ class IpcClient {
 
     // start deno process
 
-    Timer.periodic(const Duration(milliseconds: 1000), (timer) {
-        print("Try Connect Socket");
-        try {
+    Timer.periodic(const Duration(milliseconds: 5000), (timer) {
+      if (this.isConnected) {
+        timer.cancel();
+      }
+      print("Try Connect Socket ${port}");
 
-            this.initSocket(port);
-            timer.cancel();
-        } on WebSocketChannelException catch(e) {
-          print("Try Connect Socket fail" + e.toString());
-        }
+      try {
+        this.initSocket(port);
+      } catch (e) {
+        print("Try Connect Socket fail" + e.toString());
+      }
     });
-
   }
 
   send(dynamic data) {
@@ -64,7 +64,6 @@ class IpcClient {
       mWebSocket.sink.add(data);
     }
   }
- 
 
   addCallback(Function callback) {
     listeners.add(callback);
