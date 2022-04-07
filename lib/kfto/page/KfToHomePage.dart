@@ -11,6 +11,7 @@ import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
+import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
 import 'package:denkuitop/libdeno/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
@@ -35,26 +36,33 @@ class KfToHomeState extends BaseRemotePageState {
 
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
+  String currentTag = '';
   TextEditingController _currentPathcontroller;
+
+
+  bool isShowTagDialog = false;
 
   var highLightColor = const Color(0xFF6200EE);
 
   LibraryLoader lib;
 
   KfToHomeState() {
-    var port = 7999 + new Random().nextInt(8000);
+    var port = 7999;
 
     // TODO make sure port is not be used
 
     this.lib = LibraryLoader();
-    var executableDirPath = Platform.resolvedExecutable
-        .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-    var runableJsPath =
-        "${executableDirPath + '/../Resources/denkui.bundle.js'}";
-    print("${runableJsPath}");
-    this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
-    super.init(client: new AsyncIpcClient(), port: port);
+    if (Platform.isMacOS) {
+      port += new Random().nextInt(8000);
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath =
+          "${executableDirPath + '/../Resources/denkui.bundle.js'}";
+      print("${runableJsPath}");
+      this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+    }
 
+    super.init(client: new AsyncIpcClient(), port: port);
     this.ipc().setCallback("onmessage", (String message) async {
       print(message);
       handleIpcMessage(new KfToDoIpcData(message));
@@ -245,7 +253,9 @@ class KfToHomeState extends BaseRemotePageState {
     var size = 10;
     if (this.data?.data != null) {
       this.data.data.forEach((element) {
-        list.add(buildSingleListItem(element));
+        if (element.tags.contains(currentTag) || currentTag == 'All') {
+          list.add(buildSingleListItem(element));
+        }
       });
     } else {
       list.add(buildLoadingItem());
@@ -257,11 +267,16 @@ class KfToHomeState extends BaseRemotePageState {
     return Card(clipBehavior: Clip.antiAlias, child: widget);
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     const MAX_WIDTH = 1280 - 25;
     const RIGHT_WIDTH = 1280 * 0.618;
     const LEFT_WIDTH = MAX_WIDTH - RIGHT_WIDTH;
+    const MAX_HEIGHT = 720;
+    const LEFT_TOOLBAR_HEIGHT = 50.0;
+    const LEFT_LIST_HEIGHT = MAX_HEIGHT - LEFT_TOOLBAR_HEIGHT;
     _controller.formatText(0, 1, NotusAttribute.block.code);
 
     // if (!File('../denkui').existsSync()) {
@@ -274,13 +289,21 @@ class KfToHomeState extends BaseRemotePageState {
         color: Colors.white,
         child: ACard(Stack(
           children: [
-            new ListView(
-              padding: new EdgeInsets.all(8),
-              children: [ACard(Column(children: buildListItem()))],
+            Container(
+              child: new ListView(
+                padding: new EdgeInsets.all(8),
+                children: [ACard(Column(children: buildListItem()))],
+              )
+            
+              ,
+            ),Container(
+              height: isShowTagDialog ? MAX_HEIGHT * 0.618 : null,
+              margin: isShowTagDialog ? EdgeInsets.all(32) :  EdgeInsets.all(8),
+              color: Colors.white,
+              child: isShowTagDialog ? ACard(SingleChildScrollView(child: new Column( 
+              children: buildTagsViews()))
+               ) : _buildSingleTagView(currentTag),
             ),
-            // new Column(
-            //   children: [buildAddNewButtonItem()],
-            // )
           ],
         )),
       ),
@@ -358,5 +381,46 @@ class KfToHomeState extends BaseRemotePageState {
         callback: (AsyncIpcData data) {
       _refresh();
     });
+  }
+ Widget _buildSingleTagView(String text) {
+      var backColor = currentTag == text? Colors.black.withOpacity(0.6)
+        : Colors.white;
+      var forColor = currentTag == text
+        ? Colors.white
+        : Colors.black.withOpacity(0.6); 
+      return Container(
+          height: 50,
+          padding: EdgeInsets.all(8),
+          child: FlatButton(
+            onPressed: (() {
+              setState(() {
+                isShowTagDialog = !isShowTagDialog;
+                currentTag = text;
+              });
+            }),
+             textColor: this.highLightColor,
+          color: backColor,
+             child: Text(
+            text,
+            style: TextStyle(color: forColor),
+          )),
+        );
+    }
+  List<Widget> buildTagsViews() {
+    var res = <Widget>[];
+
+   
+
+    res.add(_buildSingleTagView("All"));
+    var tags = <String>[];
+    this.data?.data?.forEach((element) {
+      element.tags.forEach((tag) {
+        if (!tags.contains(tag)) {
+          tags.add(tag);
+          res.add(_buildSingleTagView(tag));
+        }
+      });
+    });
+    return res;
   }
 }
