@@ -12,7 +12,7 @@ class ListItemData {
     title = map['title'],
     date = map['date'],
     path = map['path'],
-    tags = List<String>.from(map['tags'] as List<dynamic>);
+    tags = map['tags'] == null ? [] : List<String>.from(map['tags'] as List<dynamic>);
 }
 
 class ListData {

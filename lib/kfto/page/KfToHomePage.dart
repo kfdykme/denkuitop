@@ -36,7 +36,7 @@ class KfToHomeState extends BaseRemotePageState {
 
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
-  String currentTag = '';
+  String currentTag = 'All';
   TextEditingController _currentPathcontroller;
 
 
@@ -47,7 +47,7 @@ class KfToHomeState extends BaseRemotePageState {
   LibraryLoader lib;
 
   KfToHomeState() {
-    var port = 7999;
+    var port = 8082;
 
     // TODO make sure port is not be used
 
