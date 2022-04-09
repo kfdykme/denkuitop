@@ -18,8 +18,9 @@ class AsyncIpcClient extends IpcClient {
     super.init( port: port);
     
     addCallback((String message) {
-      logger.log('AsyncIpcClient base callback: ' + message);
       var ipcData = new AsyncIpcData.raw(message);
+      if (ipcData.map()['name'] != 'heart')
+        logger.log('AsyncIpcClient base callback: ' + message);
       logCallbacks();
 
       if (asyncCallbacks.containsKey(ipcData.id)) {

@@ -94,6 +94,8 @@ class KfToHomeState extends BaseRemotePageState {
             }
           });
         });
+        // TODO:
+        dataTags.sort((left, right) => left.name.compareTo(right.name));
       });
     }
   }
@@ -235,8 +237,11 @@ class KfToHomeState extends BaseRemotePageState {
                   callback: (AsyncIpcData data) {
                 var ktoData = KfToDoIpcData.fromAsync(data);
                 String content = ktoData.data['content'] as String;
+                String path = ktoData.data['path'] as String;
+                currentFilePath = path;
+                _refreshFilePathTextField();
                 _insertIntoEditor(content);
-                _saveFile();
+                // _saveFile();
               });
             },
             child: const Text('Add New'),
