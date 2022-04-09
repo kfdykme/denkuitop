@@ -2,6 +2,8 @@
 import 'dart:convert';
 
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
+import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
+import 'package:flutter/cupertino.dart';
 
 class ListItemData {
   final String title;
@@ -54,5 +56,30 @@ class KfToDoIpcData  extends AsyncIpcData {
     ma['name'] = name;
     ma['data'] = data; 
     return jsonEncode(ma);
+  }
+}
+
+class KfToDoTagData {
+  final String name;
+  bool isOpen = false;
+  Color darkColor= ViewBuilder.RandomDarkColor();
+  Color darkColor2 =  ViewBuilder.RandomDarkColor();
+  Color lightColor = ViewBuilder.RandomColor();
+  Color lightColor2  = ViewBuilder.RandomColor();
+  KfToDoTagData(String tag):
+    name = tag;
+    
+
+  operator ==(Object other) =>
+    identical(this, other) || 
+    other is KfToDoTagData &&
+    other.name == this.name;
+  
+  @override
+  int get hashCode => this.name.hashCode;
+
+  @override
+  String toString() {
+    return this.name;
   }
 }

@@ -12,6 +12,7 @@ import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
+import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:denkuitop/libdeno/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
@@ -33,12 +34,11 @@ class KfToHomeState extends BaseRemotePageState {
   var isFirstConnect = false;
 
   ListData data = null;
-
+  List<KfToDoTagData> dataTags = [];
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
   String currentTag = 'All';
   TextEditingController _currentPathcontroller;
-
 
   bool isShowTagDialog = false;
 
@@ -78,6 +78,22 @@ class KfToHomeState extends BaseRemotePageState {
     if (data.name == 'initData') {
       setState(() {
         this.data = ListData.fromMap(data.data as Map<String, dynamic>);
+        this.data?.data?.forEach((element) {
+          element.tags.forEach((tag) {
+            var tagData = KfToDoTagData(tag);
+            var hasTag = false;
+            for (KfToDoTagData item in dataTags) {
+              if (item.name == tag) {
+                hasTag = true;
+                break;
+              }
+            }
+
+            if (!hasTag) {
+              dataTags.add(tagData);
+            }
+          });
+        });
       });
     }
   }
@@ -143,6 +159,22 @@ class KfToHomeState extends BaseRemotePageState {
     this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
   }
 
+  void onPressSingleItemFunc(ListItemData itemData) {
+    var map = new Map<String, dynamic>();
+      map['invokeName'] = 'readFile';
+      map['data'] = itemData.path;
+      this.ipc().invoke(KfToDoIpcData.from('invoke', map),
+          callback: (AsyncIpcData data) {
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        String content = ktoData.data['content'] as String;
+        String path = ktoData.data['path'] as String;
+        currentFilePath = path;
+        content = content.replaceAll('\t', '    ');
+        _refreshFilePathTextField();
+        _insertIntoEditor(content);
+      });
+  }
+
   Widget buildSingleListItem(ListItemData itemData) {
     var backColor = currentFilePath == itemData.path
         ? Colors.black.withOpacity(0.6)
@@ -153,19 +185,7 @@ class KfToHomeState extends BaseRemotePageState {
     return FlatButton(
       textColor: this.highLightColor,
       onPressed: () {
-        var map = new Map<String, dynamic>();
-        map['invokeName'] = 'readFile';
-        map['data'] = itemData.path;
-        this.ipc().invoke(KfToDoIpcData.from('invoke', map),
-            callback: (AsyncIpcData data) {
-          var ktoData = KfToDoIpcData.fromAsync(data);
-          String content = ktoData.data['content'] as String;
-          String path = ktoData.data['path'] as String;
-          currentFilePath = path;
-          content = content.replaceAll('\t', '    ');
-          _refreshFilePathTextField();
-          _insertIntoEditor(content);
-        });
+        this.onPressSingleItemFunc(itemData);
       },
       onLongPress: () {
         showDialog(
@@ -250,7 +270,6 @@ class KfToHomeState extends BaseRemotePageState {
 
   List<Widget> buildListItem() {
     List<Widget> list = [];
-    var size = 10;
     if (this.data?.data != null) {
       this.data.data.forEach((element) {
         if (element.tags.contains(currentTag) || currentTag == 'All') {
@@ -267,7 +286,35 @@ class KfToHomeState extends BaseRemotePageState {
     return Card(clipBehavior: Clip.antiAlias, child: widget);
   }
 
-  
+  List<Widget> buildListItemView(String tag) {
+    List<Widget> res = [];
+    this.data.data.where((element) => element.tags.contains(tag)).forEach((e) {
+        res.add( ViewBuilder.BuildSingleTagListItemContainor(e, onPressFunc: (ListItemData e) => this.onPressSingleItemFunc(e)));
+    });
+   return res;
+  }
+
+  Widget buildListView() {
+    List<Widget> list = [];
+    if (this.data?.data != null) {
+      dataTags.forEach((element) {
+        list.add(ViewBuilder.BuildSingleTagContainor(element.name,
+        tagData: element, onPressFunc: (String tag) {
+          setState(() {
+            element.isOpen = !element.isOpen;
+          });
+        }, childListItems: this.buildListItemView(element.name)));
+      });
+    } else {
+      list.add(buildLoadingItem());
+    }
+
+    return Container(
+        margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
+        child: new ListView(
+          children: list,
+        ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -289,20 +336,22 @@ class KfToHomeState extends BaseRemotePageState {
         color: Colors.white,
         child: ACard(Stack(
           children: [
+            // Container(
+            //   margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
+            //   child: new ListView(
+            //     padding: new EdgeInsets.all(8),
+            //     children: [ACard(Column(children: buildListItem()))],
+            //   ),
+            // ),
+            buildListView(),
             Container(
-              child: new ListView(
-                padding: new EdgeInsets.all(8),
-                children: [ACard(Column(children: buildListItem()))],
-              )
-            
-              ,
-            ),Container(
               height: isShowTagDialog ? MAX_HEIGHT * 0.618 : null,
-              margin: isShowTagDialog ? EdgeInsets.all(32) :  EdgeInsets.all(8),
+              margin: isShowTagDialog ? EdgeInsets.all(32) : EdgeInsets.all(0),
               color: Colors.white,
-              child: isShowTagDialog ? ACard(SingleChildScrollView(child: new Column( 
-              children: buildTagsViews()))
-               ) : _buildSingleTagView(currentTag),
+              child: isShowTagDialog
+                  ? ACard(SingleChildScrollView(
+                      child: new Column(children: buildTagsViews())))
+                  : _buildSingleTagView(currentTag),
             ),
           ],
         )),
@@ -382,34 +431,33 @@ class KfToHomeState extends BaseRemotePageState {
       _refresh();
     });
   }
- Widget _buildSingleTagView(String text) {
-      var backColor = currentTag == text? Colors.black.withOpacity(0.6)
-        : Colors.white;
-      var forColor = currentTag == text
-        ? Colors.white
-        : Colors.black.withOpacity(0.6); 
-      return Container(
-          height: 50,
-          padding: EdgeInsets.all(8),
-          child: FlatButton(
-            onPressed: (() {
-              setState(() {
-                isShowTagDialog = !isShowTagDialog;
-                currentTag = text;
-              });
-            }),
-             textColor: this.highLightColor,
+
+  Widget _buildSingleTagView(String text) {
+    var backColor =
+        currentTag == text ? Colors.black.withOpacity(0.6) : Colors.white;
+    var forColor =
+        currentTag == text ? Colors.white : Colors.black.withOpacity(0.6);
+    return Container(
+      height: 50,
+      padding: EdgeInsets.all(8),
+      child: FlatButton(
+          onPressed: (() {
+            setState(() {
+              isShowTagDialog = !isShowTagDialog;
+              currentTag = text;
+            });
+          }),
+          textColor: this.highLightColor,
           color: backColor,
-             child: Text(
+          child: Text(
             text,
             style: TextStyle(color: forColor),
           )),
-        );
-    }
+    );
+  }
+
   List<Widget> buildTagsViews() {
     var res = <Widget>[];
-
-   
 
     res.add(_buildSingleTagView("All"));
     var tags = <String>[];
