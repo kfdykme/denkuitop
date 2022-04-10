@@ -8,6 +8,7 @@ import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
 import 'package:denkuitop/common/Toast.dart';
 import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
+import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
@@ -64,7 +65,7 @@ class KfToHomeState extends BaseRemotePageState {
 
     super.init(client: new AsyncIpcClient(), port: port);
     this.ipc().setCallback("onmessage", (String message) async {
-      print(message);
+      // print(message);
       handleIpcMessage(new KfToDoIpcData(message));
     });
     this._currentPathcontroller = TextEditingController();
@@ -97,6 +98,13 @@ class KfToHomeState extends BaseRemotePageState {
         // TODO:
         dataTags.sort((left, right) => left.name.compareTo(right.name));
       });
+    }
+    if (data.name == 'notifyRead') {
+      String readPath = data.data;
+      ListItemData listItemData = this.data?.data?.where((element) => element.path == readPath).first;
+      if (listItemData != null) {
+        this.onPressSingleItemFunc(listItemData);
+      }
     }
   }
 
@@ -141,6 +149,20 @@ class KfToHomeState extends BaseRemotePageState {
     }
   }
 
+  void showSnack(AsyncIpcData data) {
+    print(data.raw);
+    print(data.rawMap);
+    String msg = data.rawMap['msg'];
+    print(msg);
+    if (msg != null) {
+        final snackBar = SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(msg),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
   void _saveFile() {
     var map = Map<String, dynamic>();
     map['path'] = GetDirFromPath(currentFilePath) +
@@ -153,6 +175,7 @@ class KfToHomeState extends BaseRemotePageState {
     omap['invokeName'] = 'writeFile';
     this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
         callback: (AsyncIpcData data) {
+      showSnack(data);
       _refresh();
     });
   }
@@ -163,18 +186,32 @@ class KfToHomeState extends BaseRemotePageState {
 
   void onPressSingleItemFunc(ListItemData itemData) {
     var map = new Map<String, dynamic>();
-      map['invokeName'] = 'readFile';
-      map['data'] = itemData.path;
-      this.ipc().invoke(KfToDoIpcData.from('invoke', map),
-          callback: (AsyncIpcData data) {
-        var ktoData = KfToDoIpcData.fromAsync(data);
-        String content = ktoData.data['content'] as String;
-        String path = ktoData.data['path'] as String;
-        currentFilePath = path;
-        content = content.replaceAll('\t', '    ');
-        _refreshFilePathTextField();
-        _insertIntoEditor(content);
-      });
+    map['invokeName'] = 'readFile';
+    map['data'] = itemData.path;
+    this.ipc().invoke(KfToDoIpcData.from('invoke', map),
+        callback: (AsyncIpcData data) {
+      var ktoData = KfToDoIpcData.fromAsync(data);
+      String content = ktoData.data['content'] as String;
+      String path = ktoData.data['path'] as String;
+      currentFilePath = path;
+      content = content.replaceAll('\t', '    ');
+      _refreshFilePathTextField();
+      _insertIntoEditor(content);
+    });
+  }
+
+  void onLongPressSingleItemFunc(ListItemData itemData) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Container(
+              child: buildDeleteButtonItem(itemData, context),
+              height: 100,
+              alignment: Alignment.center,
+            ),
+          );
+        });
   }
 
   Widget buildSingleListItem(ListItemData itemData) {
@@ -190,17 +227,7 @@ class KfToHomeState extends BaseRemotePageState {
         this.onPressSingleItemFunc(itemData);
       },
       onLongPress: () {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: Container(
-                  child: buildDeleteButtonItem(itemData, context),
-                  height: 100,
-                  alignment: Alignment.center,
-                ),
-              );
-            });
+        this.onLongPressSingleItemFunc(itemData);
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
@@ -223,28 +250,35 @@ class KfToHomeState extends BaseRemotePageState {
     );
   }
 
+  void onPressAddNewFunc() {
+    var map = new Map();
+    map['invokeName'] = "getNewBlogTemplate";
+    this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
+        callback: (AsyncIpcData data) {
+      var ktoData = KfToDoIpcData.fromAsync(data);
+      String content = ktoData.data['content'] as String;
+      String path = ktoData.data['path'] as String;
+      currentFilePath = path;
+      _refreshFilePathTextField();
+      _insertIntoEditor(content);
+    });
+  }
+
+  void onPressDeleteFunc(ListItemData itemData) {
+    handleRemoveThis(itemData);
+  }
+
   Widget buildAddNewButtonItem() {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          FlatButton(
+          MaterialButton(
             textColor: this.highLightColor,
             onPressed: () {
-              var map = new Map();
-              map['invokeName'] = "getNewBlogTemplate";
-              this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
-                  callback: (AsyncIpcData data) {
-                var ktoData = KfToDoIpcData.fromAsync(data);
-                String content = ktoData.data['content'] as String;
-                String path = ktoData.data['path'] as String;
-                currentFilePath = path;
-                _refreshFilePathTextField();
-                _insertIntoEditor(content);
-                // _saveFile();
-              });
+              this.onPressAddNewFunc();
             },
-            child: const Text('Add New'),
+            child: const Text('New'),
           )
         ],
       ),
@@ -253,11 +287,11 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildDeleteButtonItem(ListItemData itemData, BuildContext context) {
-    return FlatButton(
+    return MaterialButton(
       textColor: this.highLightColor,
       onPressed: () {
         Navigator.of(context).pop();
-        handleRemoveThis(itemData);
+        this.onPressDeleteFunc(itemData);
       },
       child: const Text('Remove This'),
     );
@@ -294,9 +328,12 @@ class KfToHomeState extends BaseRemotePageState {
   List<Widget> buildListItemView(String tag) {
     List<Widget> res = [];
     this.data.data.where((element) => element.tags.contains(tag)).forEach((e) {
-        res.add( ViewBuilder.BuildSingleTagListItemContainor(e, onPressFunc: (ListItemData e) => this.onPressSingleItemFunc(e)));
+      res.add(ViewBuilder.BuildSingleTagListItemContainor(e,
+          onPressFunc: (ListItemData e) => this.onPressSingleItemFunc(e),
+          onLongPressFunc: (ListItemData e) =>
+              this.onLongPressSingleItemFunc(e)));
     });
-   return res;
+    return res;
   }
 
   Widget buildListView() {
@@ -304,7 +341,7 @@ class KfToHomeState extends BaseRemotePageState {
     if (this.data?.data != null) {
       dataTags.forEach((element) {
         list.add(ViewBuilder.BuildSingleTagContainor(element.name,
-        tagData: element, onPressFunc: (String tag) {
+            tagData: element, onPressFunc: (String tag) {
           setState(() {
             element.isOpen = !element.isOpen;
           });
@@ -394,16 +431,23 @@ class KfToHomeState extends BaseRemotePageState {
                           )),
                       margin: const EdgeInsets.all(4),
                     ),
-                    new Builder(builder: (BuildContext context2) {
-                      return FlatButton(
-                        textColor: this.highLightColor,
-                        onPressed: () {
-                          _saveFile();
-                        },
-                        child: const Text('Save'),
-                      );
-                    }),
-                    buildAddNewButtonItem()
+                    ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
+                      _saveFile(); 
+                    },
+                        color: this.highLightColor,
+                        icon: Icon(
+                          Icons.save_as_sharp,
+                          color: this.highLightColor,
+                          size: ViewBuilder.size(2),
+                        )),
+                    ViewBuilder.BuildMaterialButton("New",
+                        onPressFunc: () => this.onPressAddNewFunc(),
+                        color: this.highLightColor,
+                        icon: Icon(
+                          Icons.add,
+                          color: this.highLightColor,
+                          size: ViewBuilder.size(2),
+                        ))
                   ],
                 ),
                 Expanded(
@@ -416,10 +460,12 @@ class KfToHomeState extends BaseRemotePageState {
             margin: const EdgeInsets.all(16),
           ))
     ];
-    return new Container(
-      child: new Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: childs,
+    return Scaffold(
+      body: new Container(
+        child: new Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: childs,
+        ),
       ),
     );
   }

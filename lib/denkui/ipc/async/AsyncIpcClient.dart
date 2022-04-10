@@ -19,7 +19,7 @@ class AsyncIpcClient extends IpcClient {
     
     addCallback((String message) {
       var ipcData = new AsyncIpcData.raw(message);
-      if (ipcData.map()['name'] != 'heart')
+      if (message.indexOf('hreat') != -1)
         logger.log('AsyncIpcClient base callback: ' + message);
       logCallbacks();
 
@@ -38,7 +38,7 @@ class AsyncIpcClient extends IpcClient {
   }
   
   logCallbacks() {
-    logger.log('callbacks' + asyncCallbacks.keys.length.toString());
+    // logger.log('callbacks' + asyncCallbacks.keys.length.toString());
     asyncCallbacks.keys.forEach((String element) {
       logger.log('callbacks key: ' + element.toString());
     });

@@ -4,6 +4,7 @@ import 'package:denkuitop/denkui/page/DenkuiPage.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
 import 'package:denkuitop/libdeno/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
+import 'package:denkuitop/uitest/SnackTest.dart';
 import 'package:flutter/material.dart';
 
 import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
@@ -16,6 +17,7 @@ void main() {
   //   });
   // }); 
   runApp(MyApp());
+  // runApp(SnackApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -96,13 +96,18 @@ class ViewBuilder {
     );
   }
 
-  static Widget BuildSingleTagListItemContainor(ListItemData e, { Function onPressFunc}) {
+  static Widget BuildSingleTagListItemContainor(ListItemData e, { Function onPressFunc, Function onLongPressFunc}) {
     return MaterialButton(
       padding:
           EdgeInsets.only(left: size(2), top: size(.75), bottom: size(.75)),
       onPressed: () {
         if (onPressFunc != null) {
           onPressFunc(e);
+        }
+      },
+      onLongPress: () {
+        if (onLongPressFunc != null) {
+          onLongPressFunc(e);
         }
       },
       child: Container( 
@@ -126,5 +131,36 @@ class ViewBuilder {
       ),
     );
     ;
+  }
+
+  static Widget BuildMaterialButton(String text, { Function onPressFunc, Color color, Icon icon}) {
+    List<Widget> buttonChildrenItems = [];
+    if (icon != null) {
+      buttonChildrenItems.add(icon);
+    }
+    buttonChildrenItems.add(Container(
+      padding: EdgeInsets.only(left: size(1 )),
+      child: Text(text),
+    ));
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          MaterialButton( 
+            textColor: color,
+            onPressed: () {
+              print("BuildMaterialButton Press ${text} ${onPressFunc}");
+              if (onPressFunc != null) {
+                onPressFunc();
+              }
+            },
+            child: Row( 
+              children: buttonChildrenItems,
+            ),
+          )
+        ],
+      ),
+      margin: const EdgeInsets.all(16),
+    );
   }
 }
