@@ -14,7 +14,8 @@ import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
-import 'package:denkuitop/libdeno/LibraryLoader.dart';
+import 'package:denkuitop/native/KeydownManager.dart';
+import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 import 'package:quill_delta/quill_delta.dart';
@@ -47,12 +48,13 @@ class KfToHomeState extends BaseRemotePageState {
 
   LibraryLoader lib;
 
+
   KfToHomeState() {
     var port = 8082;
 
     // TODO make sure port is not be used
 
-    this.lib = LibraryLoader();
+    this.lib = LibraryLoader.instance;
     if (Platform.isMacOS) {
       port += new Random().nextInt(8000);
       var executableDirPath = Platform.resolvedExecutable
@@ -69,6 +71,7 @@ class KfToHomeState extends BaseRemotePageState {
       handleIpcMessage(new KfToDoIpcData(message));
     });
     this._currentPathcontroller = TextEditingController();
+
   }
 
   void handleIpcMessage(KfToDoIpcData data) {

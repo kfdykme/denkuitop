@@ -13,7 +13,13 @@
 #include <dlfcn.h>
 #endif
 
-
+int loadNativeLib(std::string name) { 
+  HMODULE libdeno_module = LoadLibraryA(name.c_str());
+  if (libdeno_module == NULL || libdeno_module == INVALID_HANDLE_VALUE) {
+    return -1;
+  }
+  return 0;
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
@@ -26,11 +32,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-  std::string libdeno_path = "libdeno.dll";
-  HMODULE libdeno_module = LoadLibraryA(libdeno_path.c_str());
-  if (libdeno_module == NULL || libdeno_module == INVALID_HANDLE_VALUE) {
-    return -1;
-  }
+
+  loadNativeLib("libdeno.dll");
+  loadNativeLib("libkeydown.dll");
 
   flutter::DartProject project(L"data");
 
@@ -52,7 +56,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::TranslateMessage(&msg);
     ::DispatchMessage(&msg);
   }
-  FreeLibrary(libdeno_module);
+  // FreeLibrary(libdeno_module);
   ::CoUninitialize();
   return EXIT_SUCCESS;
 }

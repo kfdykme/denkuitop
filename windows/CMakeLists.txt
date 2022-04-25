@@ -74,7 +74,10 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(FILES "./libdeno/Release/libdeno.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "../nativeLibs/libdeno/windows/libdeno.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+  
+install(FILES "../nativeLibs/libkeydown/windows/libkeydown.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)

@@ -1,13 +1,24 @@
  
+import 'dart:isolate';
+
 import 'package:denkuitop/denkui/page/DenkuiPage.dart';
 // import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
-import 'package:denkuitop/libdeno/LibraryLoader.dart';
+import 'package:denkuitop/native/KeydownManager.dart';
+import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
+import 'package:denkuitop/uitest/KeyEventTest.dart';
 import 'package:denkuitop/uitest/SnackTest.dart';
 import 'package:flutter/material.dart';
 
 import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
+
+void doWork(SendPort sendPort) {
+  
+  KeydownManager.ins.RegisterHotKeyEvent("ctrl-s", () {
+    print("save ");
+  });
+}
 
 void main() {
   //child process
@@ -16,8 +27,15 @@ void main() {
   //     print("Run Success");
   //   });
   // }); 
+  // KeydownManager.ins.RegisterHotKeyEvent("ctrl-s", () {
+  //   print("save ");
+  // });
+  ReceivePort rp = new ReceivePort();
+
+  Isolate.spawn(doWork, rp.sendPort);
   runApp(MyApp());
   // runApp(SnackApp());
+  // runApp(KeyEventTestApp());
 }
 
 class MyApp extends StatelessWidget {
