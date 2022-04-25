@@ -32,6 +32,20 @@ class KfToHomePage extends BaseRemotePage {
   }
 }
 
+class DenkuiRunJsPathHelper {
+  static String GetPath() {
+    if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath =
+          "${executableDirPath + '/../Resources/denkui.bundle.js'}";
+      return runableJsPath;
+    }
+
+    return '';
+  }
+}
+
 class KfToHomeState extends BaseRemotePageState {
   var isFirstConnect = false;
 
@@ -56,13 +70,15 @@ class KfToHomeState extends BaseRemotePageState {
 
     this.lib = LibraryLoader.instance;
     if (Platform.isMacOS) {
-      port += new Random().nextInt(8000);
-      var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-      var runableJsPath =
-          "${executableDirPath + '/../Resources/denkui.bundle.js'}";
+      // port += new Random().nextInt(8000);
+      var runableJsPath = DenkuiRunJsPathHelper.GetPath();
       print("${runableJsPath}");
-      this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+      var isDev = false;
+      if (isDev) {
+        port = 8082;
+      } else {
+        this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+      }
     }
 
     super.init(client: new AsyncIpcClient(), port: port);
@@ -104,7 +120,8 @@ class KfToHomeState extends BaseRemotePageState {
     }
     if (data.name == 'notifyRead') {
       String readPath = data.data;
-      ListItemData listItemData = this.data?.data?.where((element) => element.path == readPath).first;
+      ListItemData listItemData =
+          this.data?.data?.where((element) => element.path == readPath).first;
       if (listItemData != null) {
         this.onPressSingleItemFunc(listItemData);
       }
@@ -158,11 +175,11 @@ class KfToHomeState extends BaseRemotePageState {
     String msg = data.rawMap['msg'];
     print(msg);
     if (msg != null) {
-        final snackBar = SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text(msg),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      final snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text(msg),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
 
@@ -435,7 +452,7 @@ class KfToHomeState extends BaseRemotePageState {
                       margin: const EdgeInsets.all(4),
                     ),
                     ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
-                      _saveFile(); 
+                      _saveFile();
                     },
                         color: this.highLightColor,
                         icon: Icon(
