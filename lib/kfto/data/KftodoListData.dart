@@ -39,6 +39,12 @@ class KfToDoIpcData  extends AsyncIpcData {
 
   KfToDoIpcData(String json):this.fromMap(jsonDecode(json));
  
+  @override
+  KfToDoIpcData.raw(String message):
+    name = jsonDecode(message)['name'],
+    data = jsonDecode(message)['data'],
+    super.raw(message);
+
   KfToDoIpcData.fromAsync(AsyncIpcData asyncIpcData):
     this.fromMap(asyncIpcData.rawMap);
 

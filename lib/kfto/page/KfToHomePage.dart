@@ -40,6 +40,11 @@ class DenkuiRunJsPathHelper {
       var runableJsPath =
           "${executableDirPath + '/../Resources/denkui.bundle.js'}";
       return runableJsPath;
+    } else if (Platform.isWindows) {
+      var executableDirPath = Platform.resolvedExecutable.substring(0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      var runableJsPath =
+          "${executableDirPath + '.\\denkui.bundle.js'}";
+      return runableJsPath;
     }
 
     return '';
@@ -69,22 +74,19 @@ class KfToHomeState extends BaseRemotePageState {
     // TODO make sure port is not be used
 
     this.lib = LibraryLoader.instance;
-    if (Platform.isMacOS) {
-      // port += new Random().nextInt(8000);
-      var runableJsPath = DenkuiRunJsPathHelper.GetPath();
-      print("${runableJsPath}");
-      var isDev = false;
-      if (isDev) {
-        port = 8082;
-      } else {
-        this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
-      }
+    var runableJsPath = DenkuiRunJsPathHelper.GetPath();
+    print("${runableJsPath}"); 
+    var isDev = false;
+    if (isDev) {
+      port = 8082;
+    } else {
+      this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
     }
 
     super.init(client: new AsyncIpcClient(), port: port);
     this.ipc().setCallback("onmessage", (String message) async {
       // print(message);
-      handleIpcMessage(new KfToDoIpcData(message));
+      handleIpcMessage(KfToDoIpcData.raw(message));
     });
     this._currentPathcontroller = TextEditingController();
 
@@ -125,6 +127,10 @@ class KfToHomeState extends BaseRemotePageState {
       if (listItemData != null) {
         this.onPressSingleItemFunc(listItemData);
       }
+    }
+
+    if (data.name == 'system.toast') {
+      showSnack(data);
     }
   }
 
@@ -169,18 +175,32 @@ class KfToHomeState extends BaseRemotePageState {
     }
   }
 
-  void showSnack(AsyncIpcData data) {
-    print(data.raw);
-    print(data.rawMap);
+  void showSnack(AsyncIpcData data) { 
+    print("raw ${data.raw}");
+    print("rawMap ${data.rawMap}");
     String msg = data.rawMap['msg'];
-    print(msg);
-    if (msg != null) {
-      final snackBar = SnackBar(
+    Color bkGC = null;
+    if (msg == null) {
+      msg = data.rawMap['data']['msg'];
+    }
+    if (msg == null) {
+      String error = data.rawMap['data']['error'];
+      if (error != null) {
+        msg = error;
+        bkGC = Color(0xffffbcd4);
+      }
+    }
+    print("msg ${msg}");
+    print("bkGC ${bkGC}");
+    if (msg == null) {
+      msg = "ERRRRRRRRRRRRRRR";
+    }
+    final snackBar = SnackBar(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: bkGC,
         content: Text(msg),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
   }
 
   void _saveFile() {

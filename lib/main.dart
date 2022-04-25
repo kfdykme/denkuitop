@@ -30,9 +30,9 @@ void main() {
   // KeydownManager.ins.RegisterHotKeyEvent("ctrl-s", () {
   //   print("save ");
   // });
-  ReceivePort rp = new ReceivePort();
+  // ReceivePort rp = new ReceivePort();
 
-  Isolate.spawn(doWork, rp.sendPort);
+  // Isolate.spawn(doWork, rp.sendPort);
   runApp(MyApp());
   // runApp(SnackApp());
   // runApp(KeyEventTestApp());
