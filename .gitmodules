@@ -1,0 +1,3 @@
+[submodule "plugins/flutter_native_hotkey"]
+	path = plugins/flutter_native_hotkey
+	url = git@github.com:kfdykme/flutter_native_hotkey.git

@@ -77,8 +77,8 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 install(FILES "../nativeLibs/libdeno/windows/libdeno.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
   
-install(FILES "../nativeLibs/libkeydown/windows/libkeydown.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-  COMPONENT Runtime)
+# install(FILES "../nativeLibs/libkeydown/windows/libkeydown.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+#   COMPONENT Runtime)
 
 
 install(FILES "../denkui/denkui.bundle.js" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"

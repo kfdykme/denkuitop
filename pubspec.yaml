@@ -26,7 +26,8 @@ dependencies:
   web_socket_channel: ^1.1.0
   zefyrka: ^1.1.1 
   quill_delta: ^2.0.0
-
+  native_hotkey:
+      path: ./plugins/flutter_native_hotkey
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -5,6 +5,8 @@
 #include "flutter_window.h"
 #include "utils.h"
 
+// #include "abstract_flutter_plugin.h"
+
 
 // dlopen
 #ifdef _WIN32
@@ -34,7 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
   loadNativeLib("libdeno.dll");
-  loadNativeLib("libkeydown.dll");
+  // loadNativeLib("libkeydown.dll");
 
   flutter::DartProject project(L"data");
 

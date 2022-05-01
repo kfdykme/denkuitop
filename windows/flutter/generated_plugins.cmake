@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  native_hotkey
   url_launcher_windows
 )
 

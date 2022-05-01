@@ -18,6 +18,7 @@ import 'package:denkuitop/native/KeydownManager.dart';
 import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
+import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:zefyrka/zefyrka.dart';
 
@@ -76,7 +77,7 @@ class KfToHomeState extends BaseRemotePageState {
     this.lib = LibraryLoader.instance;
     var runableJsPath = DenkuiRunJsPathHelper.GetPath();
     print("${runableJsPath}"); 
-    var isDev = false;
+    var isDev = true;
     if (isDev) {
       port = 8082;
     } else {
@@ -90,6 +91,10 @@ class KfToHomeState extends BaseRemotePageState {
     });
     this._currentPathcontroller = TextEditingController();
 
+    NativeHotkey.instance.init();
+    NativeHotkey.instance.setHotkeyListener('ctrl-a', () {
+      print("aa");
+    });
   }
 
   void handleIpcMessage(KfToDoIpcData data) {

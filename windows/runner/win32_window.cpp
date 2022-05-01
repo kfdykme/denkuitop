@@ -4,6 +4,8 @@
 
 #include "resource.h"
 
+#include <native_hotkey/native_hotkey_plugin.h>
+
 namespace {
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
@@ -184,6 +186,7 @@ Win32Window::MessageHandler(HWND hwnd,
     }
 
     case WM_ACTIVATE:
+      NativeHotKeyOnWindowActiveEvent((int64_t)wparam);
       if (child_content_ != nullptr) {
         SetFocus(child_content_);
       }
