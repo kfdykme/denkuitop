@@ -77,7 +77,7 @@ class KfToHomeState extends BaseRemotePageState {
     this.lib = LibraryLoader.instance;
     var runableJsPath = DenkuiRunJsPathHelper.GetPath();
     print("${runableJsPath}"); 
-    var isDev = true;
+    var isDev = false;
     if (isDev) {
       port = 8082;
     } else {
@@ -92,8 +92,9 @@ class KfToHomeState extends BaseRemotePageState {
     this._currentPathcontroller = TextEditingController();
 
     NativeHotkey.instance.init();
-    NativeHotkey.instance.setHotkeyListener('ctrl-a', () {
-      print("aa");
+    NativeHotkey.instance.setHotkeyListener('ctrl-s', () {
+      print("callback keyevent ctrl-s");
+      this._saveFile();
     });
   }
 
