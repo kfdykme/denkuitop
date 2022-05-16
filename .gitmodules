@@ -1,3 +1,6 @@
 [submodule "plugins/flutter_native_hotkey"]
 	path = plugins/flutter_native_hotkey
 	url = git@github.com:kfdykme/flutter_native_hotkey.git
+[submodule "plugins/flutter_desktop_cef_web"]
+	path = plugins/flutter_desktop_cef_web
+	url = git@github.com:kfdykme/flutter_desktop_cef_web.git
