@@ -53,3 +53,7 @@ app.*.map.json
 .denkui
 
 .vscode
+
+bundle
+
+GPUCache

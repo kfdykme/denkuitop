@@ -6,6 +6,7 @@
 
 #include <native_hotkey/native_hotkey_plugin.h>
 
+#include <flutter_desktop_cef_web/flutter_desktop_cef_web_plugin.h>
 namespace {
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
@@ -173,6 +174,7 @@ Win32Window::MessageHandler(HWND hwnd,
       SetWindowPos(hwnd, nullptr, newRectSize->left, newRectSize->top, newWidth,
                    newHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 
+      FlutterDesktopCefWebPluginCefOnResize();
       return 0;
     }
     case WM_SIZE: {
@@ -182,10 +184,12 @@ Win32Window::MessageHandler(HWND hwnd,
         MoveWindow(child_content_, rect.left, rect.top, rect.right - rect.left,
                    rect.bottom - rect.top, TRUE);
       }
+      FlutterDesktopCefWebPluginCefOnResize();
       return 0;
     }
 
     case WM_ACTIVATE:
+      FlutterDesktopCefWebPluginCefOnResize();
       NativeHotKeyOnWindowActiveEvent((int64_t)wparam);
       if (child_content_ != nullptr) {
         SetFocus(child_content_);

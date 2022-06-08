@@ -84,6 +84,24 @@ install(FILES "../nativeLibs/libdeno/windows/libdeno.dll" DESTINATION "${INSTALL
 install(FILES "../denkui/denkui.bundle.js" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
+file(GLOB_RECURSE EDITOR_FILES "../plugins/editor/*.html")
+# message("EDITOR_FILES: ${EDITOR_FILES}")
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/bundle"
+  COMPONENT Runtime)
+  
+file(GLOB_RECURSE EDITOR_FILES "../plugins/editor/*.js")
+# message("EDITOR_FILES: ${EDITOR_FILES}")
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/bundle/assets/scripts"
+  COMPONENT Runtime)
+file(GLOB_RECURSE EDITOR_FILES "../plugins/editor/*.css")
+# message("EDITOR_FILES: ${EDITOR_FILES}")
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/bundle/assets/styles"
+  COMPONENT Runtime)
+
+execute_process(COMMAND "cmd.exe /c del /F /S /Q  bundle")
+execute_process(COMMAND "cmd.exe /c MKLINK /D bundle ${INSTALL_BUNDLE_LIB_DIR}/bundle")
+
+
 if(PLUGIN_BUNDLED_LIBRARIES)
   install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"

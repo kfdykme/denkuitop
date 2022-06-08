@@ -8,6 +8,8 @@
 // #include "abstract_flutter_plugin.h"
 
 
+#include <flutter_desktop_cef_web/flutter_desktop_cef_web_plugin.h>
+
 // dlopen
 #ifdef _WIN32
 #include <windows.h>
@@ -30,6 +32,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
     CreateAndAttachConsole();
   }
+  FlutterDesktopCefWebPluginCefInit(instance);
 
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
@@ -57,6 +60,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   while (::GetMessage(&msg, nullptr, 0, 0)) {
     ::TranslateMessage(&msg);
     ::DispatchMessage(&msg);
+    FlutterDesktopCefWebPluginCefLoopMessage();
   }
   // FreeLibrary(libdeno_module);
   ::CoUninitialize();

@@ -18,9 +18,11 @@ import 'package:denkuitop/native/KeydownManager.dart';
 import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:zefyrka/zefyrka.dart';
+import 'package:path/path.dart' as p;
 
 ZefyrController _controller = ZefyrController();
 
@@ -42,9 +44,9 @@ class DenkuiRunJsPathHelper {
           "${executableDirPath + '/../Resources/denkui.bundle.js'}";
       return runableJsPath;
     } else if (Platform.isWindows) {
-      var executableDirPath = Platform.resolvedExecutable.substring(0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
-      var runableJsPath =
-          "${executableDirPath + '.\\denkui.bundle.js'}";
+      var executableDirPath = Platform.resolvedExecutable.substring(
+          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      var runableJsPath = "${executableDirPath + '.\\denkui.bundle.js'}";
       return runableJsPath;
     }
 
@@ -68,6 +70,12 @@ class KfToHomeState extends BaseRemotePageState {
 
   LibraryLoader lib;
 
+  //cef view
+  var web = FlutterDesktopCefWeb();
+
+  var containerKey = GlobalKey();
+
+  Widget cefContainor = null;
 
   KfToHomeState() {
     var port = 8082;
@@ -76,12 +84,12 @@ class KfToHomeState extends BaseRemotePageState {
 
     this.lib = LibraryLoader.instance;
     var runableJsPath = DenkuiRunJsPathHelper.GetPath();
-    print("${runableJsPath}"); 
+    print("${runableJsPath}");
     var isDev = false;
     if (isDev) {
       port = 8082;
     } else {
-      this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+      // this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
     }
 
     super.init(client: new AsyncIpcClient(), port: port);
@@ -92,10 +100,10 @@ class KfToHomeState extends BaseRemotePageState {
     this._currentPathcontroller = TextEditingController();
 
     NativeHotkey.instance.init();
-    NativeHotkey.instance.setHotkeyListener('ctrl-s', () {
-      print("callback keyevent ctrl-s");
-      this._saveFile();
-    });
+    // NativeHotkey.instance.setHotkeyListener('ctrl-s', () {
+    //   print("callback keyevent ctrl-s");
+    //   this._saveFile();
+    // });
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
@@ -181,7 +189,7 @@ class KfToHomeState extends BaseRemotePageState {
     }
   }
 
-  void showSnack(AsyncIpcData data) { 
+  void showSnack(AsyncIpcData data) {
     print("raw ${data.raw}");
     print("rawMap ${data.rawMap}");
     String msg = data.rawMap['msg'];
@@ -202,11 +210,11 @@ class KfToHomeState extends BaseRemotePageState {
       msg = "ERRRRRRRRRRRRRRR";
     }
     final snackBar = SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: bkGC,
-        content: Text(msg),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: bkGC,
+      content: Text(msg),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _saveFile() {
@@ -231,6 +239,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onPressSingleItemFunc(ListItemData itemData) {
+    // web.loadCefContainer();
     var map = new Map<String, dynamic>();
     map['invokeName'] = 'readFile';
     map['data'] = itemData.path;
@@ -417,7 +426,11 @@ class KfToHomeState extends BaseRemotePageState {
     // if (!File('../denkui').existsSync()) {
     //   ChildProcess(ChildProcess.PRE_PARE_DENKUI).run();
     // }
-
+    if (cefContainor == null) {
+      cefContainor = web.generateCefContainer(RIGHT_WIDTH, -1);
+      web.setUrl(p.toUri(p.join(p.current, 'bundle', 'index.html')).toString());
+    }
+    web.loadCefContainer();
     var childs = [
       new Container(
         width: LEFT_WIDTH,
@@ -446,73 +459,85 @@ class KfToHomeState extends BaseRemotePageState {
       ),
       new Container(
           width: RIGHT_WIDTH,
-          color: Colors.white,
+          key: containerKey,
           child: Card(
             clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                // ZefyrToolbar.basic(controller: _controller),
-                Row(
-                  children: [
-                    Card(
-                      child: Container(
-                          width: RIGHT_WIDTH * 0.618,
-                          child: TextField(
-                            controller: _currentPathcontroller,
-                            decoration: InputDecoration(
-                                fillColor: this.highLightColor,
-                                border: OutlineInputBorder(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(8))),
-                                focusColor: this.highLightColor,
-                                labelText: filePathLabelText,
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: this.highLightColor),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                )),
-                            onChanged: _onFilePathInputChange,
-                          )),
-                      margin: const EdgeInsets.all(4),
-                    ),
-                    ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
-                      _saveFile();
-                    },
-                        color: this.highLightColor,
-                        icon: Icon(
-                          Icons.save_as_sharp,
-                          color: this.highLightColor,
-                          size: ViewBuilder.size(2),
+            child: Container(
+                child: Column(children: [
+              // ZefyrToolbar.basic(controller: _controller),
+              Row(
+                children: [
+                  Card(
+                    child: Container(
+                        width: RIGHT_WIDTH * 0.618,
+                        child: TextField(
+                          controller: _currentPathcontroller,
+                          decoration: InputDecoration(
+                              fillColor: this.highLightColor,
+                              border: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8))),
+                              focusColor: this.highLightColor,
+                              labelText: filePathLabelText,
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: this.highLightColor),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              )),
+                          onChanged: _onFilePathInputChange,
                         )),
-                    ViewBuilder.BuildMaterialButton("New",
-                        onPressFunc: () => this.onPressAddNewFunc(),
-                        color: this.highLightColor,
-                        icon: Icon(
-                          Icons.add,
-                          color: this.highLightColor,
-                          size: ViewBuilder.size(2),
-                        ))
-                  ],
-                ),
-                Expanded(
-                  child: ZefyrEditor(
-                    controller: _controller,
+                    margin: const EdgeInsets.all(4),
                   ),
-                ),
-              ],
-            ),
+                  ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
+                    _saveFile();
+                  },
+                      color: this.highLightColor,
+                      icon: Icon(
+                        Icons.save_as_sharp,
+                        color: this.highLightColor,
+                        size: ViewBuilder.size(2),
+                      )),
+                  ViewBuilder.BuildMaterialButton("New",
+                      onPressFunc: () => this.onPressAddNewFunc(),
+                      color: this.highLightColor,
+                      icon: Icon(
+                        Icons.add,
+                        color: this.highLightColor,
+                        size: ViewBuilder.size(2),
+                      ))
+                ],
+              ),
+              // Expanded(
+              //   child: ZefyrEditor(
+              //     controller: _controller,
+              //   ),
+              // ),
+              // MaterialButton(
+              //   onPressed: () {
+              //     web.loadUrl((p
+              //         .toUri(p.join(p.current, 'bundle', 'index.html'))
+              //         .toString()));
+              //   },
+              //   child: Text(p
+              //       .toUri(p.join(p.current, 'bundle', 'index.html'))
+              //       .toString()),
+              // ),
+              Expanded(
+                child: cefContainor,
+              )
+            ])),
             margin: const EdgeInsets.all(16),
           ))
     ];
+
     return Scaffold(
       body: new Container(
-        child: new Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: childs,
-        ),
-      ),
+          child: new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: childs,
+      )),
     );
   }
 

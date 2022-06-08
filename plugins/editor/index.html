@@ -1,0 +1,84 @@
+<head>
+  <link
+    media="all"
+    rel="stylesheet"
+    type="text/css"
+    href="./assets/styles/app.css"
+  />
+  <link
+    media="all"
+    rel="stylesheet"
+    type="text/css"
+    href="./assets/styles/simditor.css"
+  />
+</head>
+<body>
+  <section id="page-demo" style="visibility: hidden">
+    <textarea
+      id="txt-content"
+      data-autosave="editor-content"
+      autofocus
+      required
+    >
+    </textarea>
+  </section>
+</body>
+<script>
+
+  window.onload = () => {
+    var page = document.getElementById("page-demo");
+    page.style = "";
+  };
+</script>
+<script type="text/javascript" src="./assets/scripts/jquery.min.js"></script>
+<script type="text/javascript" src="./assets/scripts/mobilecheck.js"></script>
+<script type="text/javascript" src="./assets/scripts/module.js"></script>
+<script type="text/javascript" src="./assets/scripts/uploader.js"></script>
+<script type="text/javascript" src="./assets/scripts/hotkeys.js"></script>
+<script type="text/javascript" src="./assets/scripts/dompurify.js"></script>
+<script type="text/javascript" src="./assets/scripts/simditor.js"></script>
+
+<script>
+  
+  (function () {
+    $(function () {
+      var $preview, editor, mobileToolbar, toolbar;
+      Simditor.locale = "en-US";
+      // toolbar = ['title', 'bold', 'italic', 'underline', 'strikethrough', 'fontScale', 'color', '|', 'ol', 'ul', 'blockquote', 'code', 'table', '|', 'link', 'image', 'hr', '|', 'indent', 'outdent', 'alignment'];
+      // mobileToolbar = ["bold", "underline", "strikethrough", "color", "ul", "ol"];
+      // if (mobilecheck()) {
+      //   toolbar = mobileToolbar;
+      // }
+      editor = new Simditor({
+        textarea: $("#txt-content"),
+        placeholder: "这里输入文字...",
+        // toolbar: toolbar,
+        pasteImage: true,
+        defaultImage: "assets/images/image.png",
+        // upload: location.search === '?upload' ? {
+        //   url: '/upload'
+        // } : false
+      });
+      $preview = $("#preview");
+      if ($preview.length > 0) {
+        return editor.on("valuechanged", function (e) {
+          return $preview.html(editor.getValue());
+        });
+      }
+    });
+  }.call(this));
+</script>
+
+<style>
+  .simditor-toolbar {
+    display: none;
+  }
+
+  .simditor {
+    height: 99%;
+  }
+
+  body {
+    overflow: hidden;
+  }
+</style>

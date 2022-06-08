@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  flutter_desktop_cef_web
   native_hotkey
   url_launcher_windows
 )
