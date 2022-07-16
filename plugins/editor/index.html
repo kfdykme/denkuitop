@@ -13,7 +13,7 @@
   />
 </head>
 <body>
-  <section id="page-demo" style="visibility: hidden">
+  <!-- <section id="page-demo" style="visibility: hidden">
     <textarea
       id="txt-content"
       data-autosave="editor-content"
@@ -21,13 +21,14 @@
       required
     >
     </textarea>
-  </section>
+  </section> -->
+  <textarea name="" id="" cols="30" rows="10"></textarea>
 </body>
 <script>
-
   window.onload = () => {
     var page = document.getElementById("page-demo");
-    page.style = "";
+    // page.style = "";
+    
   };
 </script>
 <script type="text/javascript" src="./assets/scripts/jquery.min.js"></script>
@@ -39,7 +40,6 @@
 <script type="text/javascript" src="./assets/scripts/simditor.js"></script>
 
 <script>
-  
   (function () {
     $(function () {
       var $preview, editor, mobileToolbar, toolbar;
@@ -59,6 +59,11 @@
         //   url: '/upload'
         // } : false
       });
+      if (window.denktop === undefined) {
+        window.denktop = {};
+      }
+
+      window.denktop.editor = editor;
       $preview = $("#preview");
       if ($preview.length > 0) {
         return editor.on("valuechanged", function (e) {
@@ -67,6 +72,24 @@
       }
     });
   }.call(this));
+
+  
+
+const init = ()=> {
+    
+    const denkuiOpt =  {
+        insertContent: (encodeUrlData) => {
+            const map2Line = (line) => {
+              return `<p>${line}</p>`
+            }
+            window.denktop.editor.setValue(decodeURIComponent(encodeUrlData).split('\r\n').map(map2Line).join('').split('\n').map(map2Line).join(''))
+        }
+    }
+ 
+    window.denkuiOpt = denkuiOpt
+}
+
+init()
 </script>
 
 <style>
@@ -78,7 +101,10 @@
     height: 99%;
   }
 
-  body {
+  /* body {
     overflow: hidden;
   }
+  .page-demo {
+    overflow: scroll
+  } */
 </style>

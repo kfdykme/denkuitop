@@ -22,6 +22,7 @@ import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:zefyrka/zefyrka.dart';
+import 'package:libdeno/libdeno.dart';
 import 'package:path/path.dart' as p;
 
 ZefyrController _controller = ZefyrController();
@@ -52,6 +53,22 @@ class DenkuiRunJsPathHelper {
 
     return '';
   }
+
+  static String GetPreloadPath() {
+    if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath = "${executableDirPath + '/../Resources/preload.js'}";
+      return runableJsPath;
+    } else if (Platform.isWindows) {
+      var executableDirPath = Platform.resolvedExecutable.substring(
+          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      var runableJsPath = "${executableDirPath + '.\\preload.js'}";
+      return runableJsPath;
+    }
+
+    return '';
+  }
 }
 
 class KfToHomeState extends BaseRemotePageState {
@@ -69,6 +86,8 @@ class KfToHomeState extends BaseRemotePageState {
   var highLightColor = const Color(0xFF6200EE);
 
   LibraryLoader lib;
+
+  Libdeno libdeno = Libdeno();
 
   //cef view
   var web = FlutterDesktopCefWeb();
@@ -90,6 +109,8 @@ class KfToHomeState extends BaseRemotePageState {
       port = 8082;
     } else {
       // this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+      libdeno.load();
+      libdeno.run("deno run -A ${runableJsPath} --port=${port}");
     }
 
     super.init(client: new AsyncIpcClient(), port: port);
@@ -163,6 +184,8 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _insertIntoEditor(String content) {
     _clearEditor();
+    web.executeJs(
+        "window.denkuiOpt.insertContent(\"${Uri.encodeComponent(content)}\")");
     setState(() {
       _controller.document.insert(0, content);
     });
@@ -238,13 +261,16 @@ class KfToHomeState extends BaseRemotePageState {
     this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
   }
 
-  void onPressSingleItemFunc(ListItemData itemData) {
-    // web.loadCefContainer();
+  void _readFile(String path, {AsyncIpcCallback callback = null}) {
     var map = new Map<String, dynamic>();
     map['invokeName'] = 'readFile';
-    map['data'] = itemData.path;
-    this.ipc().invoke(KfToDoIpcData.from('invoke', map),
-        callback: (AsyncIpcData data) {
+    map['data'] = path;
+    this.ipc().invoke(KfToDoIpcData.from('invoke', map), callback: callback);
+  }
+
+  void onPressSingleItemFunc(ListItemData itemData) {
+    // web.loadCefContainer();
+    _readFile(itemData.path, callback: (AsyncIpcData data) {
       var ktoData = KfToDoIpcData.fromAsync(data);
       String content = ktoData.data['content'] as String;
       String path = ktoData.data['path'] as String;
@@ -428,7 +454,15 @@ class KfToHomeState extends BaseRemotePageState {
     // }
     if (cefContainor == null) {
       cefContainor = web.generateCefContainer(RIGHT_WIDTH, -1);
+
       web.setUrl(p.toUri(p.join(p.current, 'bundle', 'index.html')).toString());
+      _readFile(DenkuiRunJsPathHelper.GetPreloadPath(),
+          callback: (AsyncIpcData data) {
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        String content = ktoData.data['content'] as String;
+        String path = ktoData.data['path'] as String;
+        web.executeJs(content);
+      });
     }
     web.loadCefContainer();
     var childs = [
@@ -514,16 +548,12 @@ class KfToHomeState extends BaseRemotePageState {
               //     controller: _controller,
               //   ),
               // ),
-              // MaterialButton(
-              //   onPressed: () {
-              //     web.loadUrl((p
-              //         .toUri(p.join(p.current, 'bundle', 'index.html'))
-              //         .toString()));
-              //   },
-              //   child: Text(p
-              //       .toUri(p.join(p.current, 'bundle', 'index.html'))
-              //       .toString()),
-              // ),
+              MaterialButton(
+                onPressed: () {
+                  web.showDevtools();
+                },
+                child: Text("devtools"),
+              ),
               Expanded(
                 child: cefContainor,
               )
