@@ -4,3 +4,6 @@
 [submodule "plugins/flutter_desktop_cef_web"]
 	path = plugins/flutter_desktop_cef_web
 	url = git@github.com:kfdykme/flutter_desktop_cef_web.git
+[submodule "plugins/libdeno_plugin"]
+	path = plugins/libdeno_plugin
+	url = git@github.com:kfdykme/libdeno_plugin
