@@ -90,6 +90,22 @@ class KfToHomeState extends BaseRemotePageState {
 
   ListData data = null;
   List<KfToDoTagData> dataTags = [];
+  String searchKey = "";
+  List<KfToDoTagData> get searchedTags {
+      if (searchKey == "") {
+        return dataTags;
+      } else {
+        List<KfToDoTagData> searchRes = [];
+        
+        for (KfToDoTagData item in dataTags) {
+          if (item.name.contains(searchKey)) {
+            searchRes.add(item);
+          }
+        }
+        return searchRes;
+      }
+    }
+
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
   String currentTag = 'All';
@@ -283,6 +299,7 @@ class KfToHomeState extends BaseRemotePageState {
   void onPressSingleItemFunc(ListItemData itemData) {
     // web.loadCefContainer();
     _readFile(itemData.path, callback: (AsyncIpcData data) {
+      print("onPressSingleItemFunc _readFile callback" + data.toString());
       var ktoData = KfToDoIpcData.fromAsync(data);
       String content = ktoData.data['content'] as String;
       String path = ktoData.data['path'] as String;
@@ -400,20 +417,6 @@ class KfToHomeState extends BaseRemotePageState {
     );
   }
 
-  List<Widget> buildListItem() {
-    List<Widget> list = [];
-    if (this.data?.data != null) {
-      this.data.data.forEach((element) {
-        if (element.tags.contains(currentTag) || currentTag == 'All') {
-          list.add(buildSingleListItem(element));
-        }
-      });
-    } else {
-      list.add(buildLoadingItem());
-    }
-    return list;
-  }
-
   Card ACard(Widget widget) {
     return Card(clipBehavior: Clip.antiAlias, child: widget);
   }
@@ -444,10 +447,35 @@ class KfToHomeState extends BaseRemotePageState {
       list.add(buildLoadingItem());
     }
 
-    return Container(
-        child: new ListView(
-          children: list,
-        ));
+    return Column(
+      children: [
+        ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
+          // print("search value:" + value + dataTags.toString());
+          setState(() {
+            searchKey = value;
+          });
+        }),
+        ConstrainedBox(
+  constraints: BoxConstraints(maxHeight: 750, minHeight: 56.0),
+  child: ListView.builder(
+    shrinkWrap: true,
+    itemBuilder: (BuildContext context, int index) {
+      if (this.searchedTags.length == 0) {
+        return buildLoadingItem();
+      } else {
+        var element = this.searchedTags[index];
+        return ViewBuilder.BuildSingleTagContainor(element.name,
+            tagData: element, onPressFunc: (String tag) {
+          setState(() {
+            element.isOpen = !element.isOpen;
+          });
+        }, childListItems: this.buildListItemView(element.name));
+      }
+      },
+    itemCount: this.data?.data != null ? this.searchedTags.length : 1
+  ))
+      ],
+    );
   }
 
   @override

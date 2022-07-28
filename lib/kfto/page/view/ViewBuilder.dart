@@ -163,4 +163,29 @@ class ViewBuilder {
       margin: const EdgeInsets.all(16),
     );
   }
+
+  static Widget BuildSearchMaterialInput({ Function onChange} ) {
+   
+    var searchInput = TextField(
+      decoration: InputDecoration(
+                              fillColor: RandomColor(),
+                              border: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8))),
+                              focusColor: RandomDarkColor(),
+                              labelText: 'search',
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: RandomColor()),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              )),
+      onChanged: onChange,
+    );
+     return Container(
+      child: searchInput,
+      margin: const EdgeInsets.all(4),
+    );
+  }
 }

@@ -49,7 +49,7 @@ class AsyncIpcClient extends IpcClient {
     if (callback != null) {
       data.isWait();
       asyncCallbacks[data.id] = callback;
-      logCallbacks();
+      // logCallbacks();
     }
     return super.send(data.json());
   }  
