@@ -48,11 +48,10 @@ const __default2 = {
     isWindows
 };
 const homePath = ()=>{
-    return '.';
     if (__default2.isWindows()) {
         return (Deno.env.get('HOMEDRIVE') || 'C:') + Deno.env.get('HOMEPATH');
     } else {
-        return '.';
+        return Deno.env.get('HOME');
     }
 };
 class Dir {
@@ -2702,7 +2701,6 @@ class IpcController {
         });
     }
     send(data) {
-        __default1.info("IpcController send type:", typeof data, 'data', data);
         data && this.ws?.send(data);
     }
     addOnConnectCallback(callback) {
@@ -3117,6 +3115,48 @@ class KfTodoController {
         }
     }
 }
+let homePath1 = '';
+const startHttpServer = async ()=>{
+    const server = Deno.listen({
+        port: 10825
+    });
+    console.log("File server running on http://localhost:10825/");
+    for await (const conn1 of server){
+        handleHttp(conn1).catch(console.error);
+    }
+    async function handleHttp(conn) {
+        const httpConn = Deno.serveHttp(conn);
+        for await (const requestEvent of httpConn){
+            const url = new URL(requestEvent.request.url);
+            const filepath = decodeURIComponent(url.pathname);
+            console.info('requestEvent.request.url', requestEvent.request.url);
+            if (homePath1 == '') {
+                try {
+                    homePath1 = requestEvent.request.url.split('home=')[1];
+                } catch  {}
+            }
+            let file;
+            const targetPath = homePath1 === '' ? __default3.homePath() + __default3.Dir.Spelator + 'editor' : homePath1;
+            try {
+                file = await Deno.open(targetPath + filepath, {
+                    read: true
+                });
+            } catch  {
+                const notFoundResponse = new Response("404 Not Found: " + targetPath + filepath, {
+                    status: 404
+                });
+                await requestEvent.respondWith(notFoundResponse);
+                return;
+            }
+            const readableStream = file.readable;
+            const response = new Response(readableStream);
+            await requestEvent.respondWith(response);
+        }
+    }
+};
+const __default8 = {
+    startHttpServer
+};
 let args = __default.GetArgs();
 let isLcOpen = false;
 let global = {
@@ -3137,3 +3177,4 @@ const kf = new KfTodoController();
 if (!isLcOpen) {
     kf.start();
 }
+__default8.startHttpServer();

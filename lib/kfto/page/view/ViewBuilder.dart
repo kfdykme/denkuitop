@@ -125,7 +125,7 @@ class ViewBuilder {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: [Text(e.title)],
+          children: [Text(e.title != null ? e.title : "empty")],
         ),
         ],)
       ),

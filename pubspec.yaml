@@ -30,8 +30,10 @@ dependencies:
       path: ./plugins/flutter_native_hotkey
   flutter_desktop_cef_web:
       path: ./plugins/flutter_desktop_cef_web
-  libdeno:
+  libdeno_plugin:
       path: ./plugins/libdeno_plugin
+  # denkui_editor_plugin:
+  #     path: ./plugins/denkui_editor_plugin
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3

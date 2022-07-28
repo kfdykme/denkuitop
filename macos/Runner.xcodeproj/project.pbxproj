@@ -27,7 +27,7 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571889F827FEB2C90061FE27 /* denkui.bundle.js */; };
-		572131F7282A5C3600ACF71A /* liblibdeno.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 572131F6282A5C3600ACF71A /* liblibdeno.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		571E81AD2890125E00230257 /* manoco-editor in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571E81AC2890125E00230257 /* manoco-editor */; };
 		D6DD3DCE38541B6B68C593A0 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AADCFC783D7E5F416249980 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -58,17 +58,26 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				572131F7282A5C3600ACF71A /* liblibdeno.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		571889F727FEB2B20061FE27 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				571E81AD2890125E00230257 /* manoco-editor in CopyFiles */,
+				571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		571E81AB2890124600230257 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
-				571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,7 +100,7 @@
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
 		426E22464B7A40F4420531AE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		571889F827FEB2C90061FE27 /* denkui.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = denkui.bundle.js; path = ../denkui/denkui.bundle.js; sourceTree = "<group>"; };
-		572131F6282A5C3600ACF71A /* liblibdeno.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblibdeno.dylib; path = ../nativeLibs/libdeno/macos/liblibdeno.dylib; sourceTree = "<group>"; };
+		571E81AC2890125E00230257 /* manoco-editor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "manoco-editor"; path = "../denkui/manoco-editor"; sourceTree = "<group>"; };
 		6AADCFC783D7E5F416249980 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -125,7 +134,7 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
-				572131F6282A5C3600ACF71A /* liblibdeno.dylib */,
+				571E81AC2890125E00230257 /* manoco-editor */,
 				571889F827FEB2C90061FE27 /* denkui.bundle.js */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
@@ -212,6 +221,7 @@
 				601D4B473ED3835929CDA8A2 /* [CP] Embed Pods Frameworks */,
 				571889F427FEAFC50061FE27 /* CopyFiles */,
 				571889F727FEB2B20061FE27 /* CopyFiles */,
+				571E81AB2890124600230257 /* CopyFiles */,
 			);
 			buildRules = (
 			);

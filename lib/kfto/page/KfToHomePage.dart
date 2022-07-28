@@ -21,11 +21,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
-import 'package:zefyrka/zefyrka.dart';
-import 'package:libdeno/libdeno.dart';
+// import 'package:zefyrka/zefyrka.dart';
+import 'package:libdeno_plugin/libdeno_plugin.dart';
 import 'package:path/path.dart' as p;
 
-ZefyrController _controller = ZefyrController();
+// ZefyrController _controller = ZefyrController();
 
 Logger logger = Logger("KfToHomeState");
 
@@ -37,7 +37,21 @@ class KfToHomePage extends BaseRemotePage {
 }
 
 class DenkuiRunJsPathHelper {
-  static String GetPath() {
+  static String GetResourcePaht() {
+     if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath =
+          "${executableDirPath + '/../Resources'}";
+      return runableJsPath;
+    } else if (Platform.isWindows) {
+      // throw new Error('not support');
+      return '.';
+    }
+
+    return '';
+  }
+  static String GetDenkBundleJsPath() {
     if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
           .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
@@ -90,7 +104,7 @@ class KfToHomeState extends BaseRemotePageState {
   Libdeno libdeno = Libdeno();
 
   //cef view
-  var web = FlutterDesktopCefWeb();
+  var web = FlutterDesktopEditor();
 
   var containerKey = GlobalKey();
 
@@ -102,7 +116,7 @@ class KfToHomeState extends BaseRemotePageState {
     // TODO make sure port is not be used
 
     this.lib = LibraryLoader.instance;
-    var runableJsPath = DenkuiRunJsPathHelper.GetPath();
+    var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
     print("${runableJsPath}");
     var isDev = false;
     if (isDev) {
@@ -176,19 +190,17 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _clearEditor() {
     setState(() {
-      var document = NotusDocument();
-      _controller = ZefyrController(document);
-      _controller.formatText(0, 1, NotusAttribute.block.code);
+      // var document = NotusDocument();
+      // _controller = ZefyrController(document);
+      // _controller.formatText(0, 1, NotusAttribute.block.code);
     });
   }
 
   void _insertIntoEditor(String content) {
-    _clearEditor();
     web.executeJs(
-        "window.denkuiOpt.insertContent(\"${Uri.encodeComponent(content)}\")");
-    setState(() {
-      _controller.document.insert(0, content);
-    });
+        "window.denkGetKey('editor').setValue(decodeURIComponent(\"${Uri.encodeComponent(content)}\"))");
+    ;
+    web.getEditorContent();
   }
 
   void _refreshFilePathTextField() {
@@ -240,12 +252,12 @@ class KfToHomeState extends BaseRemotePageState {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _saveFile() {
+  void _saveFile() async {
     var map = Map<String, dynamic>();
     map['path'] = GetDirFromPath(currentFilePath) +
         DirSpelator +
         _currentPathcontroller.text;
-    map['content'] = _controller.document.toPlainText();
+    map['content'] = await web.getEditorContent();
     var omap = Map<String, dynamic>();
 
     omap['data'] = map;
@@ -433,7 +445,6 @@ class KfToHomeState extends BaseRemotePageState {
     }
 
     return Container(
-        margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
         child: new ListView(
           children: list,
         ));
@@ -444,18 +455,19 @@ class KfToHomeState extends BaseRemotePageState {
     const MAX_WIDTH = 1280 - 25;
     const RIGHT_WIDTH = 1280 * 0.618;
     const LEFT_WIDTH = MAX_WIDTH - RIGHT_WIDTH;
-    const MAX_HEIGHT = 720;
+    const MAX_HEIGHT = 720.0;
     const LEFT_TOOLBAR_HEIGHT = 50.0;
     const LEFT_LIST_HEIGHT = MAX_HEIGHT - LEFT_TOOLBAR_HEIGHT;
-    _controller.formatText(0, 1, NotusAttribute.block.code);
+    // _controller.formatText(0, 1, NotusAttribute.block.code);
 
     // if (!File('../denkui').existsSync()) {
     //   ChildProcess(ChildProcess.PRE_PARE_DENKUI).run();
     // }
     if (cefContainor == null) {
-      cefContainor = web.generateCefContainer(RIGHT_WIDTH, -1);
-
-      web.setUrl(p.toUri(p.join(p.current, 'bundle', 'index.html')).toString());
+      cefContainor = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
+      // var urlPath =p.toUri("file:///Users/chenxiaofang/Desktop/wor/kf/monaco-editor/samples/browser-script-editor/index.html");
+      // print('urlPath'+urlPath);
+      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" + DenkuiRunJsPathHelper.GetResourcePaht());
       _readFile(DenkuiRunJsPathHelper.GetPreloadPath(),
           callback: (AsyncIpcData data) {
         var ktoData = KfToDoIpcData.fromAsync(data);
@@ -468,7 +480,7 @@ class KfToHomeState extends BaseRemotePageState {
     var childs = [
       new Container(
         width: LEFT_WIDTH,
-        color: Colors.white,
+        color: Colors.white10,
         child: ACard(Stack(
           children: [
             // Container(
@@ -479,15 +491,15 @@ class KfToHomeState extends BaseRemotePageState {
             //   ),
             // ),
             buildListView(),
-            Container(
-              height: isShowTagDialog ? MAX_HEIGHT * 0.618 : null,
-              margin: isShowTagDialog ? EdgeInsets.all(32) : EdgeInsets.all(0),
-              color: Colors.white,
-              child: isShowTagDialog
-                  ? ACard(SingleChildScrollView(
-                      child: new Column(children: buildTagsViews())))
-                  : _buildSingleTagView(currentTag),
-            ),
+            // Container(
+            //   height: isShowTagDialog ? MAX_HEIGHT * 0.618 : null,
+            //   margin: isShowTagDialog ? EdgeInsets.all(32) : EdgeInsets.all(0),
+            //   color: Colors.white,
+            //   child: isShowTagDialog
+            //       ? ACard(SingleChildScrollView(
+            //           child: new Column(children: buildTagsViews())))
+            //       : _buildSingleTagView(currentTag),
+            // ),
           ],
         )),
       ),
@@ -548,17 +560,18 @@ class KfToHomeState extends BaseRemotePageState {
               //     controller: _controller,
               //   ),
               // ),
-              MaterialButton(
-                onPressed: () {
-                  web.showDevtools();
-                },
-                child: Text("devtools"),
-              ),
+              // !Platform.isMacOS ?
+              // MaterialButton(
+              //   onPressed: () {
+              //     web.showDevtools();
+              //   },
+              //   child: Text("devtools"),
+              // ) : null,
+
               Expanded(
                 child: cefContainor,
               )
             ])),
-            margin: const EdgeInsets.all(16),
           ))
     ];
 
@@ -567,7 +580,9 @@ class KfToHomeState extends BaseRemotePageState {
           child: new Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: childs,
-      )),
+        ),
+            margin: const EdgeInsets.fromLTRB(0, 30, 0, 60),
+      ), 
     );
   }
 
