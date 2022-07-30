@@ -23,7 +23,7 @@ class IpcClient {
     mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${port}",
         headers: {'Origin': 'http://127.0.0.1'});
 
-    print("IpcClient init");
+    print("IpcClient init ${port}");
     inited = true;
     mWebSocket.stream.listen((message) {
       // print("IpcClient  message ${message}");

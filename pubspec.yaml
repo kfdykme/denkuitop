@@ -24,7 +24,6 @@ dependencies:
   flutter:
     sdk: flutter
   web_socket_channel: ^1.1.0
-  zefyrka: ^1.1.1 
   quill_delta: ^2.0.0
   native_hotkey:
       path: ./plugins/flutter_native_hotkey
@@ -32,10 +31,6 @@ dependencies:
       path: ./plugins/flutter_desktop_cef_web
   libdeno_plugin:
       path: ./plugins/libdeno_plugin
-  # denkui_editor_plugin:
-  #     path: ./plugins/denkui_editor_plugin
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
   ffi: ^1.1.2
   path: ^1.8.0

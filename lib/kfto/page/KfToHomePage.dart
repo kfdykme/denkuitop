@@ -38,11 +38,10 @@ class KfToHomePage extends BaseRemotePage {
 
 class DenkuiRunJsPathHelper {
   static String GetResourcePaht() {
-     if (Platform.isMacOS) {
+    if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
           .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-      var runableJsPath =
-          "${executableDirPath + '/../Resources'}";
+      var runableJsPath = "${executableDirPath + '/../Resources'}";
       return runableJsPath;
     } else if (Platform.isWindows) {
       // throw new Error('not support');
@@ -51,6 +50,7 @@ class DenkuiRunJsPathHelper {
 
     return '';
   }
+
   static String GetDenkBundleJsPath() {
     if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
@@ -92,19 +92,19 @@ class KfToHomeState extends BaseRemotePageState {
   List<KfToDoTagData> dataTags = [];
   String searchKey = "";
   List<KfToDoTagData> get searchedTags {
-      if (searchKey == "") {
-        return dataTags;
-      } else {
-        List<KfToDoTagData> searchRes = [];
-        
-        for (KfToDoTagData item in dataTags) {
-          if (item.name.contains(searchKey)) {
-            searchRes.add(item);
-          }
+    if (searchKey == "") {
+      return dataTags;
+    } else {
+      List<KfToDoTagData> searchRes = [];
+
+      for (KfToDoTagData item in dataTags) {
+        if (item.name.contains(searchKey)) {
+          searchRes.add(item);
         }
-        return searchRes;
       }
+      return searchRes;
     }
+  }
 
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
@@ -135,13 +135,13 @@ class KfToHomeState extends BaseRemotePageState {
     var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
     print("${runableJsPath}");
     var isDev = false;
-    if (isDev) {
-      port = 8082;
-    } else {
-      // this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
-      libdeno.load();
-      libdeno.run("deno run -A ${runableJsPath} --port=${port}");
-    }
+    // if (isDev) {
+    //   port = 10825;
+    // } else {
+    // this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
+    libdeno.load();
+    libdeno.run("deno run -A ${runableJsPath} --port=${port}");
+    // }
 
     super.init(client: new AsyncIpcClient(), port: port);
     this.ipc().setCallback("onmessage", (String message) async {
@@ -456,24 +456,24 @@ class KfToHomeState extends BaseRemotePageState {
           });
         }),
         ConstrainedBox(
-  constraints: BoxConstraints(maxHeight: 750, minHeight: 56.0),
-  child: ListView.builder(
-    shrinkWrap: true,
-    itemBuilder: (BuildContext context, int index) {
-      if (this.searchedTags.length == 0) {
-        return buildLoadingItem();
-      } else {
-        var element = this.searchedTags[index];
-        return ViewBuilder.BuildSingleTagContainor(element.name,
-            tagData: element, onPressFunc: (String tag) {
-          setState(() {
-            element.isOpen = !element.isOpen;
-          });
-        }, childListItems: this.buildListItemView(element.name));
-      }
-      },
-    itemCount: this.data?.data != null ? this.searchedTags.length : 1
-  ))
+            constraints: BoxConstraints(maxHeight: 750, minHeight: 56.0),
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (BuildContext context, int index) {
+                  if (this.searchedTags.length == 0) {
+                    return buildLoadingItem();
+                  } else {
+                    var element = this.searchedTags[index];
+                    return ViewBuilder.BuildSingleTagContainor(element.name,
+                        tagData: element, onPressFunc: (String tag) {
+                      setState(() {
+                        element.isOpen = !element.isOpen;
+                      });
+                    }, childListItems: this.buildListItemView(element.name));
+                  }
+                },
+                itemCount:
+                    this.data?.data != null ? this.searchedTags.length : 1))
       ],
     );
   }
@@ -495,7 +495,8 @@ class KfToHomeState extends BaseRemotePageState {
       cefContainor = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
       // var urlPath =p.toUri("file:///Users/chenxiaofang/Desktop/wor/kf/monaco-editor/samples/browser-script-editor/index.html");
       // print('urlPath'+urlPath);
-      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" + DenkuiRunJsPathHelper.GetResourcePaht());
+      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
+          DenkuiRunJsPathHelper.GetResourcePaht());
       _readFile(DenkuiRunJsPathHelper.GetPreloadPath(),
           callback: (AsyncIpcData data) {
         var ktoData = KfToDoIpcData.fromAsync(data);
@@ -511,28 +512,12 @@ class KfToHomeState extends BaseRemotePageState {
         color: Colors.white10,
         child: ACard(Stack(
           children: [
-            // Container(
-            //   margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-            //   child: new ListView(
-            //     padding: new EdgeInsets.all(8),
-            //     children: [ACard(Column(children: buildListItem()))],
-            //   ),
-            // ),
             buildListView(),
-            // Container(
-            //   height: isShowTagDialog ? MAX_HEIGHT * 0.618 : null,
-            //   margin: isShowTagDialog ? EdgeInsets.all(32) : EdgeInsets.all(0),
-            //   color: Colors.white,
-            //   child: isShowTagDialog
-            //       ? ACard(SingleChildScrollView(
-            //           child: new Column(children: buildTagsViews())))
-            //       : _buildSingleTagView(currentTag),
-            // ),
           ],
         )),
       ),
       new Container(
-          width: RIGHT_WIDTH,
+          // width: RIGHT_WIDTH,
           key: containerKey,
           child: Card(
             clipBehavior: Clip.antiAlias,
@@ -605,12 +590,12 @@ class KfToHomeState extends BaseRemotePageState {
 
     return Scaffold(
       body: new Container(
-          child: new Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: childs,
+        child: new Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: childs,
         ),
-            margin: const EdgeInsets.fromLTRB(0, 30, 0, 60),
-      ), 
+        margin: const EdgeInsets.fromLTRB(0, 30, 0, 60),
+      ),
     );
   }
 

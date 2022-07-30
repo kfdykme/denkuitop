@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_desktop_cef_web
   libdeno_plugin
   native_hotkey
-  url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

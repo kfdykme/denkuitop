@@ -9,7 +9,6 @@
 #include <flutter_desktop_cef_web/flutter_desktop_cef_web_plugin.h>
 #include <libdeno_plugin/libdeno_plugin.h>
 #include <native_hotkey/native_hotkey_plugin.h>
-#include <url_launcher_windows/url_launcher_windows.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   FlutterDesktopCefWebPluginRegisterWithRegistrar(
@@ -18,6 +17,4 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("LibdenoPlugin"));
   NativeHotkeyPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("NativeHotkeyPlugin"));
-  UrlLauncherWindowsRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("UrlLauncherWindows"));
 }
