@@ -205,18 +205,15 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _clearEditor() {
-    setState(() {
-      // var document = NotusDocument();
-      // _controller = ZefyrController(document);
-      // _controller.formatText(0, 1, NotusAttribute.block.code);
-    });
+    web.executeJs(
+        "window.denkGetKey('editor').setValue('')");
+    ;
   }
 
   void _insertIntoEditor(String content) {
     web.executeJs(
         "window.denkGetKey('editor').setValue(decodeURIComponent(\"${Uri.encodeComponent(content)}\"))");
     ;
-    web.getEditorContent();
   }
 
   void _refreshFilePathTextField() {
@@ -455,25 +452,25 @@ class KfToHomeState extends BaseRemotePageState {
             searchKey = value;
           });
         }),
-        ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 750, minHeight: 56.0),
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemBuilder: (BuildContext context, int index) {
-                  if (this.searchedTags.length == 0) {
-                    return buildLoadingItem();
-                  } else {
-                    var element = this.searchedTags[index];
-                    return ViewBuilder.BuildSingleTagContainor(element.name,
-                        tagData: element, onPressFunc: (String tag) {
-                      setState(() {
-                        element.isOpen = !element.isOpen;
-                      });
-                    }, childListItems: this.buildListItemView(element.name));
-                  }
-                },
-                itemCount:
-                    this.data?.data != null ? this.searchedTags.length : 1))
+        Expanded(
+          child: ListView.builder(
+              shrinkWrap: true,
+              itemBuilder: (BuildContext context, int index) {
+                if (this.searchedTags.length == 0) {
+                  return buildLoadingItem();
+                } else {
+                  var element = this.searchedTags[index];
+                  return ViewBuilder.BuildSingleTagContainor(element.name,
+                      tagData: element, onPressFunc: (String tag) {
+                    setState(() {
+                      element.isOpen = !element.isOpen;
+                    });
+                  }, childListItems: this.buildListItemView(element.name));
+                }
+              },
+              itemCount:
+                  this.data?.data != null ? this.searchedTags.length : 1),
+        )
       ],
     );
   }
@@ -509,27 +506,42 @@ class KfToHomeState extends BaseRemotePageState {
     var childs = [
       new Container(
         width: LEFT_WIDTH,
-        color: Colors.white10,
         child: ACard(Stack(
           children: [
             buildListView(),
           ],
         )),
       ),
-      new Container(
-          // width: RIGHT_WIDTH,
-          key: containerKey,
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-                child: Column(children: [
-              // ZefyrToolbar.basic(controller: _controller),
-              Row(
-                children: [
-                  Card(
-                    child: Container(
-                        width: RIGHT_WIDTH * 0.618,
-                        child: TextField(
+      Expanded(
+          child: Container(
+        child: Card(
+          // clipBehavior: Clip.antiAlias,
+          color: Colors.white,
+          child: Column(
+            children: [
+              new Container(
+                height: 60,
+                child: Row(
+                  children: [
+                    ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
+                      _saveFile();
+                    },
+                        color: this.highLightColor,
+                        icon: Icon(
+                          Icons.save_as_sharp,
+                          color: this.highLightColor,
+                          size: ViewBuilder.size(2),
+                        )),
+                    ViewBuilder.BuildMaterialButton("New",
+                        onPressFunc: () => this.onPressAddNewFunc(),
+                        color: this.highLightColor,
+                        icon: Icon(
+                          Icons.add,
+                          color: this.highLightColor,
+                          size: ViewBuilder.size(2),
+                        )),
+                    Expanded(
+                      child: TextField(
                           controller: _currentPathcontroller,
                           decoration: InputDecoration(
                               fillColor: this.highLightColor,
@@ -545,56 +557,43 @@ class KfToHomeState extends BaseRemotePageState {
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
                               )),
-                          onChanged: _onFilePathInputChange,
-                        )),
-                    margin: const EdgeInsets.all(4),
-                  ),
-                  ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
-                    _saveFile();
-                  },
-                      color: this.highLightColor,
-                      icon: Icon(
-                        Icons.save_as_sharp,
-                        color: this.highLightColor,
-                        size: ViewBuilder.size(2),
-                      )),
-                  ViewBuilder.BuildMaterialButton("New",
-                      onPressFunc: () => this.onPressAddNewFunc(),
-                      color: this.highLightColor,
-                      icon: Icon(
-                        Icons.add,
-                        color: this.highLightColor,
-                        size: ViewBuilder.size(2),
-                      ))
-                ],
+                          onChanged: _onFilePathInputChange),
+                    )
+                  ],
+                ),
               ),
-              // Expanded(
-              //   child: ZefyrEditor(
-              //     controller: _controller,
-              //   ),
-              // ),
-              // !Platform.isMacOS ?
-              // MaterialButton(
-              //   onPressed: () {
-              //     web.showDevtools();
-              //   },
-              //   child: Text("devtools"),
-              // ) : null,
-
               Expanded(
-                child: cefContainor,
+                key: containerKey,
+                child: Container(
+                  color: Colors.blueAccent,
+                  alignment: Alignment.topLeft,
+                  child: cefContainor,
+                ),
               )
-            ])),
-          ))
+            ],
+          ),
+        ),
+      ))
     ];
 
     return Scaffold(
       body: new Container(
-        child: new Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: childs,
+        color: Colors.white60,
+        child: Column(
+          children: [
+            Expanded(
+              child: new Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: childs,
+              ),
+            ),
+            Container(
+              height: 50,
+              width: double.infinity,
+              color: Colors.white12,
+            )
+          ],
         ),
-        margin: const EdgeInsets.fromLTRB(0, 30, 0, 60),
       ),
     );
   }
