@@ -185,6 +185,7 @@ class ViewBuilder {
     );
      return Container(
       child: searchInput,
+      height: 60,
       margin: const EdgeInsets.all(4),
     );
   }

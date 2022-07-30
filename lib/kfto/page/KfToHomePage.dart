@@ -126,6 +126,22 @@ class KfToHomeState extends BaseRemotePageState {
 
   Widget cefContainor = null;
 
+  Color get dragLineActiveColor {
+    return highLightColor;
+  }
+
+  Color get dragLineInActiveColor {
+    return Colors.amberAccent;
+  }
+
+  Color dragLineColor = Colors.amberAccent;
+
+  bool isDragingLine = false;
+
+  double left_width_real = 300;
+
+  double left_width_drag_start = 0;
+  Offset left_widnth_drag_start_pos = Offset.zero;
   KfToHomeState() {
     var port = 8082;
 
@@ -205,8 +221,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _clearEditor() {
-    web.executeJs(
-        "window.denkGetKey('editor').setValue('')");
+    web.executeJs("window.denkGetKey('editor').setValue('')");
     ;
   }
 
@@ -418,6 +433,31 @@ class KfToHomeState extends BaseRemotePageState {
     return Card(clipBehavior: Clip.antiAlias, child: widget);
   }
 
+  void onDragLineStart(PointerDownEvent event) {
+    setState(() {
+      dragLineColor = dragLineActiveColor;
+    });
+    left_width_drag_start = left_width_real;
+    left_widnth_drag_start_pos = event.position;
+    isDragingLine = true;
+  }
+
+  void onDragLineMoving(PointerMoveEvent event) {
+    if (isDragingLine) {
+      double dx = event.position.dx - left_widnth_drag_start_pos.dx;
+      setState(() {
+        left_width_real = left_width_drag_start + dx;
+      });
+    }
+  }
+
+  void onDragLineEnd() {
+    setState(() {
+      dragLineColor = dragLineInActiveColor;
+    });
+    isDragingLine = false;
+  }
+
   List<Widget> buildListItemView(String tag) {
     List<Widget> res = [];
     this.data.data.where((element) => element.tags.contains(tag)).forEach((e) {
@@ -504,14 +544,36 @@ class KfToHomeState extends BaseRemotePageState {
     }
     web.loadCefContainer();
     var childs = [
+      // new Container(
+      //   width: left_width_real,
+      //   child: ACard(Container(
+      //     child:
+      //       buildListView(),
+      //   )
+      //   )
+      // ),
       new Container(
-        width: LEFT_WIDTH,
-        child: ACard(Stack(
+        width: left_width_real,
+        child: ACard(Row(
           children: [
-            buildListView(),
+            Expanded(child: buildListView()),
+            Listener(
+                onPointerDown: (event) => {onDragLineStart(event)},
+                onPointerUp: ((event) => {onDragLineEnd()}),
+                onPointerMove: ((event) {
+                  onDragLineMoving(event);
+                }),
+                child: Container(
+                  color: dragLineColor,
+                  width: 4,
+                  height: double.infinity,
+                  alignment: Alignment.center,
+                  child: Container(width: 2, height: 20, color: Colors.blueGrey,)
+                )),
           ],
         )),
       ),
+
       Expanded(
           child: Container(
         child: Card(
