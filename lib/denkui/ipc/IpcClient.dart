@@ -26,7 +26,9 @@ class IpcClient {
     print("IpcClient init ${port}");
     inited = true;
     mWebSocket.stream.listen((message) {
-      // print("IpcClient  message ${message}");
+      if (!message.toString().contains('"name":"heart"')) {
+        // print("IpcClient  message ${message}");
+      }
       isConnected = true;
       listeners.forEach((callback) {
         callback(message);

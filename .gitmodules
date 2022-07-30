@@ -7,3 +7,6 @@
 [submodule "plugins/libdeno_plugin"]
 	path = plugins/libdeno_plugin
 	url = git@github.com:kfdykme/libdeno_plugin
+[submodule "submodules/monaco-editor"]
+	path = submodules/monaco-editor
+	url = https://github.com/microsoft/monaco-editor.git

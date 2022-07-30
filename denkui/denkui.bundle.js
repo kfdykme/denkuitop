@@ -2828,6 +2828,36 @@ const __default7 = {
         });
     }
 };
+const getDefaultFileExtByType = (type)=>{
+    if (type === 'denkuiblog') {
+        return 'md';
+    }
+    if (type === 'text') {
+        return 'denkuitext';
+    }
+    if (type === 'script') {
+        return 'js';
+    }
+    return 'DENKNONONONONNONONONO';
+};
+const getFileExtByType = (type, config)=>{
+    if (!config || !config.filterFiles) {
+        return getDefaultFileExtByType(type);
+    }
+    const filter = config.filterFiles;
+    if (typeof filter == 'object' && filter instanceof Array) {
+        for(let x in filter){
+            const v = filter[x];
+            if (v.type === type) {
+                return v.ext;
+            }
+        }
+    }
+    return getDefaultFileExtByType(type);
+};
+const __default8 = {
+    getFileExtByType
+};
 class KfTodoController {
     ipc = null;
     hasFirstConnect = false;
@@ -2947,6 +2977,7 @@ class KfTodoController {
     }
     async handleInvoke(ipcData) {
         const { invokeName , data: invokeData  } = ipcData.data;
+        __default1.info('handleInvoke invokeName:', invokeName);
         if (invokeName === 'readFile') {
             const path = invokeData;
             const content = __default4.readFileSync(path);
@@ -2960,86 +2991,115 @@ class KfTodoController {
                 value: path
             });
         }
+        if (invokeName === 'getConfig') {
+            ipcData.data = this.config;
+            this.ipc?.response(ipcData);
+        }
         if (invokeName === 'writeFile') {
             const { content , path  } = invokeData;
             __default4.mkdirSync(__default3.getDirPath(path), {
                 recursive: true
             });
             __default4.writeFileSync(path, content);
-            const listDataRes = await __default5.get({
-                key: 'listData'
-            });
-            const hitItems = listDataRes.data.headerInfos.filter((item)=>{
-                return item.path == path;
-            });
-            let item1 = {};
-            if (hitItems.length === 0) {
-                item1 = {
-                    "title": content.substring(0, 20),
-                    "date": new Date().toDateString(),
-                    "dateMs": new Date().getTime(),
-                    "path": path,
-                    "tags": []
-                };
-                listDataRes.data.headerInfos && listDataRes.data.headerInfos.push(item1);
+            __default1.info('handleInvoke writeFile path:', path);
+            if (path.endsWith(__default8.getFileExtByType('script', this.config))) {
+                ipcData.msg = `${ipcData.data.invokeName} success`;
+                this.ipc?.response(ipcData);
             } else {
-                item1 = hitItems[0];
-            }
-            if (path === KfTodoController.KFTODO_CONFIG_MD_PATH) {
-                try {
-                    const configContent = BlogTextHelper.GetContentFromText(content).trim();
-                    __default1.info('KfTodoController ', configContent);
-                    this.config = JSON.parse(configContent);
-                    const files = __default4.walkDirSync(this.config.basePath).filter((value)=>{
-                        return value.name.endsWith('.md');
-                    });
-                    const infos = files.map((i)=>{
-                        __default1.info('KfTodoController ', i);
-                        return __default6.handleFile(__default4.readFileSync(i.path), i.path);
-                    }).filter((i)=>{
-                        return i.title;
-                    });
-                    __default1.info('KfTodoController ', infos);
-                    const resData = {
-                        headerInfos: infos.concat([
-                            item1
-                        ])
+                const listDataRes = await __default5.get({
+                    key: 'listData'
+                });
+                const hitItems = listDataRes.data.headerInfos.filter((item)=>{
+                    return item.path == path;
+                });
+                let item1 = {};
+                if (hitItems.length === 0) {
+                    item1 = {
+                        "title": content.substring(0, 20),
+                        "date": new Date().toDateString(),
+                        "dateMs": new Date().getTime(),
+                        "path": path,
+                        "tags": []
                     };
+                    listDataRes.data.headerInfos && listDataRes.data.headerInfos.push(item1);
+                } else {
+                    item1 = hitItems[0];
+                }
+                __default1.info('handleInvoke writeFile path compare to', KfTodoController.KFTODO_CONFIG_MD_PATH);
+                if (path === KfTodoController.KFTODO_CONFIG_MD_PATH || path === "./.denkui/.config.md") {
+                    try {
+                        const configContent = BlogTextHelper.GetContentFromText(content).trim();
+                        __default1.info('KfTodoController ', configContent);
+                        this.config = JSON.parse(configContent);
+                        const files = __default4.walkDirSync(this.config.basePath);
+                        const denkuiblogFiles = files.filter((value)=>{
+                            const ext = __default8.getFileExtByType('denkuiblog', this.config);
+                            return value.name.endsWith(ext);
+                        });
+                        const infos = denkuiblogFiles.map((i)=>{
+                            __default1.info('KfTodoController ', i);
+                            return __default6.handleFile(__default4.readFileSync(i.path), i.path);
+                        }).filter((i)=>{
+                            return i.title;
+                        });
+                        const scriptFiles = files.filter((value)=>{
+                            return value.name.endsWith(__default8.getFileExtByType('script', this.config));
+                        });
+                        __default1.info('KfTodoController scriptFiles', scriptFiles);
+                        scriptFiles.forEach((scriptFile)=>{
+                            infos.push({
+                                path: scriptFile.path,
+                                title: scriptFile.name,
+                                date: 'SCRIPT',
+                                tags: [
+                                    '_DENKUISCRIPT'
+                                ]
+                            });
+                        });
+                        __default1.info('KfTodoController ', infos);
+                        const resData = {
+                            headerInfos: infos.concat([
+                                item1
+                            ])
+                        };
+                        await __default5.set({
+                            key: 'listData',
+                            value: resData
+                        });
+                        this.send({
+                            name: 'initData',
+                            data: resData
+                        });
+                        ipcData.msg = `initData by config success`;
+                        this.ipc?.response(ipcData);
+                    } catch (err) {
+                        __default1.info('KfTodoController', err);
+                        ipcData.data = {
+                            error: 'error: ' + err
+                        };
+                        this.ipc?.response(ipcData);
+                    }
+                } else {
+                    try {
+                        let info = __default6.handleFile(content, path);
+                        item1.title = info.title;
+                        item1.date = info.date;
+                        item1.path = info.path;
+                        item1.tags = info.tags;
+                        ipcData.msg = `${ipcData.data.invokeName} success`;
+                    } catch (err) {
+                        ipcData.data = {
+                            error: 'error: ' + err
+                        };
+                        this.ipc?.response(ipcData);
+                        return;
+                    }
                     await __default5.set({
                         key: 'listData',
-                        value: resData
+                        value: listDataRes.data
                     });
-                    this.send({
-                        name: 'initData',
-                        data: resData
-                    });
-                } catch (err) {
-                    __default1.info('KfTodoController', err);
-                    ipcData.data = {
-                        error: 'error: ' + err
-                    };
                     this.ipc?.response(ipcData);
                 }
-            } else {
-                try {
-                    let info = __default6.handleFile(content, path);
-                    item1.title = info.title;
-                    item1.date = info.date;
-                    item1.path = info.path;
-                    item1.tags = info.tags;
-                    ipcData.msg = `${ipcData.data.invokeName} success`;
-                } catch (err) {
-                    ipcData.data = {
-                        error: 'error: ' + err
-                    };
-                    this.ipc?.response(ipcData);
-                    return;
-                }
-                await __default5.set({
-                    key: 'listData',
-                    value: listDataRes.data
-                });
-                this.ipc?.response(ipcData);
             }
         }
         if (invokeName === 'deleteItem') {
@@ -3070,11 +3130,27 @@ class KfTodoController {
         }
         if (invokeName === 'initData') {
             const { path  } = invokeData;
-            const files = __default4.walkDirSync(path).filter((value)=>{
-                return value.name.endsWith('.md');
+            const files = __default4.walkDirSync(path);
+            const denkuiblogFiles = files.filter((value)=>{
+                const ext = __default8.getFileExtByType('denkuiblog', this.config);
+                return value.name.endsWith(ext);
             });
-            let headerInfos = files.map((value)=>{
+            let headerInfos = denkuiblogFiles.map((value)=>{
                 return __default6.handleFile(__default4.readFileSync(value.path), value.path);
+            });
+            const scriptFiles = files.filter((value)=>{
+                return value.name.endsWith(__default8.getFileExtByType('script', this.config));
+            });
+            __default1.info('KfTodoController scriptFiles', scriptFiles);
+            scriptFiles.forEach((scriptFile)=>{
+                headerInfos.push({
+                    path: scriptFile.path,
+                    title: scriptFile.name,
+                    date: 'SCRIPT',
+                    tags: [
+                        '_DENKUISCRIPT'
+                    ]
+                });
             });
             ipcData.data = {
                 headerInfos
@@ -3154,7 +3230,7 @@ const startHttpServer = async ()=>{
         }
     }
 };
-const __default8 = {
+const __default9 = {
     startHttpServer
 };
 let args = __default.GetArgs();
@@ -3177,4 +3253,4 @@ const kf = new KfTodoController();
 if (!isLcOpen) {
     kf.start();
 }
-__default8.startHttpServer();
+__default9.startHttpServer();

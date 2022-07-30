@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/denkui/ipc/IpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
+import 'package:denkuitop/kfto/data/KftodoListData.dart';
 
 typedef AsyncIpcCallback = Function(AsyncIpcData data);
 
@@ -21,7 +22,7 @@ class AsyncIpcClient extends IpcClient {
       var ipcData = new AsyncIpcData.raw(message);
       if (message.indexOf('hreat') != -1)
         logger.log('AsyncIpcClient base callback: ' + message);
-      logCallbacks();
+      // logCallbacks();
 
       if (asyncCallbacks.containsKey(ipcData.id)) {
         asyncCallbacks[ipcData.id](ipcData);
@@ -42,6 +43,10 @@ class AsyncIpcClient extends IpcClient {
     asyncCallbacks.keys.forEach((String element) {
       logger.log('callbacks key: ' + element.toString());
     });
+  }
+
+  invokeNyName(Map<String, dynamic> data,  {AsyncIpcCallback callback = null}) {
+    invoke(KfToDoIpcData.from("invoke", data), callback:  callback);
   }
 
   invoke(AsyncIpcData data, {AsyncIpcCallback callback = null}) {

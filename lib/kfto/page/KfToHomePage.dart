@@ -150,14 +150,13 @@ class KfToHomeState extends BaseRemotePageState {
     this.lib = LibraryLoader.instance;
     var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
     print("${runableJsPath}");
-    var isDev = false;
-    // if (isDev) {
-    //   port = 10825;
-    // } else {
-    // this.lib.libMain("deno run -A ${runableJsPath} --port=${port}");
-    libdeno.load();
-    libdeno.run("deno run -A ${runableJsPath} --port=${port}");
-    // }
+    var isDevDeno = false;
+    if (isDevDeno) {
+      port = 8082;
+    } else {
+      libdeno.load();
+      libdeno.run("deno run -A ${runableJsPath} --port=${port}");
+    }
 
     super.init(client: new AsyncIpcClient(), port: port);
     this.ipc().setCallback("onmessage", (String message) async {
@@ -171,6 +170,25 @@ class KfToHomeState extends BaseRemotePageState {
     //   print("callback keyevent ctrl-s");
     //   this._saveFile();
     // });
+
+    // registerWebEditor functions
+    web.registerFunction("prepareInjectJs", (dynamic data) {
+      this.ipc().invokeNyName({"invokeName": "getConfig"},
+          callback: (AsyncIpcData data) {
+            var ktoData = KfToDoIpcData.fromAsync(data);
+            print("getConfig: ${ktoData}");
+            if (ktoData.data['editorInjectJsPath'] != null) {
+              var path = ktoData.data['editorInjectJsPath'].toString();
+              CommonReadFile(path, func: (({content, path}) {
+                web.executeJs(content);
+              }));
+            }
+      });
+    });
+
+    web.registerFunction("editorSave", (dynamic data) {
+      _saveFile();
+    });
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
@@ -181,6 +199,7 @@ class KfToHomeState extends BaseRemotePageState {
     if (data.name == 'initData') {
       setState(() {
         this.data = ListData.fromMap(data.data as Map<String, dynamic>);
+       
         this.data?.data?.forEach((element) {
           element.tags.forEach((tag) {
             var tagData = KfToDoTagData(tag);
@@ -204,7 +223,7 @@ class KfToHomeState extends BaseRemotePageState {
     if (data.name == 'notifyRead') {
       String readPath = data.data;
       ListItemData listItemData =
-          this.data?.data?.where((element) => element.path == readPath).first;
+          this.data?.data?.where((element) => element.path == readPath)?.first;
       if (listItemData != null) {
         this.onPressSingleItemFunc(listItemData);
       }
@@ -221,14 +240,13 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _clearEditor() {
-    web.executeJs("window.denkGetKey('editor').setValue('')");
-    ;
+    
   }
 
   void _insertIntoEditor(String content) {
-    web.executeJs(
-        "window.denkGetKey('editor').setValue(decodeURIComponent(\"${Uri.encodeComponent(content)}\"))");
-    ;
+
+    web.executeJs('window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${currentFilePath}")');
+   
   }
 
   void _refreshFilePathTextField() {
@@ -281,11 +299,12 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _saveFile() async {
+    print('_saveFile ${currentFilePath}');
     var map = Map<String, dynamic>();
     map['path'] = GetDirFromPath(currentFilePath) +
         DirSpelator +
         _currentPathcontroller.text;
-    map['content'] = await web.getEditorContent();
+    map['content'] = await web.getEditorContent(currentFilePath);
     var omap = Map<String, dynamic>();
 
     omap['data'] = map;
@@ -299,6 +318,21 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _refresh() {
     this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+  }
+
+  void CommonReadFile(String path, { Function({String content, String path}) func }) {
+    _readFile(path, callback: (AsyncIpcData data) {
+      print("onPressSingleItemFunc _readFile callback" + data.toString());
+      var ktoData = KfToDoIpcData.fromAsync(data);
+      String path = ktoData.data['path'] as String;
+      if (ktoData.data['content'] != null) {
+        String content = ktoData.data['content'] as String;
+        content = content.replaceAll('\t', '    ');
+        func(content: content, path: path);
+      } else {
+        func(content: '', path: path);
+      }
+    });
   }
 
   void _readFile(String path, {AsyncIpcCallback callback = null}) {
@@ -564,12 +598,15 @@ class KfToHomeState extends BaseRemotePageState {
                   onDragLineMoving(event);
                 }),
                 child: Container(
-                  color: dragLineColor,
-                  width: 4,
-                  height: double.infinity,
-                  alignment: Alignment.center,
-                  child: Container(width: 2, height: 20, color: Colors.blueGrey,)
-                )),
+                    color: dragLineColor,
+                    width: 4,
+                    height: double.infinity,
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 2,
+                      height: 20,
+                      color: Colors.blueGrey,
+                    ))),
           ],
         )),
       ),
@@ -627,7 +664,6 @@ class KfToHomeState extends BaseRemotePageState {
               Expanded(
                 key: containerKey,
                 child: Container(
-                  color: Colors.blueAccent,
                   alignment: Alignment.topLeft,
                   child: cefContainor,
                 ),

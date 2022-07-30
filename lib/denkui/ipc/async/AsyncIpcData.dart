@@ -63,4 +63,8 @@ class AsyncIpcData {
   String json() {
     return jsonEncode(map());
   }
+
+  String toString() {
+    return json();
+  }
 }
