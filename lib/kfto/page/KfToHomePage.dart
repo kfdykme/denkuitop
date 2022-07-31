@@ -142,6 +142,9 @@ class KfToHomeState extends BaseRemotePageState {
 
   double left_width_drag_start = 0;
   Offset left_widnth_drag_start_pos = Offset.zero;
+
+  String dialog_editor_rss_url = "";
+
   KfToHomeState() {
     var port = 8082;
 
@@ -166,12 +169,7 @@ class KfToHomeState extends BaseRemotePageState {
     this._currentPathcontroller = TextEditingController();
 
     NativeHotkey.instance.init();
-    // NativeHotkey.instance.setHotkeyListener('ctrl-s', () {
-    //   print("callback keyevent ctrl-s");
-    //   this._saveFile();
-    // });
 
-    // registerWebEditor functions
     web.registerFunction("prepareInjectJs", (dynamic data) {
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
@@ -189,7 +187,6 @@ class KfToHomeState extends BaseRemotePageState {
     web.registerFunction("editorSave", (dynamic data) {
       _saveFile();
     });
-
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
@@ -356,7 +353,6 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
-
     DenktuiDialog.initContext(context);
     DenktuiDialog.ShowCommonDialog(contentTitle: "Delete this item", options: [
       CommonDialogButtonOption(
@@ -407,17 +403,90 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onPressAddNewFunc() {
-    var map = new Map();
-    map['invokeName'] = "getNewBlogTemplate";
-    this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
-        callback: (AsyncIpcData data) {
-      var ktoData = KfToDoIpcData.fromAsync(data);
-      String content = ktoData.data['content'] as String;
-      String path = ktoData.data['path'] as String;
-      currentFilePath = path;
-      _refreshFilePathTextField();
-      _insertIntoEditor(content);
-    });
+    DenktuiDialog.initContext(context);
+    DenktuiDialog.ShowDialog(
+        content: Container(
+          width: 500,
+          height: 350,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ACard(Container(
+                child: Column(children: [
+                  ListTile(
+                    leading: Icon(Icons.rss_feed),
+                    title: const Text('RSS'),
+                    subtitle: Text(
+                      'Add a rss ',
+                      style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                    child: TextFormField(
+                      cursorColor: Theme.of(context).cursorColor,
+                      initialValue: 'http://',
+                      onChanged: (String value) {
+                        this.dialog_editor_rss_url = value;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'RSS url',
+                        labelStyle:
+                            TextStyle(color: ColorManager.highLightColor),
+                        helperText: 'Input a rss url ',
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide:
+                              BorderSide(color: ColorManager.highLightColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ViewBuilder.BuildMaterialButton("Add to List",
+                      onPressFunc: () {
+                    Navigator.pop(context);
+                    this.ipc().invokeNyName({
+                      "invokeName": "addRss",
+                      "url": this.dialog_editor_rss_url
+                    }, callback: (AsyncIpcData data) {});
+                  })
+                ]),
+              )),
+              ACard(Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.text_format),
+                    title: const Text('Text'),
+                    subtitle: Text(
+                      'Add a text ',
+                      style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                    ),
+                  ),
+                  ViewBuilder.BuildMaterialButton("New blog",
+                      icon: Icon(
+                        Icons.newspaper,
+                        color: ColorManager.highLightColor,
+                        size: ViewBuilder.size(2),
+                      ), onPressFunc: () {
+                    Navigator.pop(context);
+                    var map = new Map();
+                    map['invokeName'] = "getNewBlogTemplate";
+                    this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
+                        callback: (AsyncIpcData data) {
+                      var ktoData = KfToDoIpcData.fromAsync(data);
+                      String content = ktoData.data['content'] as String;
+                      String path = ktoData.data['path'] as String;
+                      currentFilePath = path;
+                      _refreshFilePathTextField();
+                      _insertIntoEditor(content);
+                    });
+                  })
+                ],
+              ))
+            ],
+          ),
+        ),
+        children: []);
   }
 
   void onPressDeleteFunc(ListItemData itemData) {
@@ -615,18 +684,15 @@ class KfToHomeState extends BaseRemotePageState {
                       child: TextField(
                           controller: _currentPathcontroller,
                           decoration: InputDecoration(
-                              fillColor:
-                                  ColorManager.highLightColor,
+                              fillColor: ColorManager.highLightColor,
                               border: OutlineInputBorder(
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(8))),
-                              focusColor:
-                                  ColorManager.highLightColor,
+                              focusColor: ColorManager.highLightColor,
                               labelText: filePathLabelText,
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: ColorManager
-                                        .highLightColor),
+                                    color: ColorManager.highLightColor),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
@@ -664,6 +730,21 @@ class KfToHomeState extends BaseRemotePageState {
               height: 50,
               width: double.infinity,
               color: Colors.white12,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ViewBuilder.BuildInLineMaterialButton("ReloadEditor",
+                      onPressFunc: () {
+                    web.executeJs("location.reload(false)");
+                  },
+                      color: ColorManager.highLightColor,
+                      icon: Icon(
+                        Icons.refresh,
+                        color: ColorManager.highLightColor,
+                        size: ViewBuilder.size(2),
+                      )),
+                ],
+              ),
             )
           ],
         ),
