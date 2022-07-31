@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 // import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
+import 'package:denkuitop/kfto/page/KfToNavigator.dart';
 import 'package:denkuitop/native/KeydownManager.dart';
 import 'package:flutter/material.dart';
 
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
           // closer together (more dense) than on mobile platforms.
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
+        navigatorObservers: [KffToNavigator()],
         home: KfToHomePage());
   }
 }

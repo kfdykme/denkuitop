@@ -32,10 +32,10 @@ class ViewBuilder {
         ViewBuilder.RandomColorDartInt(), ViewBuilder.RandomColorDartInt());
   }
 
-  static IconData getIconByTag (String tag) {
+  static IconData getIconByTag(String tag) {
     if (tag == "_DENKUISCRIPT") {
       return Icons.javascript;
-    } 
+    }
 
     return Icons.folder;
   }
@@ -104,7 +104,8 @@ class ViewBuilder {
     );
   }
 
-  static Widget BuildSingleTagListItemContainor(ListItemData e, { Function onPressFunc, Function onLongPressFunc}) {
+  static Widget BuildSingleTagListItemContainor(ListItemData e,
+      {Function onPressFunc, Function onLongPressFunc}) {
     return MaterialButton(
       padding:
           EdgeInsets.only(left: size(2), top: size(.75), bottom: size(.75)),
@@ -118,43 +119,47 @@ class ViewBuilder {
           onLongPressFunc(e);
         }
       },
-      child: Container( 
-        height: size(4),
-        width: double.infinity,
-        color: Color(0x33FFFFFF),
-        margin: EdgeInsets.all(size(1)), 
-        padding: EdgeInsets.only(left: size(1)),
-        child: Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-          Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [Text('@${e.date}', style: TextStyle(color: Color(0xaaFFFFFF), overflow: TextOverflow.ellipsis),)],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [Text(e.title != null ? e.title : "empty")],
-        ),
-        ],)
-      ),
+      child: Container(
+          height: size(4),
+          width: double.infinity,
+          color: Color(0x33FFFFFF),
+          margin: EdgeInsets.all(size(1)),
+          padding: EdgeInsets.only(left: size(1)),
+          child: Stack(
+            alignment: AlignmentDirectional.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    '@${e.date}',
+                    style: TextStyle(
+                        color: Color(0xaaFFFFFF),
+                        overflow: TextOverflow.ellipsis),
+                  )
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [Text(e.title != null ? e.title : "empty")],
+              ),
+            ],
+          )),
     );
     ;
   }
 
-  static Widget BuildMaterialButton(String text, { Function onPressFunc, Color color, Icon icon}) {
+  static Widget BuildInLineMaterialButton(String text,
+      {Function onPressFunc, Color color, Icon icon}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
     }
     buttonChildrenItems.add(Container(
-      padding: EdgeInsets.only(left: size(1 )),
+      padding: EdgeInsets.only(left: size(1)),
       child: Text(text),
     ));
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          MaterialButton( 
+    return  MaterialButton(
             textColor: color,
             onPressed: () {
               print("BuildMaterialButton Press ${text} ${onPressFunc}");
@@ -162,7 +167,35 @@ class ViewBuilder {
                 onPressFunc();
               }
             },
-            child: Row( 
+            child: Row(
+              children: buttonChildrenItems,
+            ),
+          );
+  }
+
+  static Widget BuildMaterialButton(String text,
+      {Function onPressFunc, Color color, Icon icon}) {
+    List<Widget> buttonChildrenItems = [];
+    if (icon != null) {
+      buttonChildrenItems.add(icon);
+    }
+    buttonChildrenItems.add(Container(
+      padding: EdgeInsets.only(left: size(1)),
+      child: Text(text),
+    ));
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          MaterialButton(
+            textColor: color,
+            onPressed: () {
+              print("BuildMaterialButton Press ${text} ${onPressFunc}");
+              if (onPressFunc != null) {
+                onPressFunc();
+              }
+            },
+            child: Row(
               children: buttonChildrenItems,
             ),
           )
@@ -172,26 +205,23 @@ class ViewBuilder {
     );
   }
 
-  static Widget BuildSearchMaterialInput({ Function onChange} ) {
-   
+  static Widget BuildSearchMaterialInput({Function onChange}) {
     var searchInput = TextField(
       decoration: InputDecoration(
-                              fillColor: RandomColor(),
-                              border: OutlineInputBorder(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8))),
-                              focusColor: RandomDarkColor(),
-                              labelText: 'search',
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: RandomColor()),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                              )),
+          fillColor: RandomColor(),
+          border: OutlineInputBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8))),
+          focusColor: RandomDarkColor(),
+          labelText: 'search',
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: RandomColor()),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
+          )),
       onChanged: onChange,
     );
-     return Container(
+    return Container(
       child: searchInput,
       height: 60,
       margin: const EdgeInsets.all(4),

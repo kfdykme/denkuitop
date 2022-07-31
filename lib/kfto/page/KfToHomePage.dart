@@ -175,14 +175,14 @@ class KfToHomeState extends BaseRemotePageState {
     web.registerFunction("prepareInjectJs", (dynamic data) {
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
-            var ktoData = KfToDoIpcData.fromAsync(data);
-            print("getConfig: ${ktoData}");
-            if (ktoData.data['editorInjectJsPath'] != null) {
-              var path = ktoData.data['editorInjectJsPath'].toString();
-              CommonReadFile(path, func: (({content, path}) {
-                web.executeJs(content);
-              }));
-            }
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        print("getConfig: ${ktoData}");
+        if (ktoData.data['editorInjectJsPath'] != null) {
+          var path = ktoData.data['editorInjectJsPath'].toString();
+          CommonReadFile(path, func: (({content, path}) {
+            web.executeJs(content);
+          }));
+        }
       });
     });
 
@@ -199,7 +199,7 @@ class KfToHomeState extends BaseRemotePageState {
     if (data.name == 'initData') {
       setState(() {
         this.data = ListData.fromMap(data.data as Map<String, dynamic>);
-       
+
         this.data?.data?.forEach((element) {
           element.tags.forEach((tag) {
             var tagData = KfToDoTagData(tag);
@@ -239,14 +239,11 @@ class KfToHomeState extends BaseRemotePageState {
     return super.ipc() as AsyncIpcClient;
   }
 
-  void _clearEditor() {
-    
-  }
+  void _clearEditor() {}
 
   void _insertIntoEditor(String content) {
-
-    web.executeJs('window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${currentFilePath}")');
-   
+    web.executeJs(
+        'window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${currentFilePath}")');
   }
 
   void _refreshFilePathTextField() {
@@ -320,7 +317,8 @@ class KfToHomeState extends BaseRemotePageState {
     this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
   }
 
-  void CommonReadFile(String path, { Function({String content, String path}) func }) {
+  void CommonReadFile(String path,
+      {Function({String content, String path}) func}) {
     _readFile(path, callback: (AsyncIpcData data) {
       print("onPressSingleItemFunc _readFile callback" + data.toString());
       var ktoData = KfToDoIpcData.fromAsync(data);
@@ -357,15 +355,44 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
+    // web.hide();
+
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             content: Container(
-              child: buildDeleteButtonItem(itemData, context),
+              child: Text("Delete this item"),
               height: 100,
               alignment: Alignment.center,
             ),
+            actions: [
+              Row(
+                children: [
+                  ViewBuilder.BuildInLineMaterialButton("Delete",
+                      onPressFunc: () {
+                        Navigator.of(context).pop();
+                        this.onPressDeleteFunc(itemData);
+                      },
+                      color: this.highLightColor,
+                      icon: Icon(
+                        Icons.delete,
+                        color: this.highLightColor,
+                        size: ViewBuilder.size(2),
+                      )),
+                      ViewBuilder.BuildInLineMaterialButton("Cancel",
+                          onPressFunc: () {
+                        Navigator.of(context).pop();
+                      },
+                      color: this.highLightColor,
+                      icon: Icon(
+                        Icons.cancel,
+                        color: this.highLightColor,
+                        size: ViewBuilder.size(2),
+                      )),
+                ],
+              )
+            ],
           );
         });
   }
@@ -439,17 +466,6 @@ class KfToHomeState extends BaseRemotePageState {
         ],
       ),
       margin: const EdgeInsets.all(16),
-    );
-  }
-
-  Widget buildDeleteButtonItem(ListItemData itemData, BuildContext context) {
-    return MaterialButton(
-      textColor: this.highLightColor,
-      onPressed: () {
-        Navigator.of(context).pop();
-        this.onPressDeleteFunc(itemData);
-      },
-      child: const Text('Remove This'),
     );
   }
 
@@ -594,7 +610,6 @@ class KfToHomeState extends BaseRemotePageState {
           ],
         )),
       ),
-
       Expanded(
           child: Container(
         child: Card(
