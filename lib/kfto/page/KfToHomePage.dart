@@ -184,8 +184,46 @@ class KfToHomeState extends BaseRemotePageState {
       });
     });
 
+     web.registerFunction("onEditorCreate", (dynamic data) {
+      ListItemData listItemData =
+          this.data?.data?.where((element) => element.path == currentFilePath)?.first;
+      if (listItemData != null) {
+        this.onPressSingleItemFunc(listItemData);
+      }
+    });
+
     web.registerFunction("editorSave", (dynamic data) {
       _saveFile();
+    });
+  }
+
+  void refreshByData(KfToDoIpcData data) {
+    setState(() {
+      this.data = ListData.fromMap(data.data as Map<String, dynamic>);
+
+      this.data?.data?.forEach((element) {
+        element.tags.forEach((tag) {
+          var tagData = KfToDoTagData(tag);
+          if (element.type == 'rss') {
+            tagData.isRss = true;
+          }
+          if (element.type == 'rssItem') {
+            tagData.isRssItem = true;
+          }
+          var hasTag = false;
+          for (KfToDoTagData item in dataTags) {
+            if (item.name == tag) {
+              hasTag = true;
+              break;
+            }
+          }
+
+          if (!hasTag) {
+            dataTags.add(tagData);
+          }
+        });
+      });
+      dataTags.sort((left, right) => left.name.compareTo(right.name));
     });
   }
 
@@ -195,28 +233,7 @@ class KfToHomeState extends BaseRemotePageState {
       isFirstConnect = true;
     }
     if (data.name == 'initData') {
-      setState(() {
-        this.data = ListData.fromMap(data.data as Map<String, dynamic>);
-
-        this.data?.data?.forEach((element) {
-          element.tags.forEach((tag) {
-            var tagData = KfToDoTagData(tag);
-            var hasTag = false;
-            for (KfToDoTagData item in dataTags) {
-              if (item.name == tag) {
-                hasTag = true;
-                break;
-              }
-            }
-
-            if (!hasTag) {
-              dataTags.add(tagData);
-            }
-          });
-        });
-        // TODO:
-        dataTags.sort((left, right) => left.name.compareTo(right.name));
-      });
+      refreshByData(data);
     }
     if (data.name == 'notifyRead') {
       String readPath = data.data;
@@ -266,8 +283,8 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void showSnack(AsyncIpcData data) {
-    print("raw ${data.raw}");
-    print("rawMap ${data.rawMap}");
+    // print("raw ${data.raw}");
+    // print("rawMap ${data.rawMap}");
     String msg = data.rawMap['msg'];
     Color bkGC = null;
     if (msg == null) {
@@ -280,8 +297,6 @@ class KfToHomeState extends BaseRemotePageState {
         bkGC = Color(0xffffbcd4);
       }
     }
-    print("msg ${msg}");
-    print("bkGC ${bkGC}");
     if (msg == null) {
       msg = "ERRRRRRRRRRRRRRR";
     }
@@ -340,16 +355,29 @@ class KfToHomeState extends BaseRemotePageState {
 
   void onPressSingleItemFunc(ListItemData itemData) {
     // web.loadCefContainer();
-    _readFile(itemData.path, callback: (AsyncIpcData data) {
-      print("onPressSingleItemFunc _readFile callback" + data.toString());
-      var ktoData = KfToDoIpcData.fromAsync(data);
-      String content = ktoData.data['content'] as String;
-      String path = ktoData.data['path'] as String;
-      currentFilePath = path;
-      content = content.replaceAll('\t', '    ');
-      _refreshFilePathTextField();
-      _insertIntoEditor(content);
-    });
+    print('onPressSingleItemFunc ' + itemData.type);
+    // if (itemData.type )
+    if (itemData.path.startsWith('http://') ||
+        itemData.path.startsWith('https://')) {
+      web.executeJs('location.href = "${itemData.path}"');
+    } else {
+      var homePath = DenkuiRunJsPathHelper.GetResourcePaht();
+      var url =
+          "http://localhost:10825/manoco-editor/index.html?home=${homePath}";
+
+      web.executeJs(
+          'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
+      _readFile(itemData.path, callback: (AsyncIpcData data) {
+        print("onPressSingleItemFunc _readFile callback" + data.toString());
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        String content = ktoData.data['content'] as String;
+        String path = ktoData.data['path'] as String;
+        currentFilePath = path;
+        content = content.replaceAll('\t', '    ');
+        _refreshFilePathTextField();
+        _insertIntoEditor(content);
+      });
+    }
   }
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
@@ -364,42 +392,6 @@ class KfToHomeState extends BaseRemotePageState {
       CommonDialogButtonOption(
           text: "Cancel", callback: () {}, icon: Icons.cancel)
     ]);
-  }
-
-  Widget buildSingleListItem(ListItemData itemData) {
-    var backColor = currentFilePath == itemData.path
-        ? Colors.black.withOpacity(0.6)
-        : Colors.white;
-    var forColor = currentFilePath == itemData.path
-        ? Colors.white
-        : Colors.black.withOpacity(0.6);
-    return FlatButton(
-      textColor: ColorManager.highLightColor,
-      onPressed: () {
-        this.onPressSingleItemFunc(itemData);
-      },
-      onLongPress: () {
-        this.onLongPressSingleItemFunc(itemData);
-      },
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        color: backColor,
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(Icons.arrow_drop_down_sharp, color: forColor),
-              title:
-                  Text('${itemData.title}', style: TextStyle(color: forColor)),
-              subtitle: Text(
-                '${itemData.date}\n${GetFileNameFromPath(itemData.path)}',
-                style: TextStyle(color: forColor),
-              ),
-            ),
-          ],
-        ),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
   }
 
   void onPressAddNewFunc() {
@@ -447,8 +439,11 @@ class KfToHomeState extends BaseRemotePageState {
                     Navigator.pop(context);
                     this.ipc().invokeNyName({
                       "invokeName": "addRss",
-                      "url": this.dialog_editor_rss_url
-                    }, callback: (AsyncIpcData data) {});
+                      "data": {"url": this.dialog_editor_rss_url}
+                    }, callback: (AsyncIpcData data) {
+                      showSnack(data);
+                      refreshByData(KfToDoIpcData.fromAsync(data));
+                    });
                   })
                 ]),
               )),
@@ -553,10 +548,22 @@ class KfToHomeState extends BaseRemotePageState {
   List<Widget> buildListItemView(String tag) {
     List<Widget> res = [];
     this.data.data.where((element) => element.tags.contains(tag)).forEach((e) {
-      res.add(ViewBuilder.BuildSingleTagListItemContainor(e,
-          onPressFunc: (ListItemData e) => this.onPressSingleItemFunc(e),
-          onLongPressFunc: (ListItemData e) =>
-              this.onLongPressSingleItemFunc(e)));
+      res.add(
+        ViewBuilder.BuildSingleTagListItemContainor(e,
+            rssRefreshFunc: () {
+              this.ipc().invokeNyName({
+                "invokeName": "addRss",
+                "data": {"url": e.path}
+              }, callback: (AsyncIpcData data) {
+                showSnack(data);
+
+                refreshByData(KfToDoIpcData.fromAsync(data));
+              });
+            },
+            onPressFunc: (ListItemData e) => this.onPressSingleItemFunc(e),
+            onLongPressFunc: (ListItemData e) =>
+                this.onLongPressSingleItemFunc(e)),
+      );
     });
     return res;
   }

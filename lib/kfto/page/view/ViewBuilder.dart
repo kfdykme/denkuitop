@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:denkuitop/common/ColorManager.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:flutter/material.dart';
 
@@ -40,6 +41,15 @@ class ViewBuilder {
     return Icons.folder;
   }
 
+  static IconData getIconByTagData(KfToDoTagData tagData) {
+    if (tagData.isRss) {
+      return Icons.rss_feed;
+    }
+
+    if (tagData.isRssItem) {}
+    return getIconByTag(tagData.name);
+  }
+
   static Widget BuildSingleTagContainor(String tag,
       {Function onPressFunc,
       KfToDoTagData tagData,
@@ -63,7 +73,7 @@ class ViewBuilder {
           Row(
             children: [
               Icon(
-                getIconByTag(tag),
+                getIconByTagData(tagData),
                 color: tagData.lightColor2,
                 size: size(3),
               ),
@@ -105,7 +115,28 @@ class ViewBuilder {
   }
 
   static Widget BuildSingleTagListItemContainor(ListItemData e,
-      {Function onPressFunc, Function onLongPressFunc}) {
+      {Function onPressFunc,
+      Function onLongPressFunc,
+      Function rssRefreshFunc}) {
+    Widget listItemEndView = null;
+    if (e.type == 'rss') {
+      listItemEndView = BuildInLineMaterialButton("",
+          icon: Icon(
+            Icons.refresh,
+            color: ColorManager.highLightColor,
+            size: size(3),
+          ), onPressFunc: () {
+        if (rssRefreshFunc != null) {
+          rssRefreshFunc();
+        }
+      });
+    } else {
+      listItemEndView = Text(
+        '@${e.date}',
+        style: TextStyle(
+            color: Color(0xaaFFFFFF), overflow: TextOverflow.ellipsis),
+      );
+    }
     return MaterialButton(
       padding:
           EdgeInsets.only(left: size(2), top: size(.75), bottom: size(.75)),
@@ -130,14 +161,7 @@ class ViewBuilder {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    '@${e.date}',
-                    style: TextStyle(
-                        color: Color(0xaaFFFFFF),
-                        overflow: TextOverflow.ellipsis),
-                  )
-                ],
+                children: [listItemEndView],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -159,18 +183,18 @@ class ViewBuilder {
       padding: EdgeInsets.only(left: size(1)),
       child: Text(text),
     ));
-    return  MaterialButton(
-            textColor: color,
-            onPressed: () {
-              print("BuildMaterialButton Press ${text} ${onPressFunc}");
-              if (onPressFunc != null) {
-                onPressFunc();
-              }
-            },
-            child: Row(
-              children: buttonChildrenItems,
-            ),
-          );
+    return MaterialButton(
+      textColor: color,
+      onPressed: () {
+        print("BuildMaterialButton Press ${text} ${onPressFunc}");
+        if (onPressFunc != null) {
+          onPressFunc();
+        }
+      },
+      child: Row(
+        children: buttonChildrenItems,
+      ),
+    );
   }
 
   static Widget BuildMaterialButton(String text,

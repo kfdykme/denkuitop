@@ -10,10 +10,13 @@ class ListItemData {
   final String date;
   final List<String> tags;
   final String path;
+  final String type;
+
   ListItemData.forMap(Map<String,dynamic> map):
     title = map['title'],
     date = map['date'],
     path = map['path'],
+    type = map['type'] == null ? 'normal' : map['type'],
     tags = map['tags'] == null ? [] : List<String>.from(map['tags'] as List<dynamic>);
 }
 
@@ -72,6 +75,10 @@ class KfToDoTagData {
   Color darkColor2 =  ViewBuilder.RandomDarkColor();
   Color lightColor = ViewBuilder.RandomColor();
   Color lightColor2  = ViewBuilder.RandomColor();
+
+  bool isRss = false;
+  bool isRssItem = false;
+  
   KfToDoTagData(String tag):
     name = tag;
     
