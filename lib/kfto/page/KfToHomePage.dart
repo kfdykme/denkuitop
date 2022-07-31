@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:denkuitop/common/ColorManager.dart';
+import 'package:denkuitop/common/DenkuiDialog.dart';
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
@@ -113,8 +115,6 @@ class KfToHomeState extends BaseRemotePageState {
 
   bool isShowTagDialog = false;
 
-  var highLightColor = const Color(0xFF6200EE);
-
   LibraryLoader lib;
 
   Libdeno libdeno = Libdeno();
@@ -127,7 +127,7 @@ class KfToHomeState extends BaseRemotePageState {
   Widget cefContainor = null;
 
   Color get dragLineActiveColor {
-    return highLightColor;
+    return ColorManager.highLightColor;
   }
 
   Color get dragLineInActiveColor {
@@ -189,6 +189,7 @@ class KfToHomeState extends BaseRemotePageState {
     web.registerFunction("editorSave", (dynamic data) {
       _saveFile();
     });
+
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
@@ -355,46 +356,18 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
-    // web.hide();
 
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Container(
-              child: Text("Delete this item"),
-              height: 100,
-              alignment: Alignment.center,
-            ),
-            actions: [
-              Row(
-                children: [
-                  ViewBuilder.BuildInLineMaterialButton("Delete",
-                      onPressFunc: () {
-                        Navigator.of(context).pop();
-                        this.onPressDeleteFunc(itemData);
-                      },
-                      color: this.highLightColor,
-                      icon: Icon(
-                        Icons.delete,
-                        color: this.highLightColor,
-                        size: ViewBuilder.size(2),
-                      )),
-                      ViewBuilder.BuildInLineMaterialButton("Cancel",
-                          onPressFunc: () {
-                        Navigator.of(context).pop();
-                      },
-                      color: this.highLightColor,
-                      icon: Icon(
-                        Icons.cancel,
-                        color: this.highLightColor,
-                        size: ViewBuilder.size(2),
-                      )),
-                ],
-              )
-            ],
-          );
-        });
+    DenktuiDialog.initContext(context);
+    DenktuiDialog.ShowCommonDialog(contentTitle: "Delete this item", options: [
+      CommonDialogButtonOption(
+          text: "Delete",
+          callback: () {
+            this.onPressDeleteFunc(itemData);
+          },
+          icon: Icons.delete),
+      CommonDialogButtonOption(
+          text: "Cancel", callback: () {}, icon: Icons.cancel)
+    ]);
   }
 
   Widget buildSingleListItem(ListItemData itemData) {
@@ -405,7 +378,7 @@ class KfToHomeState extends BaseRemotePageState {
         ? Colors.white
         : Colors.black.withOpacity(0.6);
     return FlatButton(
-      textColor: this.highLightColor,
+      textColor: ColorManager.highLightColor,
       onPressed: () {
         this.onPressSingleItemFunc(itemData);
       },
@@ -457,7 +430,7 @@ class KfToHomeState extends BaseRemotePageState {
       child: Column(
         children: [
           MaterialButton(
-            textColor: this.highLightColor,
+            textColor: ColorManager.highLightColor,
             onPressed: () {
               this.onPressAddNewFunc();
             },
@@ -624,33 +597,36 @@ class KfToHomeState extends BaseRemotePageState {
                     ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
                       _saveFile();
                     },
-                        color: this.highLightColor,
+                        color: ColorManager.highLightColor,
                         icon: Icon(
                           Icons.save_as_sharp,
-                          color: this.highLightColor,
+                          color: ColorManager.highLightColor,
                           size: ViewBuilder.size(2),
                         )),
                     ViewBuilder.BuildMaterialButton("New",
                         onPressFunc: () => this.onPressAddNewFunc(),
-                        color: this.highLightColor,
+                        color: ColorManager.highLightColor,
                         icon: Icon(
                           Icons.add,
-                          color: this.highLightColor,
+                          color: ColorManager.highLightColor,
                           size: ViewBuilder.size(2),
                         )),
                     Expanded(
                       child: TextField(
                           controller: _currentPathcontroller,
                           decoration: InputDecoration(
-                              fillColor: this.highLightColor,
+                              fillColor:
+                                  ColorManager.highLightColor,
                               border: OutlineInputBorder(
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(8))),
-                              focusColor: this.highLightColor,
+                              focusColor:
+                                  ColorManager.highLightColor,
                               labelText: filePathLabelText,
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: this.highLightColor),
+                                borderSide: BorderSide(
+                                    color: ColorManager
+                                        .highLightColor),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
