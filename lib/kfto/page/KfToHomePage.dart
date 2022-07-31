@@ -551,17 +551,9 @@ class KfToHomeState extends BaseRemotePageState {
 
   @override
   Widget build(BuildContext context) {
-    const MAX_WIDTH = 1280 - 25;
     const RIGHT_WIDTH = 1280 * 0.618;
-    const LEFT_WIDTH = MAX_WIDTH - RIGHT_WIDTH;
     const MAX_HEIGHT = 720.0;
-    const LEFT_TOOLBAR_HEIGHT = 50.0;
-    const LEFT_LIST_HEIGHT = MAX_HEIGHT - LEFT_TOOLBAR_HEIGHT;
-    // _controller.formatText(0, 1, NotusAttribute.block.code);
 
-    // if (!File('../denkui').existsSync()) {
-    //   ChildProcess(ChildProcess.PRE_PARE_DENKUI).run();
-    // }
     if (cefContainor == null) {
       cefContainor = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
       // var urlPath =p.toUri("file:///Users/chenxiaofang/Desktop/wor/kf/monaco-editor/samples/browser-script-editor/index.html");
@@ -578,14 +570,6 @@ class KfToHomeState extends BaseRemotePageState {
     }
     web.loadCefContainer();
     var childs = [
-      // new Container(
-      //   width: left_width_real,
-      //   child: ACard(Container(
-      //     child:
-      //       buildListView(),
-      //   )
-      //   )
-      // ),
       new Container(
         width: left_width_real,
         child: ACard(Row(
@@ -707,45 +691,5 @@ class KfToHomeState extends BaseRemotePageState {
         callback: (AsyncIpcData data) {
       _refresh();
     });
-  }
-
-  Widget _buildSingleTagView(String text) {
-    var backColor =
-        currentTag == text ? Colors.black.withOpacity(0.6) : Colors.white;
-    var forColor =
-        currentTag == text ? Colors.white : Colors.black.withOpacity(0.6);
-    return Container(
-      height: 50,
-      padding: EdgeInsets.all(8),
-      child: FlatButton(
-          onPressed: (() {
-            setState(() {
-              isShowTagDialog = !isShowTagDialog;
-              currentTag = text;
-            });
-          }),
-          textColor: this.highLightColor,
-          color: backColor,
-          child: Text(
-            text,
-            style: TextStyle(color: forColor),
-          )),
-    );
-  }
-
-  List<Widget> buildTagsViews() {
-    var res = <Widget>[];
-
-    res.add(_buildSingleTagView("All"));
-    var tags = <String>[];
-    this.data?.data?.forEach((element) {
-      element.tags.forEach((tag) {
-        if (!tags.contains(tag)) {
-          tags.add(tag);
-          res.add(_buildSingleTagView(tag));
-        }
-      });
-    });
-    return res;
   }
 }

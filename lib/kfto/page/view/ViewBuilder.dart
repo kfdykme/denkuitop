@@ -32,6 +32,14 @@ class ViewBuilder {
         ViewBuilder.RandomColorDartInt(), ViewBuilder.RandomColorDartInt());
   }
 
+  static IconData getIconByTag (String tag) {
+    if (tag == "_DENKUISCRIPT") {
+      return Icons.javascript;
+    } 
+
+    return Icons.folder;
+  }
+
   static Widget BuildSingleTagContainor(String tag,
       {Function onPressFunc,
       KfToDoTagData tagData,
@@ -55,7 +63,7 @@ class ViewBuilder {
           Row(
             children: [
               Icon(
-                Icons.folder,
+                getIconByTag(tag),
                 color: tagData.lightColor2,
                 size: size(3),
               ),
