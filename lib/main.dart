@@ -13,21 +13,7 @@ void doWork(SendPort sendPort) {
 }
 
 void main() {
-  //child process
-  // SubModuleManager().setup(setupCallback: () {
-  //   ChildProcess(ChildProcess.DENO_COMMAND).run(callback: () {
-  //     print("Run Success");
-  //   });
-  // });
-  // KeydownManager.ins.RegisterHotKeyEvent("ctrl-s", () {
-  //   print("save ");
-  // });
-  // ReceivePort rp = new ReceivePort();
-
-  // Isolate.spawn(doWork, rp.sendPort);
   runApp(MyApp());
-  // runApp(SnackApp());
-  // runApp(KeyEventTestApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -1,5 +1,4 @@
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var monaco_editor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! monaco-editor */ \"../node_modules/monaco-editor/esm/vs/editor/editor.main.js\");
+__webpack_require__.r(__webpack_exports__);/* harmony import */ var monaco_editor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! monaco-editor */ \"../node_modules/monaco-editor/esm/vs/editor/editor.main.js\");
 
 
 self.MonacoEnvironment = {
@@ -19,87 +18,16 @@ self.MonacoEnvironment = {
         return './editor.worker.bundle.js';
     }
 };
+const editorContainerHolder = document.getElementById('editor_container_holder')
 
-// Register a new language
-monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.register({ id: 'markdown' });
 
-// Register a tokens provider for the language
-monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.setMonarchTokensProvider('markdown', {
-    tokenizer: {
-        root: [
-            [/- .*?\\[DONE\\]/, 'custom-done'],
-            [/\\---/, 'custom-title-bar'],
-            [/^(title) ?: ?(.*)/, 'custom-title-bar'],
-            [/^(date) ?: ?(.*)/, 'custom-title-bar'],
-            [/^(tags) ?: ?(.*)/, 'custom-title-bar'],
-            [/^#{1,6} .*/, 'custom-header'],
-            [/- .*? /, 'custom-list-item'],
-            [/\\*\\*.*\\*\\*/, 'custom-blod'],
-            [/\\*.*\\*/, 'custom-italic'],
-            [/\\[error.*/, 'custom-error'],
-            [/\\[notice.*/, 'custom-notice'],
-            [/\\[info.*/, 'custom-info'],
-            [/\\[[a-zA-Z 0-9:]+\\]/, 'custom-date']
-        ]
-    }
-});
 
-// Define a new theme that contains only rules that match this language
-monaco_editor__WEBPACK_IMPORTED_MODULE_0__.editor.defineTheme('myCoolTheme', {
-    base: 'vs',
-    inherit: false,
-    rules: [
-        { token: 'custom-done', foreground: 'aaaaaa' },
-        { token: 'custom-info', foreground: '808080' },
-        { token: 'custom-title-bar', foreground: '808080' },
-        { token: 'custom-header', foreground: '00bcd4' },
-        { token: 'custom-list-item', foreground: 'FFA500' },
-        { token: 'custom-title-bar', foreground: '808080' },
-        { token: 'custom-blod', foreground: '00aaff', fontStyle: 'bold' },
-        { token: 'custom-italic', foreground: 'ffaabb', fontStyle: 'italic' },
-        { token: 'custom-error', foreground: 'ff0000', fontStyle: 'bold' },
-        { token: 'custom-notice', foreground: 'FFA500' },
-        { token: 'custom-date', foreground: '008800' }
-    ],
-    colors: {
-        'editor.foreground': '#000000'
-    }
-});
 
-// Register a completion item provider for the new language
-monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.registerCompletionItemProvider('mySpecialLanguage', {
-    provideCompletionItems: () => {
-        var suggestions = [
-            {
-                label: 'simpleText',
-                kind: monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.CompletionItemKind.Text,
-                insertText: 'simpleText'
-            },
-            {
-                label: 'testing',
-                kind: monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.CompletionItemKind.Keyword,
-                insertText: 'testing(${1:condition})',
-                insertTextRules: monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.CompletionItemInsertTextRule.InsertAsSnippet
-            },
-            {
-                label: 'ifelse',
-                kind: monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.CompletionItemKind.Snippet,
-                insertText: ['if (${1:condition}) {', '\    $0', '} else {', '\    ', '}'].join('\
+const defaultEditorOption = {
+    value: ['defaultEditorOption'].join('\
 '),
-                insertTextRules: monaco_editor__WEBPACK_IMPORTED_MODULE_0__.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                documentation: 'If-Else Statement'
-            }
-        ];
-        return { suggestions: suggestions };
-    }
-});
-
-const codeEditor = monaco_editor__WEBPACK_IMPORTED_MODULE_0__.editor.create(document.getElementById('container'), {
-    theme: 'myCoolTheme',
-    value: '',
-    language: 'markdown'
-});
-
+    language: 'javascript'
+}
 
 const initDenkui = () => {
     if (window.denkui === undefined) {
@@ -117,10 +45,17 @@ const denkGetKey = (key) => {
     return window.denkui[key]
 }
 
-window.denkGetKey = denkGetKey
-window.denkSetKeyValue = denkSetKeyValue
+window.denkGetKey = (name) => {
+    const res = denkGetKey(name)
+    console.info('window.denkGetKey ', name, res)
+    return res
+}
+window.denkSetKeyValue = (name, value) => {
+    console.info('window.denkSetKeyValue', name, value)
+    denkSetKeyValue(name, value)
+}
 
-window.denkSetKeyValue('editor', codeEditor)
+// window.denkSetKeyValue('editor', codeEditor)
 window.denkSetKeyValue('monaco', monaco_editor__WEBPACK_IMPORTED_MODULE_0__)
 window.denkAllKeys = () => {
     initDenkui()
@@ -130,6 +65,125 @@ window.denkAllKeys = () => {
     }
     return res
 }
+
+const sendIpcMessage = (data) => {
+    try {
+        window.webkit.messageHandlers.ipcRender.postMessage(data)
+    } catch(err) {
+        console.error(err)
+    }
+}
+
+const prepareInjectJs = async () => {
+    if (denkGetKey('prepareInjectJsResolve')) {
+        return Promise.reject('already loading')
+    }
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error('timeout prepareInjectJs'))
+        }, 1000);
+        denkSetKeyValue('prepareInjectJsResolve', resolve);
+        sendIpcMessage({
+            name: 'prepareInjectJs'
+        })
+    })
+}
+
+window.denkSetKeyValue('sendIpcMessage', sendIpcMessage)
+
+
+window.onload = () => {
+    console.info('editor window onload()')
+    // window.
+
+    new Promise((resolve, reject) => {
+        console.info('wait inject js')
+        // window.denkSetKeyValue('windowOnloadResolve', resolve)
+        resolve()
+    }).then(res => {
+
+    }).finally(() => {
+        prepareInjectJs()
+    })
+}
+
+console.info('version 111111')
+
+
+console.info(\"DENKUI_EDITOR_INJECT start\");
+
+for (let x in window) {
+  if (x.startsWith(\"denk\")) {
+    console.info(x);
+  }
+}
+// console.info(window)
+// [\"monaco\", \"clearEditor\", \"createEditorFunc\", \"sendIpcMessage\", \"windowOnloadResolve\", \"prepareInjectJsResolve\"]
+console.info(window.denkAllKeys());
+
+const getOption = (filePath = \"\") => {
+  let myOption = {};
+  if (filePath.endsWith(\".js\")) {
+    myOption.language = \"javascript\";
+  }
+
+
+  if (filePath.endsWith(\".md\")) {
+  myOption.theme = \"myCoolTheme\";
+    myOption.language = \"markdown\";
+  }
+
+  return {
+    language: \"javascript\",
+    ...myOption,
+  };
+};
+
+const getEditor = (filePath = \"\") => {
+  const id = \"editor\" + filePath;
+  let editor = window.denkGetKey(id);
+  let editorView = document.getElementById(id);
+  if (!editor) {
+    const holder = document.getElementById(\"editor_container_holder\");
+    if (!holder) {
+      throw new Error(\"error\");
+    }
+    if (!editorView) {
+      editorView = document.createElement(\"div\");
+      editorView.style.width = \"100%\";
+      editorView.style.height = \"100%\";
+      editorView.id = id;
+      editorView.className = \"editor_view\";
+      holder.appendChild(editorView);
+    }
+    const monaco = window.denkGetKey(\"monaco\");
+    editor = monaco.editor.create(editorView, getOption(filePath));
+    window.denkSetKeyValue(id, editor);
+
+    const onEditorCreate = window.denkGetKey('onEditorCreate')
+    if (onEditorCreate && typeof onEditorCreate === 'function') {
+      onEditorCreate(editor)
+    }
+
+  }
+   for (
+      let x = 0;
+      x < document.getElementsByClassName(\"editor_view\").length;
+      x++
+    ) {
+      document.getElementsByClassName(\"editor_view\")[x].style.display =
+        \"none\";
+    }
+  editorView.style.display = \"\";
+
+  return editor;
+};
+
+window.denkSetKeyValue(\"insertIntoEditor\", (content, filePath) => {
+    console.info('insertIntoEditor', content, filePath)
+  getEditor(filePath).setValue(content);
+});
+
 
 
 //# sourceURL=webpack://browser-esm-webpack/./index.js?

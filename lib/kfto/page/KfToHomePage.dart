@@ -145,6 +145,8 @@ class KfToHomeState extends BaseRemotePageState {
 
   String dialog_editor_rss_url = "";
 
+  String dialog_editor_blog_file_name = "";
+
   KfToHomeState() {
     var port = 8082;
 
@@ -184,9 +186,12 @@ class KfToHomeState extends BaseRemotePageState {
       });
     });
 
-     web.registerFunction("onEditorCreate", (dynamic data) {
-      ListItemData listItemData =
-          this.data?.data?.where((element) => element.path == currentFilePath)?.first;
+    web.registerFunction("onEditorCreate", (dynamic data) {
+      ListItemData listItemData = this
+          .data
+          ?.data
+          ?.where((element) => element.path == currentFilePath)
+          ?.first;
       if (listItemData != null) {
         this.onPressSingleItemFunc(listItemData);
       }
@@ -399,7 +404,7 @@ class KfToHomeState extends BaseRemotePageState {
     DenktuiDialog.ShowDialog(
         content: Container(
           width: 500,
-          height: 350,
+          height: 500,
           alignment: Alignment.center,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -455,6 +460,26 @@ class KfToHomeState extends BaseRemotePageState {
                     subtitle: Text(
                       'Add a text ',
                       style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                    child: TextFormField(
+                      cursorColor: Theme.of(context).cursorColor,
+                      initialValue: '',
+                      onChanged: (String value) {
+                        this.dialog_editor_blog_file_name = value;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'File Name',
+                        labelStyle:
+                            TextStyle(color: ColorManager.highLightColor),
+                        helperText: 'Input fileName',
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide:
+                              BorderSide(color: ColorManager.highLightColor),
+                        ),
+                      ),
                     ),
                   ),
                   ViewBuilder.BuildMaterialButton("New blog",
@@ -670,7 +695,7 @@ class KfToHomeState extends BaseRemotePageState {
                 height: 60,
                 child: Row(
                   children: [
-                    ViewBuilder.BuildMaterialButton("Save", onPressFunc: () {
+                    ViewBuilder.BuildMaterialButton("", onPressFunc: () {
                       _saveFile();
                     },
                         color: ColorManager.highLightColor,
@@ -679,11 +704,11 @@ class KfToHomeState extends BaseRemotePageState {
                           color: ColorManager.highLightColor,
                           size: ViewBuilder.size(2),
                         )),
-                    ViewBuilder.BuildMaterialButton("New",
+                    ViewBuilder.BuildMaterialButton("",
                         onPressFunc: () => this.onPressAddNewFunc(),
                         color: ColorManager.highLightColor,
                         icon: Icon(
-                          Icons.add,
+                          Icons.edit,
                           color: ColorManager.highLightColor,
                           size: ViewBuilder.size(2),
                         )),

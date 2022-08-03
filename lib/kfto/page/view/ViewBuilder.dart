@@ -203,10 +203,13 @@ class ViewBuilder {
     if (icon != null) {
       buttonChildrenItems.add(icon);
     }
-    buttonChildrenItems.add(Container(
-      padding: EdgeInsets.only(left: size(1)),
-      child: Text(text),
-    ));
+    if (text != "") {
+
+      buttonChildrenItems.add(Container(
+        padding: EdgeInsets.only(left: size(1)),
+        child: Text(text),
+      ));
+    }
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
