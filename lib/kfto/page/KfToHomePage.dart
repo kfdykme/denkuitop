@@ -146,6 +146,7 @@ class KfToHomeState extends BaseRemotePageState {
   String dialog_editor_rss_url = "";
 
   String dialog_editor_blog_file_name = "";
+  bool isWriteWithoutRead = false;
 
   KfToHomeState() {
     var port = 8082;
@@ -240,14 +241,19 @@ class KfToHomeState extends BaseRemotePageState {
     if (data.name == 'initData') {
       refreshByData(data);
     }
-    if (data.name == 'notifyRead') {
-      String readPath = data.data;
-      ListItemData listItemData =
-          this.data?.data?.where((element) => element.path == readPath)?.first;
-      if (listItemData != null) {
-        this.onPressSingleItemFunc(listItemData);
-      }
-    }
+    // if (data.name == 'notifyRead') {
+    //   if (isWriteWithoutRead) {
+    //     isWriteWithoutRead = false;
+    //     return;
+    //   }
+    //   String readPath = data.data;
+    //   ListItemData listItemData =
+    //       this.data?.data?.where((element) => element.path == readPath)?.first;
+    //   if (listItemData != null) {
+    //     print("onPressSingleItemFunc from notifyRead");
+    //     this.onPressSingleItemFunc(listItemData);
+    //   }
+    // }
 
     if (data.name == 'system.toast') {
       showSnack(data);
@@ -261,9 +267,14 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _clearEditor() {}
 
-  void _insertIntoEditor(String content) {
+  void _insertIntoEditor(String content, {
+    String editorId
+  }) {
+    if (editorId == null) {
+      editorId = currentFilePath;
+    }
     web.executeJs(
-        'window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${currentFilePath}")');
+        'window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${editorId}")');
   }
 
   void _refreshFilePathTextField() {
@@ -287,30 +298,34 @@ class KfToHomeState extends BaseRemotePageState {
     }
   }
 
-  void showSnack(AsyncIpcData data) {
-    // print("raw ${data.raw}");
-    // print("rawMap ${data.rawMap}");
-    String msg = data.rawMap['msg'];
+  void showCommonSnack({String msg, String error}) {
+    
     Color bkGC = null;
-    if (msg == null) {
-      msg = data.rawMap['data']['msg'];
-    }
-    if (msg == null) {
-      String error = data.rawMap['data']['error'];
-      if (error != null) {
-        msg = error;
-        bkGC = Color(0xffffbcd4);
-      }
+    if (error != null) {
+      msg = error;
+      bkGC = Color(0xffffbcd4);
     }
     if (msg == null) {
       msg = "ERRRRRRRRRRRRRRR";
     }
+
     final snackBar = SnackBar(
       behavior: SnackBarBehavior.floating,
       backgroundColor: bkGC,
       content: Text(msg),
     );
+
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void showSnack(AsyncIpcData data) {
+    // print("raw ${data.raw}");
+    // print("rawMap ${data.rawMap}");
+    String msg = data.rawMap['msg'];
+    if (msg == null) {
+      msg = data.rawMap['data']['msg'];
+    }
+    showCommonSnack(msg: msg, error: data.rawMap['data']['error']);
   }
 
   void _saveFile() async {
@@ -319,15 +334,20 @@ class KfToHomeState extends BaseRemotePageState {
     map['path'] = GetDirFromPath(currentFilePath) +
         DirSpelator +
         _currentPathcontroller.text;
-    map['content'] = await web.getEditorContent(currentFilePath);
-    var omap = Map<String, dynamic>();
+        
+    web.getEditorContent(currentFilePath).then((value) {
+      map['content'] = value;
+      var omap = Map<String, dynamic>();
 
-    omap['data'] = map;
-    omap['invokeName'] = 'writeFile';
-    this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
-        callback: (AsyncIpcData data) {
-      showSnack(data);
-      _refresh();
+      omap['data'] = map;
+      omap['invokeName'] = 'writeFile';
+      this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
+          callback: (AsyncIpcData data) {
+        showSnack(data);
+        _refresh();
+      });
+    }).catchError((err){
+      showCommonSnack(msg:null, error: err.toString());
     });
   }
 
@@ -462,26 +482,26 @@ class KfToHomeState extends BaseRemotePageState {
                       style: TextStyle(color: Colors.black.withOpacity(0.6)),
                     ),
                   ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: TextFormField(
-                      cursorColor: Theme.of(context).cursorColor,
-                      initialValue: '',
-                      onChanged: (String value) {
-                        this.dialog_editor_blog_file_name = value;
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'File Name',
-                        labelStyle:
-                            TextStyle(color: ColorManager.highLightColor),
-                        helperText: 'Input fileName',
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: ColorManager.highLightColor),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Container(
+                  //   margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  //   child: TextFormField(
+                  //     cursorColor: Theme.of(context).cursorColor,
+                  //     initialValue: '',
+                  //     onChanged: (String value) {
+                  //       this.dialog_editor_blog_file_name = value;
+                  //     },
+                  //     decoration: InputDecoration(
+                  //       labelText: 'File Name',
+                  //       labelStyle:
+                  //           TextStyle(color: ColorManager.highLightColor),
+                  //       helperText: 'Input fileName',
+                  //       enabledBorder: UnderlineInputBorder(
+                  //         borderSide:
+                  //             BorderSide(color: ColorManager.highLightColor),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                   ViewBuilder.BuildMaterialButton("New blog",
                       icon: Icon(
                         Icons.newspaper,
@@ -498,7 +518,8 @@ class KfToHomeState extends BaseRemotePageState {
                       String path = ktoData.data['path'] as String;
                       currentFilePath = path;
                       _refreshFilePathTextField();
-                      _insertIntoEditor(content);
+                      _insertIntoEditor(content, editorId: "new");
+                      isWriteWithoutRead = true;
                     });
                   })
                 ],

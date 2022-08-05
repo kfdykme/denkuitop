@@ -4955,29 +4955,52 @@ class RssController {
         if (typeof rss !== "object") {
             return undefined;
         }
-        const version = rss["_attributes"].version;
-        const channel = {
-            title: getStrFromXMLJson(rss.channel.title),
-            link: getStrFromXMLJson(rss.channel.link),
-            description: getStrFromXMLJson(rss.channel.description),
-            copyright: getStrFromXMLJson(rss.channel.copyright),
-            managingEditor: getStrFromXMLJson(rss.channel.managingEditor),
-            item: []
-        };
-        if (rss.channel && rss.channel.item && rss.channel?.item instanceof Array) {
-            for(let index in rss.channel.item){
-                const i = {};
-                for(let x in rss.channel.item[index]){
-                    i[x] = getStrFromXMLJson(rss.channel.item[index][x]);
+        console.info(rss);
+        const version = rss["_attributes"]?.version;
+        const _s = getStrFromXMLJson;
+        if (version) {
+            const channel = {
+                title: getStrFromXMLJson(rss.channel.title),
+                link: getStrFromXMLJson(rss.channel.link),
+                description: getStrFromXMLJson(rss.channel.description),
+                copyright: getStrFromXMLJson(rss.channel.copyright),
+                managingEditor: getStrFromXMLJson(rss.channel.managingEditor),
+                item: []
+            };
+            if (rss.channel && rss.channel.item && rss.channel?.item instanceof Array) {
+                for(let index in rss.channel.item){
+                    const i = {};
+                    for(let x in rss.channel.item[index]){
+                        i[x] = getStrFromXMLJson(rss.channel.item[index][x]);
+                    }
+                    channel.item?.push(i);
                 }
-                channel.item?.push(i);
             }
+            const res = {
+                version,
+                channel
+            };
+            return res;
+        } else {
+            return {
+                version: '1',
+                channel: {
+                    title: _s(rss.title),
+                    description: _s(rss.subtitle),
+                    link: _s(rss.link[1]['_attributes'].href),
+                    item: rss.entry.map((entryItem)=>{
+                        console.info(entryItem);
+                        return {
+                            title: _s(entryItem.title),
+                            pubDate: _s(entryItem.published),
+                            description: _s(entryItem.summary),
+                            link: entryItem.link['_attributes'].href,
+                            author: _s(entryItem.author.name)
+                        };
+                    })
+                }
+            };
         }
-        const res = {
-            version,
-            channel
-        };
-        return res;
     }
     async tryHandleInvoke(ipcData) {
         console.info('tryHandleInvoke');
@@ -5002,7 +5025,10 @@ class RssController {
                     }
                 });
             }).then((res)=>{
-                const rssObj = getFirstObjectByName(res, "rss");
+                let rssObj = getFirstObjectByName(res, "rss");
+                if (!rssObj) {
+                    rssObj = getFirstObjectByName(res, "feed");
+                }
                 return rssObj;
             }).then((rss)=>{
                 const res = this.convertJSON2RssObject(rss);
