@@ -98,12 +98,20 @@ class KfToHomeState extends BaseRemotePageState {
       return dataTags;
     } else {
       List<KfToDoTagData> searchRes = [];
-
-      for (KfToDoTagData item in dataTags) {
-        if (item.name.contains(searchKey)) {
-          searchRes.add(item);
-        }
+      List<String> searchKeyItems = [];
+      if (searchKey.contains(",")) {
+        searchKeyItems = searchKey.split(",");
+      } else {
+        searchKeyItems = [searchKey];
       }
+      
+      searchKeyItems.forEach((element) {
+        for (KfToDoTagData item in dataTags) {
+          if (item.name.contains(element) && !searchRes.contains(item)) {
+            searchRes.add(item);
+          }
+        }
+      });
       return searchRes;
     }
   }
