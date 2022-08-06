@@ -692,6 +692,7 @@ class KfToHomeState extends BaseRemotePageState {
     if ( searchTagField == null) {
 
     searchTagField = KfTodoTextField(onChange: (String value) {
+      print("KfTodoTextField onChange ${value}");
       setState(() {
         searchKey = value;
       });

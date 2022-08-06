@@ -29,6 +29,11 @@ class KfTodoTextFieldController extends TextfieldTagsController {
           if (getTags.length > 0) {
             this.currentCache = getTags.last;
           }
+
+
+          if (onChangeCallback != null) {
+            onChangeCallback(getTags.join(","));
+          }
         }
       }
     });
@@ -55,7 +60,6 @@ class KfTodoTextFieldController extends TextfieldTagsController {
   }
 
   void tryDeleteTag () {
-    print("tryDeleteTag ${currentCache} ${getTags.last}");
     _doublesDeleteTag.add(1);
   }
 }
