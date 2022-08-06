@@ -16,6 +16,6 @@ class ColorManager  {
   }
 
 
-  static Color highLightColor = const Color(0xFF6200EE);
+  static Color highLightColor =  Color(0xFF6200EE);
   
 }

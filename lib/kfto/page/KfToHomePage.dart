@@ -15,6 +15,7 @@ import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
+import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:denkuitop/native/KeydownManager.dart';
 import 'package:denkuitop/native/LibraryLoader.dart';
@@ -26,7 +27,6 @@ import 'package:quill_delta/quill_delta.dart';
 // import 'package:zefyrka/zefyrka.dart';
 import 'package:libdeno_plugin/libdeno_plugin.dart';
 import 'package:path/path.dart' as p;
-
 // ZefyrController _controller = ZefyrController();
 
 Logger logger = Logger("KfToHomeState");
@@ -104,7 +104,7 @@ class KfToHomeState extends BaseRemotePageState {
       } else {
         searchKeyItems = [searchKey];
       }
-      
+
       searchKeyItems.forEach((element) {
         for (KfToDoTagData item in dataTags) {
           if (item.name.contains(element) && !searchRes.contains(item)) {
@@ -155,6 +155,8 @@ class KfToHomeState extends BaseRemotePageState {
 
   String dialog_editor_blog_file_name = "";
   bool isWriteWithoutRead = false;
+
+  KfTodoTextField searchTagField;
 
   KfToHomeState() {
     var port = 8082;
@@ -209,6 +211,7 @@ class KfToHomeState extends BaseRemotePageState {
     web.registerFunction("editorSave", (dynamic data) {
       _saveFile();
     });
+
   }
 
   void refreshByData(KfToDoIpcData data) {
@@ -275,9 +278,7 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _clearEditor() {}
 
-  void _insertIntoEditor(String content, {
-    String editorId
-  }) {
+  void _insertIntoEditor(String content, {String editorId}) {
     if (editorId == null) {
       editorId = currentFilePath;
     }
@@ -307,7 +308,6 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void showCommonSnack({String msg, String error}) {
-    
     Color bkGC = null;
     if (error != null) {
       msg = error;
@@ -342,7 +342,7 @@ class KfToHomeState extends BaseRemotePageState {
     map['path'] = GetDirFromPath(currentFilePath) +
         DirSpelator +
         _currentPathcontroller.text;
-        
+
     web.getEditorContent(currentFilePath).then((value) {
       map['content'] = value;
       var omap = Map<String, dynamic>();
@@ -354,8 +354,8 @@ class KfToHomeState extends BaseRemotePageState {
         showSnack(data);
         _refresh();
       });
-    }).catchError((err){
-      showCommonSnack(msg:null, error: err.toString());
+    }).catchError((err) {
+      showCommonSnack(msg: null, error: err.toString());
     });
   }
 
@@ -524,9 +524,9 @@ class KfToHomeState extends BaseRemotePageState {
                       var ktoData = KfToDoIpcData.fromAsync(data);
                       String content = ktoData.data['content'] as String;
                       String path = ktoData.data['path'] as String;
-                      currentFilePath = path;
+                      currentFilePath = path + "/" + DateTime.now().microsecond.toString() + ".md";
                       _refreshFilePathTextField();
-                      _insertIntoEditor(content, editorId: "new");
+                      _insertIntoEditor(content, editorId: currentFilePath );
                       isWriteWithoutRead = true;
                     });
                   })
@@ -639,12 +639,13 @@ class KfToHomeState extends BaseRemotePageState {
 
     return Column(
       children: [
-        ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
-          // print("search value:" + value + dataTags.toString());
-          setState(() {
-            searchKey = value;
-          });
-        }),
+        searchTagField.view(),
+        // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
+        //   // print("search value:" + value + dataTags.toString());
+        //   setState(() {
+        //     searchKey = value;
+        //   });
+        // }, currentSearchKey:  searchKey),
         Expanded(
           child: ListView.builder(
               shrinkWrap: true,
@@ -686,6 +687,15 @@ class KfToHomeState extends BaseRemotePageState {
         String path = ktoData.data['path'] as String;
         web.executeJs(content);
       });
+    }
+
+    if ( searchTagField == null) {
+
+    searchTagField = KfTodoTextField(onChange: (String value) {
+      setState(() {
+        searchKey = value;
+      });
+    });
     }
     web.loadCefContainer();
     var childs = [
@@ -778,7 +788,7 @@ class KfToHomeState extends BaseRemotePageState {
 
     return Scaffold(
       body: new Container(
-        color: Colors.white60,
+        color: Color(0xefefefef),
         child: Column(
           children: [
             Expanded(
