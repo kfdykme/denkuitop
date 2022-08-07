@@ -161,6 +161,8 @@ class KfToHomeState extends BaseRemotePageState {
           var path = ktoData.data['editorInjectJsPath'].toString();
           CommonReadFile(path, func: (({content, path}) {
             web.executeJs(content);
+            web.toggleInsertFirst();
+            web.tryInsertFirst();
           }));
         }
       });
@@ -184,11 +186,11 @@ class KfToHomeState extends BaseRemotePageState {
     
   }
 
-  void initConfigDirectory(dynamic config) {
+  void initConfigDirectory(dynamic config, { String title}) {
     print("initConfigDirectory");
     
     DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: "没有找到文件保存目录，是否选择", options: [
+    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? "没有找到文件保存目录，是否选择" : title, options: [
       CommonDialogButtonOption(
           text: "选择目录",
           callback: () async {
@@ -206,7 +208,9 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void refreshByData(KfToDoIpcData data) {
+    dataTags = [];
     setState(() {
+      ensureWebViewShow();
       this.data = ListData.fromMap(data.data as Map<String, dynamic>);
 
       this.data?.data?.forEach((element) {
@@ -251,12 +255,18 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _insertIntoEditor(String content, {String editorId}) {
     
-    ensureWebViewShow();
+    if (cefContainer == null) {
+      ensureWebViewShow();
+      web.toggleInsertFirst();
+    }
+
     if (editorId == null) {
       editorId = currentFilePath;
     }
-    web.executeJs(
-        'window.denkGetKey("insertIntoEditor")(decodeURIComponent(\"${Uri.encodeComponent(content)}\"), "${editorId}")');
+
+    web.insertByContentNId(content, editorId);
+    web.needInsertContent = content;
+    web.needInsertPath = editorId;
   }
 
   void _refreshFilePathTextField() {
@@ -371,6 +381,7 @@ class KfToHomeState extends BaseRemotePageState {
       var url =
           "http://localhost:10825/manoco-editor/index.html?home=${homePath}";
 
+      ensureWebViewShow();
       web.executeJs(
           'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
       _readFile(itemData.path, callback: (AsyncIpcData data) {
@@ -620,7 +631,7 @@ class KfToHomeState extends BaseRemotePageState {
                 } else {
                   var element = this.searchedTags[index];
                   var childViewList = this.buildListItemView(element.name);
-                  if (childViewList.length > 0) {
+                  if (childViewList.length > 0|| true) {
 
                   return ViewBuilder.BuildSingleTagContainor(element.name,
                       tagData: element, onPressFunc: (String tag) {
@@ -731,7 +742,11 @@ class KfToHomeState extends BaseRemotePageState {
                 key: containerKey,
                 child: Container(
                   alignment: Alignment.topLeft,
-                  child: cefContainer,
+                  child: cefContainer == null ? Container(
+                    color: Colors.amberAccent,
+                    width: 400,
+                    height: 400,
+                  ): cefContainer,
                 ),
               )
             ],
@@ -774,7 +789,7 @@ class KfToHomeState extends BaseRemotePageState {
                         callback: (AsyncIpcData data) {
                       var ktoData = KfToDoIpcData.fromAsync(data);
 
-                      initConfigDirectory(ktoData.data);
+                      initConfigDirectory(ktoData.data, title: '是否重新选择文件目录');
                     });
                   },
                       color: ColorManager.highLightColor,

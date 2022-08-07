@@ -45,9 +45,18 @@ class KfTodoTextFieldController extends TextfieldTagsController {
     super.onChanged(value);
     currentCache = value;
     if (onChangeCallback != null) {
-      onChangeCallback(getTags.join(","));
+      var tags = getTags;
+      tags.add(value);
+      onChangeCallback(tags.join(","));
     }
   } 
+
+  onClickDelete() {
+
+    if (onChangeCallback != null) {
+      onChangeCallback(getTags.join(","));
+    }
+  }
 
   @override
   void onSubmitted(String value) {
@@ -171,6 +180,7 @@ class KfTodoTextField {
                                           ),
                                           onTap: () {
                                             onTagDelete(tag);
+                                            tagsFieldController.onClickDelete();
                                           },
                                         )
                                       ],

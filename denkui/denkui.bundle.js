@@ -5369,6 +5369,7 @@ class KfTodoController {
             __default4.mkdirSync(__default3.getDirPath(KfTodoController.KFTODO_CONFIG_MD_PATH), {
                 recursive: true
             });
+            __default1.info(`saveConfig to ${KfTodoController.KFTODO_CONFIG_MD_PATH} with ${newContent}`);
             __default4.writeFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH, newContent);
             this.config = cacheConfig;
             this.initInjectJsFile();

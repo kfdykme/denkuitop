@@ -17,7 +17,7 @@ class DenoManager {
       print("DenoManager startDeno");
       var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
       print("${runableJsPath}");
-      var isDevDeno = true;
+      var isDevDeno = false;
       if (isDevDeno) {
         port = 8082;
       } else {
