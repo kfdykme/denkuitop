@@ -3,6 +3,7 @@ import 'dart:isolate';
 // import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
 import 'package:denkuitop/kfto/page/KfToNavigator.dart';
+import 'package:denkuitop/native/DenoManager.dart';
 import 'package:denkuitop/native/KeydownManager.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ void doWork(SendPort sendPort) {
 
 void main() {
   runApp(MyApp());
+  new DenoManager().startDeno();
 }
 
 class MyApp extends StatelessWidget {

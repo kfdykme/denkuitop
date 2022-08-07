@@ -24,31 +24,31 @@ class BaseRemotePage extends StatefulWidget {
 
 class BaseRemotePageState extends State<BaseRemotePage> {
   
-  IpcClient _ipcClient = null;
+//   IpcClient _ipcClient = null;
 
-  void init ({
-    IpcClient client = null,
-    int port: 7999
-  }) {
-    print("BaseRemotePageState init");
-    _ipcClient = client;
-    if (_ipcClient == null) {
-      _ipcClient = IpcClient();
-    }
-    _ipcClient.init(port: port);
+//   void init ({
+//     IpcClient client = null,
+//     int port: 7999
+//   }) {
+//     print("BaseRemotePageState init");
+//     _ipcClient = client;
+//     if (_ipcClient == null) {
+//       _ipcClient = IpcClient();
+//     }
+//     _ipcClient.init(port: port);
     
-    _ipcClient.setCallback("onmessage", (String message) async {
-      print(message);
-//      await new Future.delayed(const Duration(seconds: 5));
-    });
-  }
+//     _ipcClient.setCallback("onmessage", (String message) async {
+//       print(message);
+// //      await new Future.delayed(const Duration(seconds: 5));
+//     });
+//   }
 
-  IpcClient ipc() {
-    return _ipcClient;
-  }
+  // IpcClient ipc() {
+  //   return _ipcClient;
+  // }
 
   BaseRemotePage() {
-    init();
+    // init();
   }
 
   @override

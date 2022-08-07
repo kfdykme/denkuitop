@@ -13,7 +13,9 @@ import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
+import 'package:denkuitop/kfto/data/DenoLibSocketLife.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
+import 'package:denkuitop/kfto/page/KfToNavigator.dart';
 import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
 import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
@@ -22,15 +24,19 @@ import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
+import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager_platform_interface.dart';
 import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
 // import 'package:zefyrka/zefyrka.dart';
 import 'package:libdeno_plugin/libdeno_plugin.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager.dart';
 // ZefyrController _controller = ZefyrController();
 
 Logger logger = Logger("KfToHomeState");
 
+const RIGHT_WIDTH = 1280 * 0.618;
+const MAX_HEIGHT = 720.0;
 class KfToHomePage extends BaseRemotePage {
   @override
   BaseRemotePageState createState() {
@@ -38,61 +44,11 @@ class KfToHomePage extends BaseRemotePage {
   }
 }
 
-class DenkuiRunJsPathHelper {
-  static String GetResourcePaht() {
-    if (Platform.isMacOS) {
-      var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-      var runableJsPath = "${executableDirPath + '/../Resources'}";
-      return runableJsPath;
-    } else if (Platform.isWindows) {
-      // throw new Error('not support');
-      return '.';
-    }
-
-    return '';
-  }
-
-  static String GetDenkBundleJsPath() {
-    if (Platform.isMacOS) {
-      var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-      var runableJsPath =
-          "${executableDirPath + '/../Resources/denkui.bundle.js'}";
-      return runableJsPath;
-    } else if (Platform.isWindows) {
-      var executableDirPath = Platform.resolvedExecutable.substring(
-          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
-      var runableJsPath = "${executableDirPath + '.\\denkui.bundle.js'}";
-      return runableJsPath;
-    }
-
-    return '';
-  }
-
-  static String GetPreloadPath() {
-    if (Platform.isMacOS) {
-      var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
-      var runableJsPath = "${executableDirPath + '/../Resources/preload.js'}";
-      return runableJsPath;
-    } else if (Platform.isWindows) {
-      var executableDirPath = Platform.resolvedExecutable.substring(
-          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
-      var runableJsPath = "${executableDirPath + '.\\preload.js'}";
-      return runableJsPath;
-    }
-
-    return '';
-  }
-}
-
 class KfToHomeState extends BaseRemotePageState {
-  var isFirstConnect = false;
-
   ListData data = null;
   List<KfToDoTagData> dataTags = [];
   String searchKey = "";
+
   List<KfToDoTagData> get searchedTags {
     if (searchKey == "") {
       return dataTags;
@@ -118,21 +74,11 @@ class KfToHomeState extends BaseRemotePageState {
 
   String currentFilePath = '';
   String filePathLabelText = 'File Path';
-  String currentTag = 'All';
+
   TextEditingController _currentPathcontroller;
-
-  bool isShowTagDialog = false;
-
-  LibraryLoader lib;
-
-  Libdeno libdeno = Libdeno();
-
-  //cef view
-  var web = FlutterDesktopEditor();
-
   var containerKey = GlobalKey();
 
-  Widget cefContainor = null;
+  Widget cefContainer = null;
 
   Color get dragLineActiveColor {
     return ColorManager.highLightColor;
@@ -158,31 +104,55 @@ class KfToHomeState extends BaseRemotePageState {
 
   KfTodoTextField searchTagField;
 
+  // other module
+  DenoLibSocketLife denoLibSocketLife = DenoLibSocketLife();
+
+  //cef view
+  var web = FlutterDesktopEditor();
+
+  final _flutterDesktopFileManagerPlugin = FlutterDesktopFileManager();
+
+  // other module end
+
   KfToHomeState() {
-    var port = 8082;
-
-    // TODO make sure port is not be used
-
-    this.lib = LibraryLoader.instance;
-    var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
-    print("${runableJsPath}");
-    var isDevDeno = false;
-    if (isDevDeno) {
-      port = 8082;
-    } else {
-      libdeno.load();
-      libdeno.run("deno run -A ${runableJsPath} --port=${port}");
-    }
-
-    super.init(client: new AsyncIpcClient(), port: port);
-    this.ipc().setCallback("onmessage", (String message) async {
-      // print(message);
-      handleIpcMessage(KfToDoIpcData.raw(message));
-    });
     this._currentPathcontroller = TextEditingController();
 
-    NativeHotkey.instance.init();
+    this.initWeb();
+    initDenoLibSocket();
+  }
 
+  void initDenoLibSocket() {
+    denoLibSocketLife.handleIpcMessageCallback = (dynamic data) {
+      try {
+        this.handleIpcMessage(data);
+      } catch (err) {
+        showCommonSnack(error: err.toString());
+      }
+    };
+
+    denoLibSocketLife.onConnectedCallback = () {
+      this.ipc().invokeNyName({"invokeName": "getConfig"},
+          callback: (AsyncIpcData data) {
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        var basePath = ktoData.data['bastPath'];
+
+        if (basePath == null || basePath == ".") {
+          initConfigDirectory(ktoData.data);
+        } 
+        
+      });
+    };
+  }
+
+  void ensureWebViewShow() {
+    if (cefContainer == null ) {
+      cefContainer = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
+      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
+          DenkuiRunJsPathHelper.GetResourcePaht());
+    }
+  }
+
+  void initWeb() {
     web.registerFunction("prepareInjectJs", (dynamic data) {
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
@@ -212,6 +182,28 @@ class KfToHomeState extends BaseRemotePageState {
       _saveFile();
     });
 
+    
+  }
+
+  void initConfigDirectory(dynamic config) {
+    print("initConfigDirectory");
+    
+    DenktuiDialog.initContext(context);
+    DenktuiDialog.ShowCommonDialog(contentTitle: "没有找到文件保存目录，是否选择", options: [
+      CommonDialogButtonOption(
+          text: "选择目录",
+          callback: () async {
+            var newPath = await _flutterDesktopFileManagerPlugin.OnSelectFile();
+
+            config['basePath'] = newPath;
+            config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
+            this
+                .ipc()
+                .invokeNyName({"invokeName": "saveConfig", "data": config});
+          },
+          icon: Icons.folder),
+      CommonDialogButtonOption(text: "退出", callback: () {}, icon: Icons.error, optionType: 1)
+    ]);
   }
 
   void refreshByData(KfToDoIpcData data) {
@@ -245,40 +237,22 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void handleIpcMessage(KfToDoIpcData data) {
-    if (!isFirstConnect) {
-      this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
-      isFirstConnect = true;
-    }
     if (data.name == 'initData') {
       refreshByData(data);
     }
-    // if (data.name == 'notifyRead') {
-    //   if (isWriteWithoutRead) {
-    //     isWriteWithoutRead = false;
-    //     return;
-    //   }
-    //   String readPath = data.data;
-    //   ListItemData listItemData =
-    //       this.data?.data?.where((element) => element.path == readPath)?.first;
-    //   if (listItemData != null) {
-    //     print("onPressSingleItemFunc from notifyRead");
-    //     this.onPressSingleItemFunc(listItemData);
-    //   }
-    // }
 
     if (data.name == 'system.toast') {
       showSnack(data);
     }
   }
 
-  @override
   AsyncIpcClient ipc() {
-    return super.ipc() as AsyncIpcClient;
+    return denoLibSocketLife.ipc();
   }
 
-  void _clearEditor() {}
-
   void _insertIntoEditor(String content, {String editorId}) {
+    
+    ensureWebViewShow();
     if (editorId == null) {
       editorId = currentFilePath;
     }
@@ -524,9 +498,12 @@ class KfToHomeState extends BaseRemotePageState {
                       var ktoData = KfToDoIpcData.fromAsync(data);
                       String content = ktoData.data['content'] as String;
                       String path = ktoData.data['path'] as String;
-                      currentFilePath = path + "/" + DateTime.now().microsecond.toString() + ".md";
+                      currentFilePath = path +
+                          "/" +
+                          DateTime.now().microsecond.toString() +
+                          ".md";
                       _refreshFilePathTextField();
-                      _insertIntoEditor(content, editorId: currentFilePath );
+                      _insertIntoEditor(content, editorId: currentFilePath);
                       isWriteWithoutRead = true;
                     });
                   })
@@ -623,19 +600,6 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildListView() {
-    List<Widget> list = [];
-    if (this.data?.data != null) {
-      dataTags.forEach((element) {
-        list.add(ViewBuilder.BuildSingleTagContainor(element.name,
-            tagData: element, onPressFunc: (String tag) {
-          setState(() {
-            element.isOpen = !element.isOpen;
-          });
-        }, childListItems: this.buildListItemView(element.name)));
-      });
-    } else {
-      list.add(buildLoadingItem());
-    }
 
     return Column(
       children: [
@@ -654,12 +618,18 @@ class KfToHomeState extends BaseRemotePageState {
                   return buildLoadingItem();
                 } else {
                   var element = this.searchedTags[index];
+                  var childViewList = this.buildListItemView(element.name);
+                  if (childViewList.length > 0) {
+
                   return ViewBuilder.BuildSingleTagContainor(element.name,
                       tagData: element, onPressFunc: (String tag) {
                     setState(() {
                       element.isOpen = !element.isOpen;
                     });
-                  }, childListItems: this.buildListItemView(element.name));
+                  }, childListItems: childViewList);
+                  } else {
+                    return null;
+                  }
                 }
               },
               itemCount:
@@ -671,32 +641,14 @@ class KfToHomeState extends BaseRemotePageState {
 
   @override
   Widget build(BuildContext context) {
-    const RIGHT_WIDTH = 1280 * 0.618;
-    const MAX_HEIGHT = 720.0;
 
-    if (cefContainor == null) {
-      cefContainor = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
-      // var urlPath =p.toUri("file:///Users/chenxiaofang/Desktop/wor/kf/monaco-editor/samples/browser-script-editor/index.html");
-      // print('urlPath'+urlPath);
-      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
-          DenkuiRunJsPathHelper.GetResourcePaht());
-      _readFile(DenkuiRunJsPathHelper.GetPreloadPath(),
-          callback: (AsyncIpcData data) {
-        var ktoData = KfToDoIpcData.fromAsync(data);
-        String content = ktoData.data['content'] as String;
-        String path = ktoData.data['path'] as String;
-        web.executeJs(content);
+    if (searchTagField == null) {
+      searchTagField = KfTodoTextField(onChange: (String value) {
+        print("KfTodoTextField onChange ${value}");
+        setState(() {
+          searchKey = value;
+        });
       });
-    }
-
-    if ( searchTagField == null) {
-
-    searchTagField = KfTodoTextField(onChange: (String value) {
-      print("KfTodoTextField onChange ${value}");
-      setState(() {
-        searchKey = value;
-      });
-    });
     }
     web.loadCefContainer();
     var childs = [
@@ -778,7 +730,7 @@ class KfToHomeState extends BaseRemotePageState {
                 key: containerKey,
                 child: Container(
                   alignment: Alignment.topLeft,
-                  child: cefContainor,
+                  child: cefContainer,
                 ),
               )
             ],
@@ -812,6 +764,21 @@ class KfToHomeState extends BaseRemotePageState {
                       color: ColorManager.highLightColor,
                       icon: Icon(
                         Icons.refresh,
+                        color: ColorManager.highLightColor,
+                        size: ViewBuilder.size(2),
+                      )),
+                  ViewBuilder.BuildInLineMaterialButton("Reset Save Folder",
+                      onPressFunc: () {
+                    this.ipc().invokeNyName({"invokeName": "getConfig"},
+                        callback: (AsyncIpcData data) {
+                      var ktoData = KfToDoIpcData.fromAsync(data);
+
+                      initConfigDirectory(ktoData.data);
+                    });
+                  },
+                      color: ColorManager.highLightColor,
+                      icon: Icon(
+                        Icons.settings,
                         color: ColorManager.highLightColor,
                         size: ViewBuilder.size(2),
                       )),

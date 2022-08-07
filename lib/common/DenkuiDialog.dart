@@ -4,15 +4,21 @@ import 'package:denkuitop/common/ColorManager.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:flutter/material.dart';
 
+
 class CommonDialogButtonOption {
 
     Function callback;
     String text;
     IconData icon;
-    CommonDialogButtonOption({ text: String, callback: Function, IconData icon}) {
+    int btnType = 0;
+
+    CommonDialogButtonOption({ text: String, callback: Function, IconData icon, int optionType}) {
+      
       this.text = text;
       this.callback = callback;
       this.icon = icon;
+      this.btnType = optionType;
+  
     }
 
 
@@ -55,10 +61,10 @@ class DenktuiDialog {
         Navigator.of(_currentContexnt).pop();
         element.callback();
       },
-      color: ColorManager.highLightColor,
+      color: element.btnType == 1 ? Colors.redAccent : ColorManager.highLightColor,
       icon: Icon(
         element.icon,
-        color: ColorManager.highLightColor,
+        color: element.btnType == 1 ? Colors.redAccent : ColorManager.highLightColor,
         size: ViewBuilder.size(2),
       )));
     }));

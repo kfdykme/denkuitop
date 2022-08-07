@@ -31,9 +31,13 @@ dependencies:
       path: ./plugins/flutter_desktop_cef_web
   libdeno_plugin:
       path: ./plugins/libdeno_plugin
+  flutter_desktop_file_manager:
+      path: ./plugins/flutter_desktop_file_manager
   cupertino_icons: ^0.1.3
   ffi: ^1.1.2
   path: ^1.8.0
+  textfield_tags: ^2.0.1
+  rxdart: ^0.27.5
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:denkuitop/common/Os.dart';
 
 String get DirSpelator {
@@ -21,4 +23,55 @@ String GetFileNameFromPath(String filePath) {
     return '';
   }
   return filePath.substring(filePath.lastIndexOf(DirSpelator) + DirSpelator.length);
+}
+
+
+
+class DenkuiRunJsPathHelper {
+  static String GetResourcePaht() {
+    if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath = "${executableDirPath + '/../Resources'}";
+      return runableJsPath;
+    } else if (Platform.isWindows) {
+      // throw new Error('not support');
+      return '.';
+    }
+
+    return '';
+  }
+
+  static String GetDenkBundleJsPath() {
+    if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath =
+          "${executableDirPath + '/../Resources/denkui.bundle.js'}";
+      return runableJsPath;
+    } else if (Platform.isWindows) {
+      var executableDirPath = Platform.resolvedExecutable.substring(
+          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      var runableJsPath = "${executableDirPath + '.\\denkui.bundle.js'}";
+      return runableJsPath;
+    }
+
+    return '';
+  }
+
+  static String GetPreloadPath() {
+    if (Platform.isMacOS) {
+      var executableDirPath = Platform.resolvedExecutable
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/denkuitop'));
+      var runableJsPath = "${executableDirPath + '/../Resources/preload.js'}";
+      return runableJsPath;
+    } else if (Platform.isWindows) {
+      var executableDirPath = Platform.resolvedExecutable.substring(
+          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      var runableJsPath = "${executableDirPath + '.\\preload.js'}";
+      return runableJsPath;
+    }
+
+    return '';
+  }
 }

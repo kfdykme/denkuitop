@@ -15,8 +15,21 @@ final libdeno = Platform.isMacOS
 final LibMain native_lib_main =
     libdeno.lookupFunction<lib_main_func, LibMain>("lib_main");
 
-// libkeydown
+// libcreatelink
+final libcreatelink = Platform.isMacOS 
+    ? DynamicLibrary.open('createlink.dylib')
+    : Platform.isWindows
+        ? DynamicLibrary.open('libdeno.dll')
+        : DynamicLibrary.open('libdeno.so');
 
+typedef create_symlink_func = Void Function(Pointer<Int8> source, Pointer<Int8> linkfile);
+
+final native_create_symlink_func = libcreatelink.lookupFunction<
+  Void Function(Pointer<Int8> source, Pointer<Int8> link),
+  void Function(Pointer<Int8> source, Pointer<Int8> link)
+>("create_symlink");
+
+// libkeydown
 typedef lib_invoke_callback_function_type = Void Function(Int8 value);
 // typedef lib_invoke_func = Void Function(Pointer<NativeFunction<lib_invoke_callback_function_type>> func);
 // typedef LibInvokeCallback = void Function(Pointer<NativeFunction<lib_invoke_callback_function_type>> func);
@@ -85,6 +98,14 @@ class LibraryLoader {
       native_lib_registry_hotkey(key.toNativeUtf8().cast<Int8>(), func_id);
     } else {
       print("native_lib_main == null");
+    }
+  }
+
+  void libCreateLink(String source, String linkFile) {
+    if (native_create_symlink_func != null) {
+      native_create_symlink_func(source.toNativeUtf8().cast<Int8>(), linkFile.toNativeUtf8().cast<Int8>());
+    } else {
+      print("native create symlink func is null");
     }
   }
 }
