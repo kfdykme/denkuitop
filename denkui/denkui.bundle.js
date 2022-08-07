@@ -121,13 +121,24 @@ const statSync = (filePath)=>{
         };
     }
 };
+const isEmptyFile = (filePath)=>{
+    const s = statSync(filePath);
+    if (!s.isExist) {
+        return true;
+    }
+    if (s.isFile) {
+        return readFileSync(filePath).trim() === "";
+    }
+    return true;
+};
 const __default4 = {
     readFileSync,
     writeFileSync,
     mkdirSync,
     readDirSync,
     walkDirSync,
-    statSync
+    statSync,
+    isEmptyFile
 };
 const STORAGE_PATH = __default3.homePath() + '/.denkui/storage.json';
 let set = async (o)=>{
@@ -2769,7 +2780,9 @@ const __default6 = {
     handleFile
 };
 class BlogTextHelper {
-    static GenerateEmptyText(title = 'UnNamed', tags = [], content = '') {
+    static GenerateEmptyText(title = '${title}', tags = [
+        '${tag}'
+    ], content = '') {
         const res = `---
 title: ${title}
 date: ${new Date().toLocaleString()}
@@ -5109,25 +5122,31 @@ class RssController {
         return false;
     }
 }
+const defaultJsContent = '// __webpack_require__.r(__webpack_exports__);\n' + '// /* harmony import */ var monaco_editor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! monaco-editor */ "../node_modules/monaco-editor/esm/vs/editor/editor.main.js");\n' + '\n' + '\n' + '// self.MonacoEnvironment = {\n' + '// \tgetWorkerUrl: function (moduleId, label) {\n' + "// \t\tif (label === 'json') {\n" + "// \t\t\treturn './json.worker.bundle.js';\n" + '// \t\t}\n' + "// \t\tif (label === 'css' || label === 'scss' || label === 'less') {\n" + "// \t\t\treturn './css.worker.bundle.js';\n" + '// \t\t}\n' + "// \t\tif (label === 'html' || label === 'handlebars' || label === 'razor') {\n" + "// \t\t\treturn './html.worker.bundle.js';\n" + '// \t\t}\n' + "// \t\tif (label === 'typescript' || label === 'javascript') {\n" + "// \t\t\treturn './ts.worker.bundle.js';\n" + '// \t\t}\n' + "// \t\treturn './editor.worker.bundle.js';\n" + '// \t}\n' + '// };\n' + '\n' + '// const initDenkui = () => {\n' + '// \tif (window.denkui === undefined) {\n' + '// \t\twindow.denkui = {}\n' + '// \t}\n' + '// }\n' + '\n' + '// const denkSetKeyValue = (key, value) => {\n' + '// \tinitDenkui()\n' + '// \twindow.denkui[key] = value\n' + '// }\n' + '\n' + '// const denkGetKey = (key) => {\n' + '// \tinitDenkui()\n' + '// \treturn window.denkui[key]\n' + '// }\n' + '\n' + '// window.denkGetKey = (name) => {\n' + '// \tconst res = denkGetKey(name)\n' + "// \tconsole.info('window.denkGetKey ', name, res)\n" + '// \treturn res\n' + '// }\n' + '// window.denkSetKeyValue = (name, value) => {\n' + "// \tconsole.info('window.denkSetKeyValue', name, value)\n" + '// \tdenkSetKeyValue(name, value)\n' + '// }\n' + '\n' + "// // window.denkSetKeyValue('editor', codeEditor)\n" + "// window.denkSetKeyValue('monaco', monaco_editor__WEBPACK_IMPORTED_MODULE_0__)\n" + '// window.denkAllKeys = () => {\n' + '// \tinitDenkui()\n' + '// \tconst res = []\n' + '// \tfor (let x in window.denkui) {\n' + '// \t\tres.push(x)\n' + '// \t}\n' + '// \treturn res\n' + '// }\n' + '\n' + '// const sendIpcMessage = (data) => {\n' + '// \ttry {\n' + '// \t\twindow.webkit.messageHandlers.ipcRender.postMessage(data)\n' + '// \t} catch (err) {\n' + '// \t\tconsole.error(err)\n' + '// \t}\n' + '// }\n' + '\n' + '// const prepareInjectJs = async () => {\n' + "// \tif (denkGetKey('prepareInjectJsResolve')) {\n" + "// \t\treturn Promise.reject('already loading')\n" + '// \t}\n' + '// \treturn new Promise((resolve, reject) => {\n' + '// \t\tsetTimeout(() => {\n' + "// \t\t\treject(new Error('timeout prepareInjectJs'))\n" + '// \t\t}, 1000);\n' + "// \t\tdenkSetKeyValue('prepareInjectJsResolve', resolve);\n" + '// \t\tsendIpcMessage({\n' + "// \t\t\tname: 'prepareInjectJs'\n" + '// \t\t})\n' + '// \t})\n' + '// }\n' + '\n' + "// window.denkSetKeyValue('sendIpcMessage', sendIpcMessage)\n" + '\n' + "// const editorContainerHolder = document.getElementById('editor_container_holder')\n" + '\n' + '// const defaultEditorOption = {\n' + "// \tvalue: ['defaultEditorOption'].join('\\\n" + "// '),\n" + "// \tlanguage: 'javascript'\n" + '// }\n' + '\n' + '\n' + '// {\n' + '// \tconst monaco = window.denkGetKey("monaco");\n' + '// \t// Register a new language\n' + '// \tmonaco.languages.register({ id: "markdown" });\n' + '\n' + '// \t// Register a tokens provider for the language\n' + '// \tmonaco.languages.setMonarchTokensProvider("markdown", {\n' + '// \t\ttokenizer: {\n' + '// \t\t\troot: [\n' + '// \t\t\t\t[/- .*?\\[DONE\\]/, "custom-done"],\n' + '// \t\t\t\t[/\\---/, "custom-title-bar"],\n' + '// \t\t\t\t[/^(title) ?: ?(.*)/, "custom-title-bar"],\n' + '// \t\t\t\t[/^(date) ?: ?(.*)/, "custom-title-bar"],\n' + '// \t\t\t\t[/^(tags) ?: ?(.*)/, "custom-title-bar"],\n' + '// \t\t\t\t[/^#{1,6} .*/, "custom-header"],\n' + '// \t\t\t\t[/- .*? /, "custom-list-item"],\n' + '// \t\t\t\t[/\\*\\*.*\\*\\*/, "custom-blod"],\n' + '// \t\t\t\t[/\\*.*\\*/, "custom-italic"],\n' + '// \t\t\t\t[/\\[error.*/, "custom-error"],\n' + '// \t\t\t\t[/\\d/, "custom-number"],\n' + '// \t\t\t\t[/\\[notice.*/, "custom-notice"],\n' + '// \t\t\t\t[/\\[info.*/, "custom-info"],\n' + '// \t\t\t\t[/\\[[a-zA-Z 0-9:]+\\]/, "custom-date"],\n' + '// \t\t\t\t[/const/, "custom-date"],\n' + '// \t\t\t\t[/".*?"/, "custom-date"],\n' + '\n' + '// \t\t\t],\n' + '// \t\t},\n' + '// \t});\n' + '\n' + '// \t// Define a new theme that contains only rules that match this language\n' + '// \tmonaco.editor.defineTheme("myCoolTheme", {\n' + '// \t\tbase: "vs",\n' + '// \t\tinherit: true,\n' + '// \t\trules: [\n' + '// \t\t\t{ token: "custom-done", foreground: "aaaaaa" },\n' + '// \t\t\t{ token: "custom-info", foreground: "808080" },\n' + '// \t\t\t{ token: "custom-title-bar", foreground: "808080" },\n' + '// \t\t\t{ token: "custom-header", foreground: "ffbcd4" },\n' + '// \t\t\t{ token: "custom-list-item", foreground: "FFA500" },\n' + '// \t\t\t{ token: "custom-title-bar", foreground: "808080" },\n' + '// \t\t\t{ token: "custom-blod", foreground: "00aaff", fontStyle: "bold" },\n' + '// \t\t\t{ token: "custom-italic", foreground: "ffaabb", fontStyle: "italic" },\n' + '// \t\t\t{ token: "custom-error", foreground: "ff0000", fontStyle: "bold" },\n' + '// \t\t\t{ token: "custom-number", foreground: "aa0000" },\n' + '// \t\t\t{ token: "custom-notice", foreground: "FFA500" },\n' + '// \t\t\t{ token: "custom-date", foreground: "008800" },\n' + '// \t\t],\n' + '// \t\tcolors: {\n' + '// \t\t\t"editor.foreground": "#000000",\n' + '// \t\t},\n' + '// \t});\n' + '\n' + '\n' + '// \tconst initCodeLens = (editor) => {\n' + '\n' + '// \t}\n' + '\n' + '\n' + '// \tconst initCommands = (editor) => {\n' + '\n' + '// \t\teditor.addAction({\n' + '// \t\t\t// An unique identifier of the contributed action.\n' + "// \t\t\tid: 'save',\n" + '\n' + '// \t\t\t// A label of the action that will be presented to the user.\n' + "// \t\t\tlabel: 'save!!!',\n" + '\n' + '// \t\t\t// An optional array of keybindings for the action.\n' + '// \t\t\tkeybindings: [\n' + '// \t\t\t\tmonaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS\n' + '// \t\t\t],\n' + '\n' + '// \t\t\t// A precondition for this action.\n' + '// \t\t\tprecondition: null,\n' + '\n' + '// \t\t\t// A rule to evaluate on top of the precondition in order to dispatch the keybindings.\n' + '// \t\t\tkeybindingContext: null,\n' + '\n' + "// \t\t\tcontextMenuGroupId: 'navigation',\n" + '\n' + '// \t\t\tcontextMenuOrder: 1.5,\n' + '\n' + '// \t\t\t// Method that will be executed when the action is triggered.\n' + '// \t\t\t// @param editor The editor instance is passed in as a convenience\n' + '// \t\t\trun: function (ed) {\n' + "// \t\t\t\twindow.denkGetKey('sendIpcMessage')({\n" + "// \t\t\t\t\tname: 'editorSave'\n" + '// \t\t\t\t})\n' + '// \t\t\t}\n' + '// \t\t});\n' + '\n' + '// \t\teditor.addAction({\n' + '// \t\t\t// An unique identifier of the contributed action.\n' + "// \t\t\tid: 'refresh',\n" + '\n' + '// \t\t\t// A label of the action that will be presented to the user.\n' + "// \t\t\tlabel: 'refresh',\n" + '\n' + '// \t\t\t// An optional array of keybindings for the action.\n' + '// \t\t\tkeybindings: [\n' + '// \t\t\t\tmonaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR\n' + '// \t\t\t],\n' + '\n' + '// \t\t\t// A precondition for this action.\n' + '// \t\t\tprecondition: null,\n' + '\n' + '// \t\t\t// A rule to evaluate on top of the precondition in order to dispatch the keybindings.\n' + '// \t\t\tkeybindingContext: null,\n' + '\n' + "// \t\t\tcontextMenuGroupId: 'navigation',\n" + '\n' + '// \t\t\tcontextMenuOrder: 1.5,\n' + '\n' + '// \t\t\t// Method that will be executed when the action is triggered.\n' + '// \t\t\t// @param editor The editor instance is passed in as a convenience\n' + '// \t\t\trun: function (ed) {\n' + '// \t\t\t\tlocation.reload(false)\n' + '// \t\t\t}\n' + '// \t\t});\n' + '// \t}\n' + '\n' + "// \twindow.denkSetKeyValue('onEditorCreate', (editor) => {\n" + "// \t\tconsole.info('onEditorCreate', editor)\n" + '// \t\tinitCodeLens(editor)\n' + '// \t\tinitCommands(editor)\n' + '// \t})\n' + '\n' + '// \t// Register a completion item provider for the new language\n' + '// \tmonaco.languages.registerCompletionItemProvider("markdown", {\n' + '// \t\tprovideCompletionItems: () => {\n' + '// \t\t\tvar suggestions = [];\n' + '\n' + '// \t\t\tconst headerMaxLv = 6;\n' + '// \t\t\tlet headerPrefix = "";\n' + '// \t\t\tfor (let x = 1; x <= headerMaxLv; x++) {\n' + '// \t\t\t\theaderPrefix += "#";\n' + '// \t\t\t\tsuggestions.push({\n' + '// \t\t\t\t\tlabel: "_#" + x,\n' + '// \t\t\t\t\tkind: monaco.languages.CompletionItemKind.Text,\n' + '// \t\t\t\t\tinsertText: headerPrefix + " ${1:header}",\n' + '// \t\t\t\t\tinsertTextRules:\n' + '// \t\t\t\t\t\tmonaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,\n' + '// \t\t\t\t\tdocumentation: "Header levele " + x,\n' + '// \t\t\t\t});\n' + '// \t\t\t}\n' + '// \t\t\treturn { suggestions: suggestions };\n' + '// \t\t},\n' + '// \t});\n' + '// }\n' + '\n' + '\n' + '// window.onload = () => {\n' + "// \tconsole.info('editor window onload()')\n" + '\n' + '// \tnew Promise((resolve, reject) => {\n' + "// \t\tconsole.info('wait inject js')\n" + "// \t\t// window.denkSetKeyValue('windowOnloadResolve', resolve)\n" + '// \t\tresolve()\n' + '// \t}).then(res => {\n' + '\n' + '// \t}).finally(() => {\n' + '// \t\tprepareInjectJs()\n' + '// \t})\n' + '// }\n' + '\n' + '// for (let x in window) {\n' + '// \tif (x.startsWith("denk")) {\n' + '// \t\tconsole.info(x);\n' + '// \t}\n' + '// }\n' + '// // console.info(window)\n' + '// // ["monaco", "clearEditor", "createEditorFunc", "sendIpcMessage", "windowOnloadResolve", "prepareInjectJsResolve"]\n' + '// console.info(window.denkAllKeys());\n' + '\n' + '// const getOption = (filePath = "") => {\n' + '// \tlet myOption = {};\n' + '// \tif (filePath.endsWith(".js")) {\n' + '// \t\tmyOption.language = "javascript";\n' + '// \t}\n' + '\n' + '\n' + '// \tif (filePath.endsWith(".md")) {\n' + '// \t\tmyOption.theme = "myCoolTheme";\n' + '// \t\tmyOption.language = "markdown";\n' + '// \t}\n' + '\n' + '// \treturn {\n' + '// \t\tlanguage: "javascript",\n' + '// \t\t...myOption,\n' + '// \t};\n' + '// };\n' + '\n' + '// const getEditor = (filePath = "") => {\n' + '// \tconst id = "editor" + filePath;\n' + '// \tlet editor = window.denkGetKey(id);\n' + '// \tlet editorView = document.getElementById(id);\n' + '// \tif (!editor) {\n' + '// \t\tconst holder = document.getElementById("editor_container_holder");\n' + '// \t\tif (!holder) {\n' + '// \t\t\tthrow new Error("error");\n' + '// \t\t}\n' + '// \t\tif (!editorView) {\n' + '// \t\t\teditorView = document.createElement("div");\n' + '// \t\t\teditorView.style.width = "100%";\n' + '// \t\t\teditorView.style.height = "100%";\n' + '// \t\t\teditorView.id = id;\n' + '// \t\t\teditorView.className = "editor_view";\n' + '// \t\t\tholder.appendChild(editorView);\n' + '// \t\t}\n' + '// \t\tconst monaco = window.denkGetKey("monaco");\n' + '// \t\teditor = monaco.editor.create(editorView, getOption(filePath));\n' + '// \t\twindow.denkSetKeyValue(id, editor);\n' + '\n' + "// \t\tconst onEditorCreate = window.denkGetKey('onEditorCreate')\n" + "// \t\tif (onEditorCreate && typeof onEditorCreate === 'function') {\n" + '// \t\t\tonEditorCreate(editor)\n' + '// \t\t}\n' + '\n' + '// \t}\n' + '// \tfor (\n' + '// \t\tlet x = 0;\n' + '// \t\tx < document.getElementsByClassName("editor_view").length;\n' + '// \t\tx++\n' + '// \t) {\n' + '// \t\tdocument.getElementsByClassName("editor_view")[x].style.display =\n' + '// \t\t\t"none";\n' + '// \t}\n' + '// \teditorView.style.display = "";\n' + '\n' + '// \treturn editor;\n' + '// };\n' + '\n' + '// window.denkSetKeyValue("insertIntoEditor", (content, filePath) => {\n' + "// \tconsole.info('insertIntoEditor', content, filePath)\n" + '// \tgetEditor(filePath).setValue(content);\n' + '// });\n' + '\n' + '\n' + "// console.info('version 12')\n" + '\n' + '\n' + '// //# sourceURL=webpack://browser-esm-webpack/./index.js?';
+const injectJsContent = 'console.info("DENKUI_EDITOR_INJECT start");\n' + '\n' + "window.denkSetKeyValue('getEditorByFilePath', (filePath) => {\n" + "    let editor = window.denkGetKey('editor' + filePath)\n" + "    console.info('getEditorByFilePath editor' , editor)\n" + '    if (!editor) {\n' + "        editor = window.denkGetKey('editor' + 'new')\n" + "        console.info('getEditorByFilePath editor from new' , editor)\n" + '    } \n' + '\n' + '    if (editor) {\n' + "        console.error('editor is null', window.denkAllKeys())\n" + '    } else {\n' + "        window.denkSetKeyValue('editor' + filePath, editor)\n" + '    }\n' + '    \n' + '    return editor\n' + '})\n' + '\n' + 'const getOption = (filePath = "") => {\n' + '    let myOption = {};\n' + '    if (filePath.endsWith(".js")) {\n' + '        myOption.language = "javascript";\n' + '    }\n' + '\n' + '\n' + '    if (filePath.endsWith(".md")) {\n' + '        myOption.theme = "myCoolTheme";\n' + '        myOption.language = "markdown";\n' + '    }\n' + '\n' + '    return {\n' + '        language: "javascript",\n' + '        ...myOption,\n' + '    };\n' + '};\n' + '\n' + 'const getEditor = (filePath = "") => {\n' + '    const id = "editor" + filePath;\n' + '    let editor = window.denkGetKey(id);\n' + '    let editorView = document.getElementById(id);\n' + '    if (!editor) {\n' + '        const holder = document.getElementById("editor_container_holder");\n' + '        if (!holder) {\n' + '            throw new Error("error");\n' + '        }\n' + '        if (!editorView) {\n' + '            editorView = document.createElement("div");\n' + '            editorView.style.width = "100%";\n' + '            editorView.style.height = "100%";\n' + '            editorView.id = id;\n' + '            editorView.className = "editor_view";\n' + '            holder.appendChild(editorView);\n' + '        }\n' + '        const monaco = window.denkGetKey("monaco");\n' + '        editor = monaco.editor.create(editorView, getOption(filePath));\n' + '        window.denkSetKeyValue(id, editor);\n' + '\n' + "        const onEditorCreate = window.denkGetKey('onEditorCreate')\n" + "        if (onEditorCreate && typeof onEditorCreate === 'function') {\n" + '            onEditorCreate(editor)\n' + '        }\n' + '\n' + '    }\n' + '    for (\n' + '        let x = 0;\n' + '        x < document.getElementsByClassName("editor_view").length;\n' + '        x++\n' + '    ) {\n' + '        document.getElementsByClassName("editor_view")[x].style.display =\n' + '            "none";\n' + '    }\n' + '    editorView.style.display = "";\n' + '\n' + '    return editor;\n' + '};\n' + '\n' + "denkSetKeyValue('getEditorFunc', getEditor)\n" + '\n' + 'window.denkSetKeyValue("insertIntoEditor", (content, filePath) => {\n' + "    console.info('insertIntoEditor', content, filePath)\n" + "    const targetEditor = window.denkGetKey('getEditorFunc')(filePath)\n" + '    if (targetEditor.getValue().trim() === "")\n' + '        targetEditor.setValue(content)\n' + '});\n' + '{\n' + '    const windowOnloadResolve = window.denkGetKey("windowOnloadResolve");\n' + '\n' + '    if (windowOnloadResolve) {\n' + '        windowOnloadResolve();\n' + '    }\n' + '\n' + '    const monaco = window.denkGetKey("monaco");\n' + '    // Register a new language\n' + '    monaco.languages.register({ id: "markdown" });\n' + '\n' + '    // Register a tokens provider for the language\n' + '    monaco.languages.setMonarchTokensProvider("markdown", {\n' + '        tokenizer: {\n' + '            root: [\n' + '                [/- .*?\\[DONE\\]/, "custom-done"],\n' + '                [/\\---/, "custom-title-bar"],\n' + '                [/^(title) ?: ?(.*)/, "custom-title-bar"],\n' + '                [/^(date) ?: ?(.*)/, "custom-title-bar"],\n' + '                [/^(tags) ?: ?(.*)/, "custom-title-bar"],\n' + '                [/^#{1,6} .*/, "custom-header"],\n' + '                [/- .*? /, "custom-list-item"],\n' + '                [/\\*\\*.*\\*\\*/, "custom-blod"],\n' + '                [/\\*.*\\*/, "custom-italic"],\n' + '                [/\\[error.*/, "custom-error"],\n' + '                [/\\d/, "custom-number"],\n' + '                [/\\[notice.*/, "custom-notice"],\n' + '                [/\\[info.*/, "custom-info"],\n' + '                [/\\[[a-zA-Z 0-9:]+\\]/, "custom-date"],\n' + '                [/const/, "custom-date"],\n' + '                [/".*?"/, "custom-date"],\n' + '\n' + '            ],\n' + '        },\n' + '    });\n' + '\n' + '    // Define a new theme that contains only rules that match this language\n' + '    monaco.editor.defineTheme("myCoolTheme", {\n' + '        base: "vs",\n' + '        inherit: true,\n' + '        rules: [\n' + '            { token: "custom-done", foreground: "aaaaaa" },\n' + '            { token: "custom-info", foreground: "808080" },\n' + '            { token: "custom-title-bar", foreground: "808080" },\n' + '            { token: "custom-header", foreground: "ffbcd4" },\n' + '            { token: "custom-list-item", foreground: "FFA500" },\n' + '            { token: "custom-title-bar", foreground: "808080" },\n' + '            { token: "custom-blod", foreground: "00aaff", fontStyle: "bold" },\n' + '            { token: "custom-italic", foreground: "ffaabb", fontStyle: "italic" },\n' + '            { token: "custom-error", foreground: "ff0000", fontStyle: "bold" },\n' + '            { token: "custom-number", foreground: "aa0000" },\n' + '            { token: "custom-notice", foreground: "FFA500" },\n' + '            { token: "custom-date", foreground: "008800" },\n' + '        ],\n' + '        colors: {\n' + '            "editor.foreground": "#000000",\n' + '        },\n' + '    });\n' + '\n' + '\n' + '    const initCodeLens = (editor) => {\n' + "        console.info('initCodeLens')\n" + '\n' + '        // monaco.languages.registerCodeLensProvider("javascript", codeLensProvider);\n' + '        // monaco.languages.registerCodeLensProvider("markdown", codeLensProvider);\n' + '    };\n' + '\n' + '\n' + '    const initCommands = (editor) => {\n' + '\n' + '        editor.addAction({\n' + '            // An unique identifier of the contributed action.\n' + "            id: 'save',\n" + '\n' + '            // A label of the action that will be presented to the user.\n' + "            label: 'save!!!',\n" + '\n' + '            // An optional array of keybindings for the action.\n' + '            keybindings: [\n' + '                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS\n' + '            ],\n' + '\n' + '            // A precondition for this action.\n' + '            precondition: null,\n' + '\n' + '            // A rule to evaluate on top of the precondition in order to dispatch the keybindings.\n' + '            keybindingContext: null,\n' + '\n' + "            contextMenuGroupId: 'navigation',\n" + '\n' + '            contextMenuOrder: 1.5,\n' + '\n' + '            // Method that will be executed when the action is triggered.\n' + '            // @param editor The editor instance is passed in as a convenience\n' + '            run: function (ed) {\n' + "                window.denkGetKey('sendIpcMessage')( {\n" + "                    name: 'editorSave'\n" + '                })\n' + '            }\n' + '        });\n' + '\n' + '        editor.addAction({\n' + '            // An unique identifier of the contributed action.\n' + "            id: 'refresh',\n" + '\n' + '            // A label of the action that will be presented to the user.\n' + "            label: 'refresh',\n" + '\n' + '            // An optional array of keybindings for the action.\n' + '            keybindings: [\n' + '                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR\n' + '            ],\n' + '\n' + '            // A precondition for this action.\n' + '            precondition: null,\n' + '\n' + '            // A rule to evaluate on top of the precondition in order to dispatch the keybindings.\n' + '            keybindingContext: null,\n' + '\n' + "            contextMenuGroupId: 'navigation',\n" + '\n' + '            contextMenuOrder: 1.5,\n' + '\n' + '            // Method that will be executed when the action is triggered.\n' + '            // @param editor The editor instance is passed in as a convenience\n' + '            run: function (ed) {\n' + '               location.reload(false)\n' + '            }\n' + '        });\n' + '    }\n' + '\n' + "    window.denkSetKeyValue('onEditorCreate', (editor) => {\n" + "        console.info('onEditorCreate', editor)\n" + '        initCodeLens(editor)\n' + '        initCommands(editor)\n' + "        denkSetKeyValue('editornew', editor)\n" + '    })\n' + '\n' + '    // Register a completion item provider for the new language\n' + '    monaco.languages.registerCompletionItemProvider("markdown", {\n' + '        provideCompletionItems: () => {\n' + '            var suggestions = [];\n' + '\n' + '            const headerMaxLv = 6;\n' + '            let headerPrefix = "";\n' + '            for (let x = 1; x <= headerMaxLv; x++) {\n' + '                headerPrefix += "#";\n' + '                suggestions.push({\n' + '                    label: "_#" + x,\n' + '                    kind: monaco.languages.CompletionItemKind.Text,\n' + '                    insertText: headerPrefix + " ${1:header}",\n' + '                    insertTextRules:\n' + '                        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,\n' + '                    documentation: "Header levele " + x,\n' + '                });\n' + '            }\n' + '            return { suggestions: suggestions };\n' + '        },\n' + '    });\n' + '\n' + '    const prepareInjectJsResolve = window.denkGetKey("prepareInjectJsResolve");\n' + '    if (prepareInjectJsResolve) {\n' + '        prepareInjectJsResolve();\n' + '    }\n' + '}';
+const __default12 = {
+    defaultJsContent,
+    injectJsContent
+};
 class KfTodoController {
     ipc = null;
     hasFirstConnect = false;
-    static KFTODO_CONFIG_MD_PATH = __default3.homePath() + __default3.Dir.Spelator + '.denkui' + __default3.Dir.Spelator + '.config.md';
+    static KFTODO_CONFIG_MD_PATH = __default3.homePath() + __default3.Dir.Spelator + ".denkui" + __default3.Dir.Spelator + ".config.md";
     rssController = new RssController();
     config = {
-        basePath: '.'
+        basePath: "."
     };
     async start() {
         let res = await __default5.get({
-            key: 'GLOBAL_PORT'
+            key: "GLOBAL_PORT"
         });
         let iport = 8082;
         try {
             iport = Number.parseInt(res.data);
         } catch (err) {
-            __default1.error('KfTodoController', err);
+            __default1.error("KfTodoController", err);
         }
-        __default1.info('KfTodoController port ', res.data, iport);
+        __default1.info("KfTodoController port ", res.data, iport);
         this.ipc = new AsyncIpcController(iport || 8082);
         const onMessageHandler = (message)=>{
             this.onMessage(message);
@@ -5148,23 +5167,23 @@ class KfTodoController {
     }
     heart() {
         !this.hasFirstConnect && this.ipc?.send(JSON.stringify({
-            name: 'heart',
-            data: 'KfTodoController ' + !this.hasFirstConnect
+            name: "heart",
+            data: "KfTodoController " + !this.hasFirstConnect
         }));
     }
     send(event) {
         this.ipc?.send(JSON.stringify(event));
     }
     async initData() {
-        __default1.info('KfTodoController', 'initData');
+        __default1.info("KfTodoController", "initData");
         const listDataRes = await __default5.get({
-            key: 'listData'
+            key: "listData"
         });
         const confgPath = KfTodoController.KFTODO_CONFIG_MD_PATH;
         if (!listDataRes.data) {
-            const configTitle = 'KfTodoConfig';
+            const configTitle = "KfTodoConfig";
             const configTags = [
-                '_KfTodoConfig'
+                "_KfTodoConfig"
             ];
             let item = {
                 "title": configTitle,
@@ -5175,7 +5194,7 @@ class KfTodoController {
             };
             if (!__default4.statSync(confgPath).isExist) {
                 const content = BlogTextHelper.GenerateEmptyText(configTitle, configTags, JSON.stringify({
-                    basePath: '.'
+                    basePath: "."
                 }, null, 2));
                 __default4.mkdirSync(__default3.getDirPath(confgPath), {
                     recursive: true
@@ -5187,7 +5206,7 @@ class KfTodoController {
                     this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
                 } catch (err) {
                     this.send({
-                        name: 'system.toast',
+                        name: "system.toast",
                         data: {
                             error: `${err}`
                         }
@@ -5201,7 +5220,7 @@ class KfTodoController {
                 ]
             };
             await __default5.set({
-                key: 'listData',
+                key: "listData",
                 value: listDataRes.data
             });
         } else {
@@ -5210,7 +5229,7 @@ class KfTodoController {
                 this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
             } catch (err) {
                 this.send({
-                    name: 'toast',
+                    name: "toast",
                     data: {
                         error: `${err}`
                     }
@@ -5218,22 +5237,22 @@ class KfTodoController {
             }
         }
         this.send({
-            name: 'initData',
+            name: "initData",
             data: listDataRes.data
         });
         const lastReadPathRes = await __default5.get({
-            key: 'lastReadPath'
+            key: "lastReadPath"
         });
         if (lastReadPathRes.data) {
             this.send({
-                name: 'notifyRead',
+                name: "notifyRead",
                 data: lastReadPathRes.data
             });
         }
     }
     async getMdHeaderInfoByPath(filePath, content) {
         const listDataRes = await __default5.get({
-            key: 'listData'
+            key: "listData"
         });
         const hitItems = listDataRes.data.headerInfos.filter((item)=>{
             return item.path == filePath;
@@ -5255,40 +5274,54 @@ class KfTodoController {
     }
     async getOtherHeaderInfos() {
         const listDataRes = await __default5.get({
-            key: 'listData'
+            key: "listData"
         });
-        return listDataRes.filter((header)=>{
+        console.info("kfdbeug", listDataRes);
+        return listDataRes ? listDataRes.data.headerInfos.filter((header)=>{
             return header.type != undefined;
-        });
+        }) : [];
+    }
+    async initInjectJsFile() {
+        const editorInjectJsPath = this.config["editorInjectJsPath"];
+        if (!editorInjectJsPath || __default4.isEmptyFile(editorInjectJsPath)) {
+            __default4.writeFileSync(editorInjectJsPath, __default12.injectJsContent);
+        }
+    }
+    async initDefaultJsFile() {
+        const basePath = this.config["basePath"];
+        const defaultJsPath = basePath + __default3.Dir.Spelator + "default.js";
+        if (__default4.isEmptyFile(defaultJsPath)) {
+            __default4.writeFileSync(defaultJsPath, __default12.defaultJsContent);
+        }
     }
     async initByConfig() {
         const files = __default4.walkDirSync(this.config.basePath);
         const denkuiblogFiles = files.filter((value)=>{
-            const ext = __default8.getFileExtByType('denkuiblog', this.config);
+            const ext = __default8.getFileExtByType("denkuiblog", this.config);
             return value.name.endsWith(ext);
         });
         const infos = denkuiblogFiles.map((i)=>{
-            __default1.info('KfTodoController ', i);
+            __default1.info("KfTodoController ", i);
             return __default6.handleFile(__default4.readFileSync(i.path), i.path);
         }).filter((i)=>{
             return i.title;
         });
         const scriptFiles = files.filter((value)=>{
-            return value.name.endsWith(__default8.getFileExtByType('script', this.config));
+            return value.name.endsWith(__default8.getFileExtByType("script", this.config));
         });
-        __default1.info('KfTodoController scriptFiles', scriptFiles);
+        __default1.info("KfTodoController scriptFiles", scriptFiles);
         scriptFiles.forEach((scriptFile)=>{
             infos.push({
                 path: scriptFile.path,
                 title: scriptFile.name,
-                date: 'SCRIPT',
+                date: "SCRIPT",
                 tags: [
-                    '_DENKUISCRIPT'
+                    "_DENKUISCRIPT"
                 ]
             });
         });
-        __default1.info('KfTodoController ', infos);
-        const item = await this.getMdHeaderInfoByPath(KfTodoController.KFTODO_CONFIG_MD_PATH, 'DENKUI_CONFIG');
+        __default1.info("KfTodoController ", infos);
+        const item = await this.getMdHeaderInfoByPath(KfTodoController.KFTODO_CONFIG_MD_PATH, "DENKUI_CONFIG");
         const resData = {
             headerInfos: infos.concat([
                 item
@@ -5297,18 +5330,18 @@ class KfTodoController {
         const otherDatas = await this.getOtherHeaderInfos();
         resData.headerInfos = resData.headerInfos.concat(otherDatas);
         await __default5.set({
-            key: 'listData',
+            key: "listData",
             value: resData
         });
         this.send({
-            name: 'initData',
+            name: "initData",
             data: resData
         });
     }
     async handleInvoke(ipcData) {
         const { invokeName , data: invokeData  } = ipcData.data;
-        __default1.info('handleInvoke invokeName:', invokeName);
-        if (invokeName === 'readFile') {
+        __default1.info("handleInvoke invokeName:", invokeName);
+        if (invokeName === "readFile") {
             const path = invokeData;
             const content = __default4.readFileSync(path);
             ipcData.data = {
@@ -5317,18 +5350,18 @@ class KfTodoController {
             };
             this.ipc?.response(ipcData);
             await __default5.set({
-                key: 'lastReadPath',
+                key: "lastReadPath",
                 value: path
             });
         }
-        if (invokeName === 'getConfig') {
+        if (invokeName === "getConfig") {
             ipcData.data = this.config;
             this.ipc?.response(ipcData);
         }
-        if (invokeName === 'saveConfig') {
+        if (invokeName === "saveConfig") {
             let cacheConfig = this.config;
-            for(let x in ipcData.data){
-                cacheConfig[x] = ipcData.data[x];
+            for(let x in ipcData.data.data){
+                cacheConfig[x] = ipcData.data.data[x];
             }
             const content = __default4.readFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH);
             const headerContent = BlogTextHelper.GetHeaderInfoFromText(content);
@@ -5338,36 +5371,38 @@ class KfTodoController {
             });
             __default4.writeFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH, newContent);
             this.config = cacheConfig;
+            this.initInjectJsFile();
+            this.initDefaultJsFile();
             this.initByConfig();
         }
-        if (invokeName === 'writeFile') {
+        if (invokeName === "writeFile") {
             const { content , path  } = invokeData;
             __default4.mkdirSync(__default3.getDirPath(path), {
                 recursive: true
             });
             __default4.writeFileSync(path, content);
-            __default1.info('handleInvoke writeFile path:', path);
-            if (path.endsWith(__default8.getFileExtByType('script', this.config))) {
+            __default1.info("handleInvoke writeFile path:", path);
+            if (path.endsWith(__default8.getFileExtByType("script", this.config))) {
                 ipcData.msg = `${ipcData.data.invokeName} success`;
                 this.ipc?.response(ipcData);
             } else {
                 const listDataRes = await __default5.get({
-                    key: 'listData'
+                    key: "listData"
                 });
                 let item = await this.getMdHeaderInfoByPath(path, content);
-                __default1.info('handleInvoke writeFile path compare to', KfTodoController.KFTODO_CONFIG_MD_PATH);
+                __default1.info("handleInvoke writeFile path compare to", KfTodoController.KFTODO_CONFIG_MD_PATH);
                 if (path === KfTodoController.KFTODO_CONFIG_MD_PATH || path === "./.denkui/.config.md") {
                     try {
                         const configContent = BlogTextHelper.GetContentFromText(content).trim();
-                        __default1.info('KfTodoController ', configContent);
+                        __default1.info("KfTodoController ", configContent);
                         this.config = JSON.parse(configContent);
                         this.initByConfig();
                         ipcData.msg = `initData by config success`;
                         this.ipc?.response(ipcData);
                     } catch (err) {
-                        __default1.info('KfTodoController', err);
+                        __default1.info("KfTodoController", err);
                         ipcData.data = {
-                            error: 'error: ' + err
+                            error: "error: " + err
                         };
                         this.ipc?.response(ipcData);
                     }
@@ -5381,38 +5416,38 @@ class KfTodoController {
                         ipcData.msg = `${ipcData.data.invokeName} success`;
                     } catch (err) {
                         ipcData.data = {
-                            error: 'error: ' + err
+                            error: "error: " + err
                         };
                         this.ipc?.response(ipcData);
                         return;
                     }
                     await __default5.set({
-                        key: 'listData',
+                        key: "listData",
                         value: listDataRes.data
                     });
                     this.ipc?.response(ipcData);
                 }
             }
         }
-        if (invokeName === 'deleteItem') {
+        if (invokeName === "deleteItem") {
             const { path  } = invokeData;
             const listDataRes = await __default5.get({
-                key: 'listData'
+                key: "listData"
             });
             const hitItems = listDataRes.data.headerInfos.filter((item)=>{
                 if (item.path == path) {
-                    __default1.info('KfTodoController deleteItem', path);
+                    __default1.info("KfTodoController deleteItem", path);
                 }
                 return item.path != path;
             });
             listDataRes.data.headerInfos = hitItems;
             await __default5.set({
-                key: 'listData',
+                key: "listData",
                 value: listDataRes.data
             });
             this.ipc?.response(ipcData);
         }
-        if (invokeName === 'getNewBlogTemplate') {
+        if (invokeName === "getNewBlogTemplate") {
             const content = BlogTextHelper.GenerateEmptyText();
             ipcData.data = {
                 content,
@@ -5420,27 +5455,27 @@ class KfTodoController {
             };
             this.ipc?.response(ipcData);
         }
-        if (invokeName === 'initData') {
+        if (invokeName === "initData") {
             const { path  } = invokeData;
             const files = __default4.walkDirSync(path);
             const denkuiblogFiles = files.filter((value)=>{
-                const ext = __default8.getFileExtByType('denkuiblog', this.config);
+                const ext = __default8.getFileExtByType("denkuiblog", this.config);
                 return value.name.endsWith(ext);
             });
             let headerInfos = denkuiblogFiles.map((value)=>{
                 return __default6.handleFile(__default4.readFileSync(value.path), value.path);
             });
             const scriptFiles = files.filter((value)=>{
-                return value.name.endsWith(__default8.getFileExtByType('script', this.config));
+                return value.name.endsWith(__default8.getFileExtByType("script", this.config));
             });
-            __default1.info('KfTodoController scriptFiles', scriptFiles);
+            __default1.info("KfTodoController scriptFiles", scriptFiles);
             scriptFiles.forEach((scriptFile)=>{
                 headerInfos.push({
                     path: scriptFile.path,
                     title: scriptFile.name,
-                    date: 'SCRIPT',
+                    date: "SCRIPT",
                     tags: [
-                        '_DENKUISCRIPT'
+                        "_DENKUISCRIPT"
                     ]
                 });
             });
@@ -5448,7 +5483,7 @@ class KfTodoController {
                 headerInfos
             };
             await __default5.set({
-                key: 'listData',
+                key: "listData",
                 value: ipcData.data
             });
             this.ipc?.response(ipcData);
@@ -5456,31 +5491,31 @@ class KfTodoController {
         this.rssController.tryHandleInvoke(ipcData);
     }
     onMessage(message) {
-        __default1.info('KfTodoController onMessage', message);
+        __default1.info("KfTodoController onMessage", message);
         if (!this.hasFirstConnect) {
             this.hasFirstConnect = true;
         }
         try {
             const event = JSON.parse(message);
-            __default1.info('KfTodoController onMessage event', event);
-            if (event.name === 'onFirstConnect') {
+            __default1.info("KfTodoController onMessage event", event);
+            if (event.name === "onFirstConnect") {
                 this.initData().catch((reason)=>{
                     event.data = {
-                        error: reason + ''
+                        error: reason + ""
                     };
                     this.ipc?.response(event);
                 });
             }
-            if (event.name === 'invoke') {
+            if (event.name === "invoke") {
                 this.handleInvoke(event).catch((reason)=>{
                     event.data = {
-                        error: reason + ''
+                        error: reason + ""
                     };
                     this.ipc?.response(event);
                 });
             }
         } catch (err) {
-            __default1.info('KfTodoController onMessage err', err);
+            __default1.info("KfTodoController onMessage err", err);
         }
     }
 }
@@ -5523,7 +5558,7 @@ const startHttpServer = async ()=>{
         }
     }
 };
-const __default12 = {
+const __default13 = {
     startHttpServer
 };
 let args = __default.GetArgs();
@@ -5546,4 +5581,4 @@ const kf = new KfTodoController();
 if (!isLcOpen) {
     kf.start();
 }
-__default12.startHttpServer();
+__default13.startHttpServer();

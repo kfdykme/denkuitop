@@ -134,8 +134,7 @@ class KfToHomeState extends BaseRemotePageState {
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
         var ktoData = KfToDoIpcData.fromAsync(data);
-        var basePath = ktoData.data['bastPath'];
-
+        var basePath = ktoData.data['basePath'];
         if (basePath == null || basePath == ".") {
           initConfigDirectory(ktoData.data);
         } 
@@ -503,6 +502,8 @@ class KfToHomeState extends BaseRemotePageState {
                           DateTime.now().microsecond.toString() +
                           ".md";
                       _refreshFilePathTextField();
+                      content = content.replaceFirst("\$\{title\}", "请输入你的标题");
+                      content = content.replaceFirst("\$\{tag\}", "第一个标签");
                       _insertIntoEditor(content, editorId: currentFilePath);
                       isWriteWithoutRead = true;
                     });
