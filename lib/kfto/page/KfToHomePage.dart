@@ -146,6 +146,7 @@ class KfToHomeState extends BaseRemotePageState {
   void ensureWebViewShow() {
     if (cefContainer == null ) {
       cefContainer = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
+      web.loadCefContainer();
       web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
           DenkuiRunJsPathHelper.GetResourcePaht());
     }
@@ -370,7 +371,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onPressSingleItemFunc(ListItemData itemData) {
-    // web.loadCefContainer();
+    web.loadCefContainer();
     print('onPressSingleItemFunc ' + itemData.type);
     // if (itemData.type )
     if (itemData.path.startsWith('http://') ||
@@ -662,7 +663,15 @@ class KfToHomeState extends BaseRemotePageState {
         });
       });
     }
+
+
+    Widget webCView = cefContainer == null ? MaterialButton(
+      child: Text("cef"),
+      onPressed: () {
+        web.generateCefContainer(400, 500);
     web.loadCefContainer();
+      },
+    ) : cefContainer;
     var childs = [
       new Container(
         width: left_width_real,
@@ -738,17 +747,19 @@ class KfToHomeState extends BaseRemotePageState {
                   ],
                 ),
               ),
-              Expanded(
-                key: containerKey,
-                child: Container(
-                  alignment: Alignment.topLeft,
-                  child: cefContainer == null ? Container(
-                    color: Colors.amberAccent,
-                    width: 400,
-                    height: 400,
-                  ): cefContainer,
-                ),
-              )
+              webCView
+              // Expanded(
+              //   key: containerKey,
+              //   child: Container(
+              //     alignment: Alignment.topLeft,
+              //   // child: Text("flexable"),
+              //     child: cefContainer == null ? Container(
+              //       color: Colors.amberAccent,
+              //       width: 400,
+              //       height: 400,
+              //     ): cefContainer,
+              //   ),
+              // )
             ],
           ),
         ),
