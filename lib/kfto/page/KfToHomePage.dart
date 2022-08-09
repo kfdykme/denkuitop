@@ -25,12 +25,14 @@ import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager_platform_interface.dart';
+import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:native_hotkey/native_hotkey.dart';
 import 'package:quill_delta/quill_delta.dart';
 // import 'package:zefyrka/zefyrka.dart';
 import 'package:libdeno_plugin/libdeno_plugin.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager.dart';
+import 'package:loading/loading.dart';
 // ZefyrController _controller = ZefyrController();
 
 Logger logger = Logger("KfToHomeState");
@@ -554,7 +556,7 @@ class KfToHomeState extends BaseRemotePageState {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
-        children: [Text('LOADING')],
+        children: [Loading(indicator: BallPulseIndicator(), size: 100.0, color: ViewBuilder.RandomColor(),)],
       ),
       margin: const EdgeInsets.all(16),
     );
@@ -666,7 +668,7 @@ class KfToHomeState extends BaseRemotePageState {
 
 
     Widget webCView = cefContainer == null ? MaterialButton(
-      child: Text("cef"),
+      child: Loading(indicator: BallPulseIndicator(), size: 100.0, color: ViewBuilder.RandomColor()),
       onPressed: () {
         web.generateCefContainer(400, 500);
     web.loadCefContainer();
