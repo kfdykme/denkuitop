@@ -68,13 +68,51 @@ class KfToDoIpcData  extends AsyncIpcData {
   }
 }
 
+class KfTodoTagDataCache {
+  static Map<String, bool> isOpen = new Map();
+  static Map<String, Color> darkColor= new Map();
+  static Map<String, Color> darkColor2 = new Map();
+  static Map<String, Color> lightColor = new Map();
+  static Map<String, Color> lightColor2 = new Map();
+
+  
+}
+
 class KfToDoTagData {
   final String name;
-  bool isOpen = false;
-  Color darkColor= ViewBuilder.RandomDarkColor();
-  Color darkColor2 =  ViewBuilder.RandomDarkColor();
-  Color lightColor = ViewBuilder.RandomColor();
-  Color lightColor2  = ViewBuilder.RandomColor();
+  Color get darkColor  {
+    if(KfTodoTagDataCache.darkColor[name] == null ) {
+      KfTodoTagDataCache.darkColor[name] = ViewBuilder.RandomDarkColor();
+    }
+    return KfTodoTagDataCache.darkColor[name];
+  }
+  Color get darkColor2  {
+    if(KfTodoTagDataCache.darkColor2[name] == null ) {
+      KfTodoTagDataCache.darkColor2[name] = ViewBuilder.RandomDarkColor();
+    }
+    return KfTodoTagDataCache.darkColor2[name];
+  }
+  Color get lightColor  {
+    if(KfTodoTagDataCache.lightColor[name] == null ) {
+      KfTodoTagDataCache.lightColor[name] = ViewBuilder.RandomColor();
+    }
+    return KfTodoTagDataCache.lightColor[name];
+  }
+  Color get lightColor2  {
+    if(KfTodoTagDataCache.lightColor2[name] == null ) {
+      KfTodoTagDataCache.lightColor2[name] = ViewBuilder.RandomColor();
+    }
+    return KfTodoTagDataCache.lightColor2[name];
+  }
+
+  void set isOpen(value) {
+    // _isOpen = value;
+    KfTodoTagDataCache.isOpen[name] = value;
+  }
+
+  bool get isOpen {
+    return  KfTodoTagDataCache.isOpen[name] == null ?  false: KfTodoTagDataCache.isOpen[name];
+  }
 
   bool isRss = false;
   bool isRssItem = false;
