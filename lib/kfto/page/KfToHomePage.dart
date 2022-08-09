@@ -204,6 +204,12 @@ class KfToHomeState extends BaseRemotePageState {
             this
                 .ipc()
                 .invokeNyName({"invokeName": "saveConfig", "data": config});
+            web.hide();
+            Future.delayed(Duration(seconds: 1)).then((value){
+              web.needInsertFirst = false;
+              web.executeJs("location.reload(false)");
+              web.show();
+            });
           },
           icon: Icons.folder),
       CommonDialogButtonOption(text: "退出", callback: () {}, icon: Icons.error, optionType: 1)
@@ -801,7 +807,7 @@ class KfToHomeState extends BaseRemotePageState {
                     this.ipc().invokeNyName({"invokeName": "getConfig"},
                         callback: (AsyncIpcData data) {
                       var ktoData = KfToDoIpcData.fromAsync(data);
-
+          
                       initConfigDirectory(ktoData.data, title: '是否重新选择文件目录');
                     });
                   },

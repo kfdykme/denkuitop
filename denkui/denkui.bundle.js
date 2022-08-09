@@ -131,6 +131,9 @@ const isEmptyFile = (filePath)=>{
     }
     return true;
 };
+const unlinkFile = (filePath)=>{
+    return Deno.removeSync(filePath);
+};
 const __default4 = {
     readFileSync,
     writeFileSync,
@@ -138,7 +141,8 @@ const __default4 = {
     readDirSync,
     walkDirSync,
     statSync,
-    isEmptyFile
+    isEmptyFile,
+    unlinkFile
 };
 const STORAGE_PATH = __default3.homePath() + '/.denkui/storage.json';
 let set = async (o)=>{
@@ -4964,7 +4968,7 @@ class RssController {
             console.error('this.responseFunc is null');
         }
     }
-    convertJSON2RssObject(rss) {
+    convertJSON2RssObject(rss, baseUrl) {
         if (typeof rss !== "object") {
             return undefined;
         }
@@ -5000,15 +5004,19 @@ class RssController {
                 channel: {
                     title: _s(rss.title),
                     description: _s(rss.subtitle),
-                    link: _s(rss.link[1]['_attributes'].href),
+                    link: _s(getFirstObjectByName(rss.link, 'href')),
                     item: rss.entry.map((entryItem)=>{
                         console.info(entryItem);
+                        let rssItemlink = getFirstObjectByName(entryItem.link, 'href');
+                        if (rssItemlink.startsWith('/')) {
+                            rssItemlink = new URL(baseUrl).origin + rssItemlink;
+                        }
                         return {
                             title: _s(entryItem.title),
                             pubDate: _s(entryItem.published),
                             description: _s(entryItem.summary),
-                            link: entryItem.link['_attributes'].href,
-                            author: _s(entryItem.author.name)
+                            link: rssItemlink,
+                            author: _s(entryItem.author?.name)
                         };
                     })
                 }
@@ -5022,9 +5030,14 @@ class RssController {
         if (invokeName === "addRss") {
             const { url  } = invokeData;
             console.info('tryhandleInvoke addRss', invokeData, url);
-            const listDataRes = await __default5.get({
+            let listDataRes = await __default5.get({
                 key: "listData"
             });
+            if (listDataRes.data === undefined) {
+                listDataRes.data = {
+                    headerInfos: []
+                };
+            }
             let isResed = false;
             new Promise((resolve, reject)=>{
                 __default11.do({
@@ -5044,7 +5057,7 @@ class RssController {
                 }
                 return rssObj;
             }).then((rss)=>{
-                const res = this.convertJSON2RssObject(rss);
+                const res = this.convertJSON2RssObject(rss, url);
                 if (res == undefined) {
                     throw Error("convert rss object fail");
                 }
@@ -5369,7 +5382,6 @@ class KfTodoController {
             __default4.mkdirSync(__default3.getDirPath(KfTodoController.KFTODO_CONFIG_MD_PATH), {
                 recursive: true
             });
-            __default1.info(`saveConfig to ${KfTodoController.KFTODO_CONFIG_MD_PATH} with ${newContent}`);
             __default4.writeFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH, newContent);
             this.config = cacheConfig;
             this.initInjectJsFile();
@@ -5432,6 +5444,7 @@ class KfTodoController {
         }
         if (invokeName === "deleteItem") {
             const { path  } = invokeData;
+            await __default4.unlinkFile(path);
             const listDataRes = await __default5.get({
                 key: "listData"
             });

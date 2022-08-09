@@ -215,6 +215,7 @@ class ViewBuilder {
       child: Column(
         children: [
           MaterialButton(
+            
             textColor: color,
             onPressed: () {
               print("BuildMaterialButton Press ${text} ${onPressFunc}");
