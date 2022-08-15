@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -161,12 +162,29 @@ class KfToHomeState extends BaseRemotePageState {
         var ktoData = KfToDoIpcData.fromAsync(data);
         print("getConfig: ${ktoData}");
         if (ktoData.data['editorInjectJsPath'] != null) {
-          var path = ktoData.data['editorInjectJsPath'].toString();
-          CommonReadFile(path, func: (({content, path}) {
-            web.executeJs(content);
-            web.toggleInsertFirst();
-            web.tryInsertFirst();
-          }));
+          var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
+          var injectJsList = [];
+          if (editorInjectJsPath.runtimeType == String) {
+            injectJsList.add(editorInjectJsPath.toString());
+          } else if (editorInjectJsPath.runtimeType == List) {
+            List<dynamic> list = ktoData.data['editorInjectJsPath'] as List<dynamic>;
+            for(var x = 0; x < list.length; x++) {
+               var path = list[x].toString();
+               injectJsList.add(path);
+            }
+          }
+         
+          for(var x = 0; x < injectJsList.length ; x++) {
+            CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
+              print("CommonReadFile ${content} ${path}");
+              web.executeJs(content);
+              if (!web.needInsertFirst) {
+                web.toggleInsertFirst();
+                web.tryInsertFirst();
+              }
+            }));
+          }
+
         }
       });
     });
@@ -199,16 +217,23 @@ class KfToHomeState extends BaseRemotePageState {
           callback: () async {
             var newPath = await _flutterDesktopFileManagerPlugin.OnSelectFile();
 
-            config['basePath'] = newPath;
-            config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
-            this
-                .ipc()
-                .invokeNyName({"invokeName": "saveConfig", "data": config});
-            web.hide();
-            Future.delayed(Duration(seconds: 1)).then((value){
-              web.needInsertFirst = false;
-              web.executeJs("location.reload(false)");
-              web.show();
+            CommonReadFile(newPath, func: ({content, path, suc}) {
+              if (!suc) {
+                config['basePath'] = newPath;
+                config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
+                this
+                    .ipc()
+                    .invokeNyName({"invokeName": "saveConfig", "data": config});
+                
+              } else {
+                
+              }
+              web.hide();
+              Future.delayed(Duration(seconds: 1)).then((value){
+                  web.needInsertFirst = false;
+                  web.executeJs("location.reload(false)");
+                  web.show();
+                });
             });
           },
           icon: Icons.folder),
@@ -279,6 +304,9 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _refreshFilePathTextField() {
+    if (currentFilePath == null) {
+      return;
+    }
     setState(() {
       _currentPathcontroller.text = GetFileNameFromPath(currentFilePath);
       _currentPathcontroller.selection = TextSelection.fromPosition(
@@ -338,7 +366,8 @@ class KfToHomeState extends BaseRemotePageState {
     web.getEditorContent(currentFilePath).then((value) {
       map['content'] = value;
       var omap = Map<String, dynamic>();
-
+      web.needInsertContent = value;
+      web.needInsertPath = map['path'];
       omap['data'] = map;
       omap['invokeName'] = 'writeFile';
       this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
@@ -356,17 +385,30 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void CommonReadFile(String path,
-      {Function({String content, String path}) func}) {
+      {Function({String content, String path, bool suc}) func}) {
     _readFile(path, callback: (AsyncIpcData data) {
-      print("onPressSingleItemFunc _readFile callback" + data.toString());
       var ktoData = KfToDoIpcData.fromAsync(data);
+      print("onPressSingleItemFunc _readFile callback" + ktoData.toString());
       String path = ktoData.data['path'] as String;
-      if (ktoData.data['content'] != null) {
-        String content = ktoData.data['content'] as String;
-        content = content.replaceAll('\t', '    ');
-        func(content: content, path: path);
+      String error = ktoData.data['error'];
+      if (error != null) {
+
+        showCommonSnack(error: error);
+        return;
+      }
+      dynamic content = ktoData.data['content'];
+      if (content != null) {
+        if (content.runtimeType == String) {
+
+          String content = ktoData.data['content'] as String;
+          content = content?.replaceAll('\t', '    ');
+          func(content: content, path: path, suc:true);
+        } else if (content.runtimeType == LinkedHashMap) {
+          String name = content['name'];
+          showCommonSnack(msg: name);
+        }
       } else {
-        func(content: '', path: path);
+        func(content: '', path: path, suc: true);
       }
     });
   }
@@ -393,11 +435,8 @@ class KfToHomeState extends BaseRemotePageState {
       ensureWebViewShow();
       web.executeJs(
           'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
-      _readFile(itemData.path, callback: (AsyncIpcData data) {
-        print("onPressSingleItemFunc _readFile callback" + data.toString());
-        var ktoData = KfToDoIpcData.fromAsync(data);
-        String content = ktoData.data['content'] as String;
-        String path = ktoData.data['path'] as String;
+
+      CommonReadFile(itemData.path, func: ({content, path, suc}) {
         currentFilePath = path;
         content = content.replaceAll('\t', '    ');
         _refreshFilePathTextField();

@@ -11,6 +11,7 @@ String get DirSpelator {
 }
 
 String GetDirFromPath(String filePath) {
+  if (filePath == null) return '';
   if (filePath == '') return filePath;
   if (filePath.endsWith(DirSpelator)) {
     return filePath;
