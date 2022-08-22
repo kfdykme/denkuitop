@@ -43,6 +43,7 @@ class IpcClient {
       // print("IpcClient has already inited");
       return;
     }
+    inited = true;
 
     // start deno process
 

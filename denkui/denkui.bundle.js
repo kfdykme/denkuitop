@@ -4950,7 +4950,7 @@ const getStrFromXMLJson = (value)=>{
         return "";
     }
     try {
-        return value["_text"];
+        return value["_text"] || value["_cdata"];
     } catch (err) {
         return err + "";
     }
@@ -5192,8 +5192,10 @@ class KfTodoController {
         const listDataRes = await __default5.get({
             key: "listData"
         });
+        __default1.info("KfTodoController initData getlistdata");
         const confgPath = KfTodoController.KFTODO_CONFIG_MD_PATH;
-        if (!listDataRes.data) {
+        if (!listDataRes.data || !__default4.statSync(confgPath).isExist) {
+            __default1.info("KfTodoController initData getlistdata", listDataRes.data.length);
             const configTitle = "KfTodoConfig";
             const configTags = [
                 "_KfTodoConfig"
@@ -5296,8 +5298,10 @@ class KfTodoController {
     }
     async initInjectJsFile() {
         const editorInjectJsPath = this.config["editorInjectJsPath"];
-        if (!editorInjectJsPath || __default4.isEmptyFile(editorInjectJsPath)) {
-            __default4.writeFileSync(editorInjectJsPath, __default12.injectJsContent);
+        if (typeof editorInjectJsPath === 'string') {
+            if (!editorInjectJsPath || __default4.isEmptyFile(editorInjectJsPath)) {
+                __default4.writeFileSync(editorInjectJsPath, __default12.injectJsContent);
+            }
         }
     }
     async initDefaultJsFile() {
@@ -5372,6 +5376,7 @@ class KfTodoController {
             this.ipc?.response(ipcData);
         }
         if (invokeName === "saveConfig") {
+            __default1.info("on saveConfig", ipcData.data.data);
             let cacheConfig = this.config;
             for(let x in ipcData.data.data){
                 cacheConfig[x] = ipcData.data.data[x];
@@ -5444,7 +5449,10 @@ class KfTodoController {
         }
         if (invokeName === "deleteItem") {
             const { path  } = invokeData;
-            await __default4.unlinkFile(path);
+            __default1.info("KfTodoController try deleteItem", path);
+            if (!path.startsWith('http')) {
+                await __default4.unlinkFile(path);
+            }
             const listDataRes = await __default5.get({
                 key: "listData"
             });

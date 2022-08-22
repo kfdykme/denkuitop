@@ -210,11 +210,10 @@ class ViewBuilder {
         child: Text(text),
       ));
     }
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          MaterialButton(
+    return Container(
+      color: RandomColor(),
+      height: 45,
+      child: MaterialButton(
             
             textColor: color,
             onPressed: () {
@@ -226,10 +225,8 @@ class ViewBuilder {
             child: Row(
               children: buttonChildrenItems,
             ),
-          )
-        ],
-      ),
-      margin: const EdgeInsets.all(16),
+          ),
+      margin:  EdgeInsets.all(size(1))
     );
   }
 

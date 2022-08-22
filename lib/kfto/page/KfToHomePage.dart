@@ -9,26 +9,17 @@ import 'package:denkuitop/common/DenkuiDialog.dart';
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
-import 'package:denkuitop/common/Toast.dart';
-import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
-import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/DenoLibSocketLife.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/KfToNavigator.dart';
-import 'package:denkuitop/kfto/page/TagFlowDelegate.dart';
 import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
-import 'package:denkuitop/native/KeydownManager.dart';
-import 'package:denkuitop/native/LibraryLoader.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
-import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager_platform_interface.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
-import 'package:native_hotkey/native_hotkey.dart';
-import 'package:quill_delta/quill_delta.dart';
 // import 'package:zefyrka/zefyrka.dart';
 import 'package:libdeno_plugin/libdeno_plugin.dart';
 import 'package:path/path.dart' as p;
@@ -204,7 +195,11 @@ class KfToHomeState extends BaseRemotePageState {
       _saveFile();
     });
 
-    
+    web.registerFunction("onShowEditor", (dynamic data) {
+      var id = data["id"] as String;
+      currentFilePath = id;
+      _refreshFilePathTextField();
+    });
   }
 
   void initConfigDirectory(dynamic config, { String title}) {
@@ -217,23 +212,27 @@ class KfToHomeState extends BaseRemotePageState {
           callback: () async {
             var newPath = await _flutterDesktopFileManagerPlugin.OnSelectFile();
 
-            CommonReadFile(newPath, func: ({content, path, suc}) {
-              if (!suc) {
+             this.ipc().invokeNyName({"invokeName": "getConfig"},
+              callback: (AsyncIpcData data) {
+                var ktoData = KfToDoIpcData.fromAsync(data);
+                var basePath = ktoData.data['basePath'];
+                var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
                 config['basePath'] = newPath;
-                config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
-                this
-                    .ipc()
-                    .invokeNyName({"invokeName": "saveConfig", "data": config});
-                
-              } else {
-                
-              }
-              web.hide();
-              Future.delayed(Duration(seconds: 1)).then((value){
-                  web.needInsertFirst = false;
-                  web.executeJs("location.reload(false)");
-                  web.show();
-                });
+                if (editorInjectJsPath == null) {
+                  config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
+                } else {
+                  config['editorInjectJsPath'] = editorInjectJsPath;
+                }
+                this.ipc()
+                    .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
+                      _refresh();
+                    }));
+                web.hide();
+                Future.delayed(Duration(seconds: 1)).then((value){
+                    web.needInsertFirst = false;
+                    web.executeJs("location.reload(false)");
+                    web.show();
+                  });
             });
           },
           icon: Icons.folder),
@@ -615,6 +614,10 @@ class KfToHomeState extends BaseRemotePageState {
     setState(() {
       dragLineColor = dragLineActiveColor;
     });
+
+    FlutterDesktopCefWeb.allWebViews.forEach((element) { 
+      element.hide();
+    });
     left_width_drag_start = left_width_real;
     left_widnth_drag_start_pos = event.position;
     isDragingLine = true;
@@ -632,6 +635,11 @@ class KfToHomeState extends BaseRemotePageState {
   void onDragLineEnd() {
     setState(() {
       dragLineColor = dragLineInActiveColor;
+      FlutterDesktopCefWeb.allWebViews.forEach((element) { 
+        element.show();
+      });
+      web.loadCefContainer();
+
     });
     isDragingLine = false;
   }
