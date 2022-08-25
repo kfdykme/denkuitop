@@ -1,5 +1,6 @@
 
 import 'package:denkuitop/common/ColorManager.dart';
+import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'package:rxdart/rxdart.dart';
@@ -77,8 +78,7 @@ class KfTodoTextField {
 
   KfTodoTextFieldController tagsFieldController;
 
-
-  Widget _view;
+  Color textFieldColor = null;
 
 
   KfTodoTextField ({ onChange: Function, prefixColor: Color}) {
@@ -86,7 +86,12 @@ class KfTodoTextField {
       prefixColor = Color.fromARGB(255, 74, 137, 92);
     }
     tagsFieldController = KfTodoTextFieldController(onChange: onChange);
-    _view = TextFieldTags(
+
+
+  }
+
+  Widget view() {
+    return TextFieldTags(
               textfieldTagsController: tagsFieldController,
               initialTags: const [
               ],
@@ -103,8 +108,13 @@ class KfTodoTextField {
               inputfieldBuilder:
                   (context, tec, fn, error, onChanged, onSubmitted) {
                 return ((context, sc, tags, onTagDelete) {
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
+                  print("rebuild TextFieldTags");
+                  return Container(
+                    margin: EdgeInsets.all(ViewBuilder.size(1)),
+                    color:  ColorManager.Get("tagtextfieldlight"),
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0, vertical: 5.0),
                     child: 
                     RawKeyboardListener(
                       focusNode: fn,
@@ -116,44 +126,39 @@ class KfTodoTextField {
                       child:
                     TextField(
                       controller: tec,
+                      cursorHeight: 26,
                       // focusNode: fn,R
                       decoration: InputDecoration(
                         isDense: true,
-                        border: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color.fromARGB(204, 237, 240, 95),
-                            width: 0.5,
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Color(0x6200EEFF),
-                            width: 0.5,
-                          ),
-                        ),
-                        // helperText: 'Enter Filter key',
-                        // helperStyle: const TextStyle(
-                        //   color: Color.fromARGB(255, 74, 137, 92),
-                        // ),
                         hintText: tagsFieldController.hasTags ? '' : "Enter tag...",
+                        enabledBorder: new UnderlineInputBorder(
+                          borderSide: new BorderSide(
+                          )
+                        ),
+                        focusedBorder: new UnderlineInputBorder(
+                          borderSide: new BorderSide(
+                            color: Color(0x00000000)
+                          )
+                        ),
                         errorText: error,
                         // prefixIconConstraints:
                             // BoxConstraints(maxWidth: _distanceToField * 0.74),
                         prefixIcon: tags.isNotEmpty
                             ? SingleChildScrollView(
                                 controller: sc,
+                                
                                 scrollDirection: Axis.horizontal,
-                                child: Row(
+                                child: Container(
+                                  height: 26,
+                                  padding: EdgeInsets.zero,
+                                  // color: Colors.black,
+                                  child: Row(
+                                    
                                     children: tags.map((String tag) {
                                   return Container(
-                                    decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(20.0),
-                                      ),
-                                      color: Colors.amberAccent,
-                                    ),
+                                    color: ColorManager.Get("textr"),
                                     margin: const EdgeInsets.symmetric(
-                                        horizontal: 5.0),
+                                        horizontal: 5.0, vertical: 0),
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10.0, vertical: 5.0),
                                     child: Row(
@@ -163,8 +168,9 @@ class KfTodoTextField {
                                         InkWell(
                                           child: Text(
                                             '$tag',
-                                            style: const TextStyle(
-                                                color: Colors.white),
+                                            style: TextStyle(
+                                                color: ColorManager.Get("tagtextfielddark"),
+                                                ),
                                           ),
                                           onTap: () {
                                             print("$tag selected");
@@ -172,11 +178,10 @@ class KfTodoTextField {
                                         ),
                                         const SizedBox(width: 4.0),
                                         InkWell(
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.cancel,
                                             size: 14.0,
-                                            color: Color.fromARGB(
-                                                255, 233, 233, 233),
+                                            color: ColorManager.Get("tagtextfielddark"),
                                           ),
                                           onTap: () {
                                             onTagDelete(tag);
@@ -187,19 +192,14 @@ class KfTodoTextField {
                                     ),
                                   );
                                 }).toList()),
+                                )
                               )
-                            : null,
+                            : null
                       ),
                       onChanged: onChanged,
                       onSubmitted: onSubmitted,
                     ),
                   ));});}
               );
-
-
-  }
-
-  Widget view() {
-    return _view;
   }
 }

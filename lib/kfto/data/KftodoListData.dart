@@ -1,6 +1,7 @@
 
 import 'dart:convert';
 
+import 'package:denkuitop/common/ColorManager.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:flutter/cupertino.dart';
@@ -82,7 +83,7 @@ class KfToDoTagData {
   final String name;
   Color get darkColor  {
     if(KfTodoTagDataCache.darkColor[name] == null ) {
-      KfTodoTagDataCache.darkColor[name] = ViewBuilder.RandomDarkColor();
+      KfTodoTagDataCache.darkColor[name] = ViewBuilder.RandomDarkColor() ;
     }
     return KfTodoTagDataCache.darkColor[name];
   }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class ViewBuilder {
   static int RANDOM_COLOR_TOP = 255;
   static int RANDOM_COLOR_BOTTOM = 160;
+  static int RANDOM_COLOR_BOTTOM_2 = 100;
   static double BASE_SIZE = 8;
 
   static double size(double level) {
@@ -20,7 +21,10 @@ class ViewBuilder {
   }
 
   static int RandomColorDartInt() {
-    return new Random().nextInt(ViewBuilder.RANDOM_COLOR_BOTTOM);
+    return ViewBuilder.RANDOM_COLOR_BOTTOM_2 +
+        new Random().nextInt(
+            ViewBuilder.RANDOM_COLOR_BOTTOM - ViewBuilder.RANDOM_COLOR_BOTTOM_2);
+    // return new Random().nextInt(ViewBuilder.RANDOM_COLOR_BOTTOM);
   }
 
   static Color RandomColor() {
@@ -29,7 +33,7 @@ class ViewBuilder {
   }
 
   static Color RandomDarkColor() {
-    return Color.fromARGB(RANDOM_COLOR_TOP, ViewBuilder.RandomColorDartInt(),
+    return Color.fromARGB(160, ViewBuilder.RandomColorDartInt(),
         ViewBuilder.RandomColorDartInt(), ViewBuilder.RandomColorDartInt());
   }
 
@@ -74,14 +78,14 @@ class ViewBuilder {
             children: [
               Icon(
                 getIconByTagData(tagData),
-                color: tagData.lightColor2,
+                color: !ColorManager.instance().isDarkmode ? tagData.lightColor2 : tagData.darkColor2,
                 size: size(3),
               ),
               Container(
                 margin: EdgeInsets.fromLTRB(size(1), 0, 0, 0),
                 child: Text(
                   tag,
-                  style: TextStyle(color: tagData.darkColor),
+                  style: TextStyle(color:  !ColorManager.instance().isDarkmode ?  tagData.darkColor: tagData.lightColor),
                 ),
               ),
             ],
@@ -90,7 +94,7 @@ class ViewBuilder {
             tagData.isOpen
                 ? Icons.arrow_drop_down_sharp
                 : Icons.arrow_left_sharp,
-            color: tagData.darkColor2,
+            color: !ColorManager.instance().isDarkmode ? tagData.darkColor2 : tagData.lightColor2,
             size: size(3),
           )
         ],
@@ -110,7 +114,7 @@ class ViewBuilder {
       width: double.infinity,
       margin: EdgeInsets.all(size(1)),
       child: Column(children: tagContainorChilds),
-      color: tagData.lightColor,
+      color:  !ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
     );
   }
 
@@ -123,7 +127,7 @@ class ViewBuilder {
       listItemEndView = BuildInLineMaterialButton("",
           icon: Icon(
             Icons.refresh,
-            color: ColorManager.highLightColor,
+            color: ColorManager.Get("font"),
             size: size(3),
           ), onPressFunc: () {
         if (rssRefreshFunc != null) {
@@ -134,7 +138,7 @@ class ViewBuilder {
       listItemEndView = Text(
         '@${e.date}',
         style: TextStyle(
-            color: Color(0xaaFFFFFF), overflow: TextOverflow.ellipsis),
+            color: ColorManager.Get("fontdark"), overflow: TextOverflow.ellipsis),
       );
     }
     return MaterialButton(
@@ -165,7 +169,7 @@ class ViewBuilder {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
-                children: [Text(e.title != null ? e.title : "empty")],
+                children: [Text(e.title != null ? e.title : "empty", overflow: TextOverflow.ellipsis, style: TextStyle(color:  ColorManager.Get("font")),)],
               ),
             ],
           )),
@@ -207,15 +211,15 @@ class ViewBuilder {
 
       buttonChildrenItems.add(Container(
         padding: EdgeInsets.only(left: size(1)),
-        child: Text(text),
+        child: Text(text, style: TextStyle(color: color),),
       ));
     }
     return Container(
-      color: RandomColor(),
+      color: ColorManager.Get("buttonbackground"),
       height: 45,
       child: MaterialButton(
             
-            textColor: color,
+            textColor: ColorManager.Get("buttontext"),
             onPressed: () {
               print("BuildMaterialButton Press ${text} ${onPressFunc}");
               if (onPressFunc != null) {
@@ -231,25 +235,26 @@ class ViewBuilder {
   }
 
   static Widget BuildSearchMaterialInput({Function onChange}) {
-    var searchInput = TextField(
-      decoration: InputDecoration(
-          fillColor: RandomColor(),
-          border: OutlineInputBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8))),
-          focusColor: RandomDarkColor(),
-          labelText: 'search',
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: RandomColor()),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
-          )),
-      onChanged: onChange,
-    );
-    return Container(
-      child: searchInput,
-      height: 60,
-      margin: const EdgeInsets.all(4),
-    );
+    // var searchInput = TextField(
+    //   decoration: InputDecoration(
+    //       fillColor: RandomColor(),
+    //       border: OutlineInputBorder(
+    //           borderRadius: const BorderRadius.all(Radius.circular(8))),
+    //       focusColor: RandomDarkColor(),
+    //       labelText: 'search',
+    //       focusedBorder: OutlineInputBorder(
+    //         borderSide: BorderSide(color: RandomColor()),
+    //       ),
+    //       enabledBorder: OutlineInputBorder(
+    //         borderSide: BorderSide(color: Colors.white),
+    //       )),
+    //   onChanged: onChange,
+    // );
+    // return Container(
+    //   child: searchInput,
+    //   height: 60,
+    //   margin: const EdgeInsets.all(4),
+    // );
+    return null;
   }
 }

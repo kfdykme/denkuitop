@@ -9,6 +9,7 @@ import 'package:denkuitop/common/DenkuiDialog.dart';
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
+import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
 import 'package:denkuitop/kfto/data/DenoLibSocketLife.dart';
@@ -75,11 +76,11 @@ class KfToHomeState extends BaseRemotePageState {
   Widget cefContainer = null;
 
   Color get dragLineActiveColor {
-    return ColorManager.highLightColor;
+    return ColorManager.Get("textdarkr");
   }
 
   Color get dragLineInActiveColor {
-    return Colors.amberAccent;
+    return ColorManager.Get("textr");
   }
 
   Color dragLineColor = Colors.amberAccent;
@@ -489,11 +490,11 @@ class KfToHomeState extends BaseRemotePageState {
                       decoration: InputDecoration(
                         labelText: 'RSS url',
                         labelStyle:
-                            TextStyle(color: ColorManager.highLightColor),
+                            TextStyle(color: ColorManager.Get("textdarkr")),
                         helperText: 'Input a rss url ',
                         enabledBorder: UnderlineInputBorder(
                           borderSide:
-                              BorderSide(color: ColorManager.highLightColor),
+                              BorderSide(color: ColorManager.Get("textdarkr")),
                         ),
                       ),
                     ),
@@ -532,11 +533,11 @@ class KfToHomeState extends BaseRemotePageState {
                   //     decoration: InputDecoration(
                   //       labelText: 'File Name',
                   //       labelStyle:
-                  //           TextStyle(color: ColorManager.highLightColor),
+                  //           TextStyle(color: ColorManager.Get("textdarkr")),
                   //       helperText: 'Input fileName',
                   //       enabledBorder: UnderlineInputBorder(
                   //         borderSide:
-                  //             BorderSide(color: ColorManager.highLightColor),
+                  //             BorderSide(color: ColorManager.Get("textdarkr")),
                   //       ),
                   //     ),
                   //   ),
@@ -544,7 +545,7 @@ class KfToHomeState extends BaseRemotePageState {
                   ViewBuilder.BuildMaterialButton("New blog",
                       icon: Icon(
                         Icons.newspaper,
-                        color: ColorManager.highLightColor,
+                        color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       ), onPressFunc: () {
                     Navigator.pop(context);
@@ -584,7 +585,7 @@ class KfToHomeState extends BaseRemotePageState {
       child: Column(
         children: [
           MaterialButton(
-            textColor: ColorManager.highLightColor,
+            textColor: ColorManager.Get("textdarkr"),
             onPressed: () {
               this.onPressAddNewFunc();
             },
@@ -607,7 +608,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Card ACard(Widget widget) {
-    return Card(clipBehavior: Clip.antiAlias, child: widget);
+    return Card(clipBehavior: Clip.antiAlias, child: widget, color: ColorManager.Get("cardbackground"),);
   }
 
   void onDragLineStart(PointerDownEvent event) {
@@ -727,10 +728,12 @@ class KfToHomeState extends BaseRemotePageState {
     web.loadCefContainer();
       },
     ) : cefContainer;
+    dragLineColor = ColorManager.Get("textr");
     var childs = [
       new Container(
         width: left_width_real,
-        child: ACard(Row(
+        child: ACard(
+          Row(
           children: [
             Expanded(child: buildListView()),
             Listener(
@@ -756,7 +759,7 @@ class KfToHomeState extends BaseRemotePageState {
           child: Container(
         child: Card(
           // clipBehavior: Clip.antiAlias,
-          color: Colors.white,
+          color: ColorManager.Get("cardbackground"),
           child: Column(
             children: [
               new Container(
@@ -766,38 +769,61 @@ class KfToHomeState extends BaseRemotePageState {
                     ViewBuilder.BuildMaterialButton("", onPressFunc: () {
                       _saveFile();
                     },
-                        color: ColorManager.highLightColor,
+                        color: ColorManager.Get("textdarkr"),
                         icon: Icon(
                           Icons.save_as_sharp,
-                          color: ColorManager.highLightColor,
+                          color: ColorManager.Get("textdarkr"),
                           size: ViewBuilder.size(2),
                         )),
                     ViewBuilder.BuildMaterialButton("",
                         onPressFunc: () => this.onPressAddNewFunc(),
-                        color: ColorManager.highLightColor,
+                        color: ColorManager.Get("textdarkr"),
                         icon: Icon(
                           Icons.edit,
-                          color: ColorManager.highLightColor,
+                          color: ColorManager.Get("textdarkr"),
                           size: ViewBuilder.size(2),
                         )),
                     Expanded(
-                      child: TextField(
+                      child: Container(
+                        color: ColorManager.Get("buttonbackground"),
+                        margin: EdgeInsets.symmetric(vertical: ViewBuilder.size(1)),
+                        child: TextField(
                           controller: _currentPathcontroller,
                           decoration: InputDecoration(
-                              fillColor: ColorManager.highLightColor,
+                              fillColor: null,
                               border: OutlineInputBorder(
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(8))),
-                              focusColor: ColorManager.highLightColor,
-                              labelText: filePathLabelText,
+                              focusColor: Colors.white,
+                              // labelText: filePathLabelText,
+                              label: Container(
+                                margin: EdgeInsets.fromLTRB(0, ViewBuilder.size(3.5), 0, 0),
+                                // color: Colors.black,
+                                child: Text(filePathLabelText, style: TextStyle(
+                                  color: Colors.white
+                                ),),
+                              ),
+                              // labelStyle: TextStyle(
+                              //   color: ViewBuilder.RandomDarkColor()r
+                              // ),
+                              enabled: false,
+                              disabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0x00000000)
+                                ),
+                              ),
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: ColorManager.highLightColor),
+                                  color: Color(0x00000000)
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(
+                                  color: Color(0x00000000)
+                                ),
                               )),
                           onChanged: _onFilePathInputChange),
+                      )
                     )
                   ],
                 ),
@@ -823,7 +849,7 @@ class KfToHomeState extends BaseRemotePageState {
 
     return Scaffold(
       body: new Container(
-        color: Color(0xefefefef),
+        color: ColorManager.Get("background"),
         child: Column(
           children: [
             Expanded(
@@ -839,14 +865,28 @@ class KfToHomeState extends BaseRemotePageState {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                   ViewBuilder.BuildInLineMaterialButton("DarkMode",
+                      onPressFunc: () {
+                        setState(() {
+                          ColorManager.instance().isDarkmode = !ColorManager.instance().isDarkmode;
+                        });
+                        web.executeJs('window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+                    },
+                    color: ColorManager.Get("textdarkr"),
+                    icon: Icon(
+                        Icons.dark_mode,
+                        color: ColorManager.Get("textdarkr"),
+                        size: ViewBuilder.size(2),
+                      )
+                  ),
                   ViewBuilder.BuildInLineMaterialButton("ReloadEditor",
                       onPressFunc: () {
                     web.executeJs("location.reload(false)");
                   },
-                      color: ColorManager.highLightColor,
+                      color: ColorManager.Get("textdarkr"),
                       icon: Icon(
                         Icons.refresh,
-                        color: ColorManager.highLightColor,
+                        color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       )),
                   ViewBuilder.BuildInLineMaterialButton("Reset Save Folder",
@@ -858,10 +898,11 @@ class KfToHomeState extends BaseRemotePageState {
                       initConfigDirectory(ktoData.data, title: '是否重新选择文件目录');
                     });
                   },
-                      color: ColorManager.highLightColor,
+                  
+                      color: ColorManager.Get("textdarkr"),
                       icon: Icon(
                         Icons.settings,
-                        color: ColorManager.highLightColor,
+                        color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       )),
                 ],
