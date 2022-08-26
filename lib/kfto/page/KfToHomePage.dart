@@ -133,7 +133,13 @@ class KfToHomeState extends BaseRemotePageState {
         if (basePath == null || basePath == ".") {
           initConfigDirectory(ktoData.data);
         } 
-        
+        var isDarkmode = ktoData.data['isDarkmode'];
+        if (isDarkmode != null) {
+          setState(() {
+            ColorManager.instance().isDarkmode = isDarkmode;
+          });
+
+        }
       });
     };
   }
@@ -224,6 +230,7 @@ class KfToHomeState extends BaseRemotePageState {
                 } else {
                   config['editorInjectJsPath'] = editorInjectJsPath;
                 }
+                config['isDarkmode'] = ColorManager.instance().isDarkmode;
                 this.ipc()
                     .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
                       _refresh();
@@ -443,6 +450,8 @@ class KfToHomeState extends BaseRemotePageState {
         content = content.replaceAll('\t', '    ');
         _refreshFilePathTextField();
         _insertIntoEditor(content);
+
+        web.executeJs('window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
       });
     }
   }
@@ -873,6 +882,12 @@ class KfToHomeState extends BaseRemotePageState {
                           ColorManager.instance().isDarkmode = !ColorManager.instance().isDarkmode;
                         });
                         web.executeJs('window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+                        
+                        var config = {} ;
+                        config['isDarkmode'] = ColorManager.instance().isDarkmode;
+                        this.ipc()
+                            .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
+                            }));
                     },
                     color: ColorManager.Get("textdarkr"),
                     icon: Icon(
