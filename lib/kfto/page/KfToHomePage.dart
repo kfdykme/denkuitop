@@ -214,7 +214,7 @@ class KfToHomeState extends BaseRemotePageState {
     print("initConfigDirectory");
     
     DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择") : title, options: [
+    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择文件夹") : title, options: [
       CommonDialogButtonOption(
           text: TextK.Get("选择目录"),
           callback: () async {

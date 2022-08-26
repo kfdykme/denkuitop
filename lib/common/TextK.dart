@@ -35,6 +35,7 @@ class TextK {
     add("退出", "Quit");
     add("是否重新选择文件目录", "Whether to reselect the file directory");
     add("切换语言", "Switch Language");
+    add("没有找到文件保存目录，是否选择文件夹", "The file save directory is not found, whether to select a folder");
   }
 
   add(String ch, String en) {

@@ -5194,62 +5194,63 @@ class KfTodoController {
         });
         __default1.info("KfTodoController initData getlistdata");
         const confgPath = KfTodoController.KFTODO_CONFIG_MD_PATH;
-        if (!listDataRes.data || !__default4.statSync(confgPath).isExist) {
-            __default1.info("KfTodoController initData getlistdata", listDataRes.data.length);
-            const configTitle = "KfTodoConfig";
-            const configTags = [
-                "_KfTodoConfig"
-            ];
-            let item = {
-                "title": configTitle,
-                "date": new Date().toDateString(),
-                "dateMs": new Date().getTime(),
-                "path": confgPath,
-                "tags": configTags
-            };
-            if (!__default4.statSync(confgPath).isExist) {
-                const content = BlogTextHelper.GenerateEmptyText(configTitle, configTags, JSON.stringify({
-                    basePath: "."
-                }, null, 2));
-                __default4.mkdirSync(__default3.getDirPath(confgPath), {
-                    recursive: true
+        try {
+            if (!listDataRes.data || !__default4.statSync(confgPath).isExist) {
+                __default1.info("KfTodoController initData getlistdata", listDataRes.data?.length);
+                const configTitle = "KfTodoConfig";
+                const configTags = [
+                    "_KfTodoConfig"
+                ];
+                let item = {
+                    "title": configTitle,
+                    "date": new Date().toDateString(),
+                    "dateMs": new Date().getTime(),
+                    "path": confgPath,
+                    "tags": configTags
+                };
+                if (!__default4.statSync(confgPath).isExist) {
+                    const content = BlogTextHelper.GenerateEmptyText(configTitle, configTags, JSON.stringify({
+                        basePath: "."
+                    }, null, 2));
+                    __default4.mkdirSync(__default3.getDirPath(confgPath), {
+                        recursive: true
+                    });
+                    __default4.writeFileSync(confgPath, content);
+                } else {
+                    const currentConfigContent = __default4.readFileSync(confgPath);
+                    try {
+                        this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
+                    } catch (err) {
+                        this.send({
+                            name: "system.toast",
+                            data: {
+                                error: `${err}`
+                            }
+                        });
+                    }
+                    item = __default6.handleFile(currentConfigContent, confgPath);
+                }
+                listDataRes.data = {
+                    headerInfos: [
+                        item
+                    ]
+                };
+                await __default5.set({
+                    key: "listData",
+                    value: listDataRes.data
                 });
-                __default4.writeFileSync(confgPath, content);
             } else {
                 const currentConfigContent = __default4.readFileSync(confgPath);
-                try {
-                    this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
-                } catch (err) {
-                    this.send({
-                        name: "system.toast",
-                        data: {
-                            error: `${err}`
-                        }
-                    });
-                }
-                item = __default6.handleFile(currentConfigContent, confgPath);
-            }
-            listDataRes.data = {
-                headerInfos: [
-                    item
-                ]
-            };
-            await __default5.set({
-                key: "listData",
-                value: listDataRes.data
-            });
-        } else {
-            const currentConfigContent = __default4.readFileSync(confgPath);
-            try {
                 this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
-            } catch (err) {
-                this.send({
-                    name: "toast",
-                    data: {
-                        error: `${err}`
-                    }
-                });
             }
+        } catch (err) {
+            __default1.info(err);
+            this.send({
+                name: "toast",
+                data: {
+                    error: `${err}`
+                }
+            });
         }
         this.send({
             name: "initData",
