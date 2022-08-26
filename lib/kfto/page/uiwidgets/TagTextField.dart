@@ -1,5 +1,6 @@
 
 import 'package:denkuitop/common/ColorManager.dart';
+import 'package:denkuitop/common/TextK.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:textfield_tags/textfield_tags.dart';
@@ -128,9 +129,10 @@ class KfTodoTextField {
                       controller: tec,
                       cursorHeight: 26,
                       // focusNode: fn,R
+                      style: TextStyle(color: ColorManager.Get("font")),
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: tagsFieldController.hasTags ? '' : "Enter tag...",
+                        hintText: tagsFieldController.hasTags ? '' : TextK.Get("Enter tag..."),
                         enabledBorder: new UnderlineInputBorder(
                           borderSide: new BorderSide(
                           )

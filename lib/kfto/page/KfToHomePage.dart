@@ -498,8 +498,8 @@ class KfToHomeState extends BaseRemotePageState {
                   Container(
                     margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
                     child: TextFormField(
-                      cursorColor: Theme.of(context).cursorColor,
                       initialValue: 'http://',
+                      style: TextStyle(color: ColorManager.Get("font")),
                       onChanged: (String value) {
                         this.dialog_editor_rss_url = value;
                       },
@@ -793,6 +793,7 @@ class KfToHomeState extends BaseRemotePageState {
                         margin: EdgeInsets.symmetric(vertical: ViewBuilder.size(1)),
                         child: TextField(
                           controller: _currentPathcontroller,
+                          style: TextStyle(color: ColorManager.Get("font")),
                           decoration: InputDecoration(
                               fillColor: null,
                               border: OutlineInputBorder(
@@ -804,7 +805,7 @@ class KfToHomeState extends BaseRemotePageState {
                                 margin: EdgeInsets.fromLTRB(0, ViewBuilder.size(3.5), 0, 0),
                                 // color: Colors.black,
                                 child: Text(filePathLabelText, style: TextStyle(
-                                  color: Colors.white
+                                  color: ColorManager.Get("textdarkr")
                                 ),),
                               ),
                               // labelStyle: TextStyle(
@@ -869,19 +870,6 @@ class KfToHomeState extends BaseRemotePageState {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("Switch Language"),
-                      onPressFunc: () {
-                        setState(() {
-                          TextK.toggle();
-                        });
-                    },
-                    color: ColorManager.Get("textdarkr"),
-                    icon: Icon(
-                        Icons.language,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
-                      )
-                  ),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
                         setState(() {
@@ -898,6 +886,36 @@ class KfToHomeState extends BaseRemotePageState {
                     color: ColorManager.Get("textdarkr"),
                     icon: Icon(
                         Icons.dark_mode,
+                        color: ColorManager.Get("textdarkr"),
+                        size: ViewBuilder.size(2),
+                      )
+                  ),
+
+                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Re-Random Color"),
+                      onPressFunc: () {
+                        setState(() {
+                          ColorManager.rerandom();
+                          _refresh();
+                        });
+                        
+                    },
+                    color: ColorManager.Get("textdarkr"),
+                    icon: Icon(
+                        Icons.color_lens,
+                        color: ColorManager.Get("textdarkr"),
+                        size: ViewBuilder.size(2),
+                      )
+                  ),
+
+                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("Switch Language"),
+                      onPressFunc: () {
+                        setState(() {
+                          TextK.toggle();
+                        });
+                    },
+                    color: ColorManager.Get("textdarkr"),
+                    icon: Icon(
+                        Icons.language,
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       )

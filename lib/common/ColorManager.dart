@@ -29,6 +29,10 @@ class ColorManager  {
   }
 
   ColorManager() {
+    init();
+  }
+
+  init() {
     colors['cardbackground'] = new ColorPair(Colors.white, Color(0xff333333));
     colors['fontdark'] = new ColorPair(Color(0xaaffffff), Color(0xaa333333));
     colors['font'] = new ColorPair( Color(0xff333333), Color(0xffffffff));
@@ -61,6 +65,10 @@ class ColorManager  {
       return  Colors.amberAccent;
     }
     return res.Get();
+  }
+
+  static void rerandom() {
+    instance().init();
   }
   
 }
