@@ -329,10 +329,12 @@ class KfToHomeState extends BaseRemotePageState {
 
   void showCommonSnack({String msg, String error}) {
     Color bkGC = null;
+     bkGC = ColorManager.Get("snackbackground");
     if (error != null) {
       msg = error;
       bkGC = Color(0xffffbcd4);
     }
+   
     if (msg == null) {
       msg = "ERRRRRRRRRRRRRRR";
     }

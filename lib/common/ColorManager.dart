@@ -34,6 +34,7 @@ class ColorManager  {
     colors['font'] = new ColorPair( Color(0xff333333), Color(0xffffffff));
     colors['background'] = new ColorPair(Color(0xefefefef), Color(0xff000000));
     colors['textr'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
+    colors['snackbackground'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
     colors['buttonbackground'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
     colors['buttontext'] = new ColorPair(ViewBuilder.RandomDarkColor(), ViewBuilder.RandomColor());
     colors['textdarkr'] = new ColorPair(ViewBuilder.RandomDarkColor(), ViewBuilder.RandomColor());
