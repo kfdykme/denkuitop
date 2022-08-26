@@ -37,6 +37,7 @@ class DenktuiDialog {
         context: _currentContexnt,
         builder: (context) {
           return AlertDialog(
+            backgroundColor: ColorManager.Get('cardbackground'),
             content: content,
             actions: [
               Row(
@@ -61,16 +62,17 @@ class DenktuiDialog {
         Navigator.of(_currentContexnt).pop();
         element.callback();
       },
-      color: element.btnType == 1 ? Colors.redAccent : ColorManager.highLightColor,
+      color: element.btnType == 1 ? Colors.redAccent : ColorManager.Get("textdarkr"),
       icon: Icon(
         element.icon,
-        color: element.btnType == 1 ? Colors.redAccent : ColorManager.highLightColor,
+        color: element.btnType == 1 ? Colors.redAccent : ColorManager.Get("textdarkr"),
         size: ViewBuilder.size(2),
       )));
     }));
     
     ShowDialog(content: Container(
-      child: Text(contentTitle),
+      child: Text(contentTitle, style: TextStyle(color: ColorManager.Get("textdarkr"))),
+      color: ColorManager.Get('cardbackground'),
     ), children: views);
   }
 }

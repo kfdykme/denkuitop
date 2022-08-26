@@ -475,19 +475,23 @@ class KfToHomeState extends BaseRemotePageState {
     DenktuiDialog.ShowDialog(
         content: Container(
           width: 500,
-          height: 500,
+          height: 408,
           alignment: Alignment.center,
+          color: ColorManager.Get("cardbackground"),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              ACard(Container(
-                child: Column(children: [
+              Container(
+                height: 200,
+                child: Column(
+                  
+                  children: [
                   ListTile(
-                    leading: Icon(Icons.rss_feed),
-                    title: const Text('RSS'),
+                    leading: Icon(Icons.rss_feed, color: ColorManager.Get("textdarkr"),),
+                    title: Text('RSS', style: TextStyle(color: ColorManager.Get("textdarkr")),),
                     subtitle: Text(
                       'Add a rss ',
-                      style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                      style: TextStyle(color: ColorManager.Get("textdarkr")),
                     ),
                   ),
                   Container(
@@ -503,6 +507,8 @@ class KfToHomeState extends BaseRemotePageState {
                         labelStyle:
                             TextStyle(color: ColorManager.Get("textdarkr")),
                         helperText: 'Input a rss url ',
+                        fillColor: ColorManager.Get("textr"),
+                        helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
                         enabledBorder: UnderlineInputBorder(
                           borderSide:
                               BorderSide(color: ColorManager.Get("textdarkr")),
@@ -511,6 +517,8 @@ class KfToHomeState extends BaseRemotePageState {
                     ),
                   ),
                   ViewBuilder.BuildMaterialButton("Add to List",
+                  
+                  color:  ColorManager.Get("textdarkr"),
                       onPressFunc: () {
                     Navigator.pop(context);
                     this.ipc().invokeNyName({
@@ -522,38 +530,21 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   })
                 ]),
-              )),
-              ACard(Column(
+              ),
+              Container(
+                height: 200,
+                child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(Icons.text_format),
-                    title: const Text('Text'),
+                    leading: Icon(Icons.text_format, color: ColorManager.Get("textdarkr"),),
+                    title: Text('Text', style: TextStyle(color: ColorManager.Get("textdarkr")),),
                     subtitle: Text(
                       'Add a text ',
-                      style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                      style: TextStyle(color:ColorManager.Get("textdarkr")),
                     ),
                   ),
-                  // Container(
-                  //   margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                  //   child: TextFormField(
-                  //     cursorColor: Theme.of(context).cursorColor,
-                  //     initialValue: '',
-                  //     onChanged: (String value) {
-                  //       this.dialog_editor_blog_file_name = value;
-                  //     },
-                  //     decoration: InputDecoration(
-                  //       labelText: 'File Name',
-                  //       labelStyle:
-                  //           TextStyle(color: ColorManager.Get("textdarkr")),
-                  //       helperText: 'Input fileName',
-                  //       enabledBorder: UnderlineInputBorder(
-                  //         borderSide:
-                  //             BorderSide(color: ColorManager.Get("textdarkr")),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                   ViewBuilder.BuildMaterialButton("New blog",
+                  color:  ColorManager.Get("textdarkr"),
                       icon: Icon(
                         Icons.newspaper,
                         color: ColorManager.Get("textdarkr"),
@@ -579,7 +570,8 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   })
                 ],
-              ))
+              ),
+              )
             ],
           ),
         ),

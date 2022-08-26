@@ -202,7 +202,7 @@ class ViewBuilder {
   }
 
   static Widget BuildMaterialButton(String text,
-      {Function onPressFunc, Color color, Icon icon}) {
+      {Function onPressFunc, Color color, Icon icon, Color backgroundColor = const Color(0xffffff)}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
@@ -215,7 +215,7 @@ class ViewBuilder {
       ));
     }
     return Container(
-      color: ColorManager.Get("buttonbackground"),
+      color: backgroundColor == null ? null : ColorManager.Get("buttonbackground") ,
       height: 45,
       child: MaterialButton(
             
