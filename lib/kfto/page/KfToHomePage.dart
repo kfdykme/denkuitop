@@ -9,6 +9,7 @@ import 'package:denkuitop/common/DenkuiDialog.dart';
 import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
+import 'package:denkuitop/common/TextK.dart';
 import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
@@ -68,7 +69,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   String currentFilePath = '';
-  String filePathLabelText = 'File Path';
+  String filePathLabelText = '';
 
   TextEditingController _currentPathcontroller;
   var containerKey = GlobalKey();
@@ -213,9 +214,9 @@ class KfToHomeState extends BaseRemotePageState {
     print("initConfigDirectory");
     
     DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? "没有找到文件保存目录，是否选择" : title, options: [
+    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择") : title, options: [
       CommonDialogButtonOption(
-          text: "选择目录",
+          text: TextK.Get("选择目录"),
           callback: () async {
             var newPath = await _flutterDesktopFileManagerPlugin.OnSelectFile();
 
@@ -244,7 +245,7 @@ class KfToHomeState extends BaseRemotePageState {
             });
           },
           icon: Icons.folder),
-      CommonDialogButtonOption(text: "退出", callback: () {}, icon: Icons.error, optionType: 1)
+      CommonDialogButtonOption(text: TextK.Get("退出"), callback: () {}, icon: Icons.error, optionType: 1)
     ]);
   }
 
@@ -343,7 +344,7 @@ class KfToHomeState extends BaseRemotePageState {
     }
    
     if (msg == null) {
-      msg = "ERRRRRRRRRRRRRRR";
+      msg = TextK.Get("ERRRRRRRRRRRRRRR");
     }
 
     final snackBar = SnackBar(
@@ -458,15 +459,15 @@ class KfToHomeState extends BaseRemotePageState {
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
     DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: "Delete this item", options: [
+    DenktuiDialog.ShowCommonDialog(contentTitle: TextK.Get("Delete this item"), options: [
       CommonDialogButtonOption(
-          text: "Delete",
+          text: TextK.Get("Delete"),
           callback: () {
             this.onPressDeleteFunc(itemData);
           },
           icon: Icons.delete),
       CommonDialogButtonOption(
-          text: "Cancel", callback: () {}, icon: Icons.cancel)
+          text: TextK.Get("Cancel"), callback: () {}, icon: Icons.cancel)
     ]);
   }
 
@@ -475,14 +476,14 @@ class KfToHomeState extends BaseRemotePageState {
     DenktuiDialog.ShowDialog(
         content: Container(
           width: 500,
-          height: 408,
+          height: 412,
           alignment: Alignment.center,
           color: ColorManager.Get("cardbackground"),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Container(
-                height: 200,
+                height: 204,
                 child: Column(
                   
                   children: [
@@ -490,7 +491,7 @@ class KfToHomeState extends BaseRemotePageState {
                     leading: Icon(Icons.rss_feed, color: ColorManager.Get("textdarkr"),),
                     title: Text('RSS', style: TextStyle(color: ColorManager.Get("textdarkr")),),
                     subtitle: Text(
-                      'Add a rss ',
+                      TextK.Get('Add a rss '),
                       style: TextStyle(color: ColorManager.Get("textdarkr")),
                     ),
                   ),
@@ -503,10 +504,10 @@ class KfToHomeState extends BaseRemotePageState {
                         this.dialog_editor_rss_url = value;
                       },
                       decoration: InputDecoration(
-                        labelText: 'RSS url',
+                        labelText: TextK.Get('RSS url'),
                         labelStyle:
                             TextStyle(color: ColorManager.Get("textdarkr")),
-                        helperText: 'Input a rss url ',
+                        helperText: TextK.Get('Input a rss url '),
                         fillColor: ColorManager.Get("textr"),
                         helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
                         enabledBorder: UnderlineInputBorder(
@@ -516,7 +517,7 @@ class KfToHomeState extends BaseRemotePageState {
                       ),
                     ),
                   ),
-                  ViewBuilder.BuildMaterialButton("Add to List",
+                  ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
                   
                   color:  ColorManager.Get("textdarkr"),
                       onPressFunc: () {
@@ -532,18 +533,18 @@ class KfToHomeState extends BaseRemotePageState {
                 ]),
               ),
               Container(
-                height: 200,
+                height: 204,
                 child: Column(
                 children: [
                   ListTile(
                     leading: Icon(Icons.text_format, color: ColorManager.Get("textdarkr"),),
-                    title: Text('Text', style: TextStyle(color: ColorManager.Get("textdarkr")),),
+                    title: Text(TextK.Get('Text'), style: TextStyle(color: ColorManager.Get("textdarkr")),),
                     subtitle: Text(
-                      'Add a text ',
+                      TextK.Get('Add a text '),
                       style: TextStyle(color:ColorManager.Get("textdarkr")),
                     ),
                   ),
-                  ViewBuilder.BuildMaterialButton("New blog",
+                  ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
                   color:  ColorManager.Get("textdarkr"),
                       icon: Icon(
                         Icons.newspaper,
@@ -868,7 +869,20 @@ class KfToHomeState extends BaseRemotePageState {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                   ViewBuilder.BuildInLineMaterialButton("DarkMode",
+                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("Switch Language"),
+                      onPressFunc: () {
+                        setState(() {
+                          TextK.toggle();
+                        });
+                    },
+                    color: ColorManager.Get("textdarkr"),
+                    icon: Icon(
+                        Icons.language,
+                        color: ColorManager.Get("textdarkr"),
+                        size: ViewBuilder.size(2),
+                      )
+                  ),
+                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
                         setState(() {
                           ColorManager.instance().isDarkmode = !ColorManager.instance().isDarkmode;
@@ -888,7 +902,7 @@ class KfToHomeState extends BaseRemotePageState {
                         size: ViewBuilder.size(2),
                       )
                   ),
-                  ViewBuilder.BuildInLineMaterialButton("ReloadEditor",
+                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Reload Editor"),
                       onPressFunc: () {
                     web.executeJs("location.reload(false)");
                   },
@@ -898,13 +912,13 @@ class KfToHomeState extends BaseRemotePageState {
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       )),
-                  ViewBuilder.BuildInLineMaterialButton("Reset Save Folder",
+                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Reset WorkSpace"),
                       onPressFunc: () {
                     this.ipc().invokeNyName({"invokeName": "getConfig"},
                         callback: (AsyncIpcData data) {
                       var ktoData = KfToDoIpcData.fromAsync(data);
           
-                      initConfigDirectory(ktoData.data, title: '是否重新选择文件目录');
+                      initConfigDirectory(ktoData.data, title: TextK.Get('是否重新选择文件目录'));
                     });
                   },
                   
