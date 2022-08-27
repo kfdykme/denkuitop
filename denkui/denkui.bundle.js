@@ -5252,10 +5252,7 @@ class KfTodoController {
                 }
             });
         }
-        this.send({
-            name: "initData",
-            data: listDataRes.data
-        });
+        this.initByConfig();
         const lastReadPathRes = await __default5.get({
             key: "lastReadPath"
         });

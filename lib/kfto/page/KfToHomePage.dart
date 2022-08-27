@@ -110,6 +110,8 @@ class KfToHomeState extends BaseRemotePageState {
 
   // other module end
 
+  bool isTreeCardMode = false;
+
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
@@ -390,8 +392,17 @@ class KfToHomeState extends BaseRemotePageState {
     });
   }
 
-  void _refresh() {
-    this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+  void _refresh({ bool justUi = false}) {
+    if (justUi) {
+      
+      setState(() {
+        for (KfToDoTagData item in dataTags) {
+        item.randomColor();
+        }
+      });
+    } else {
+      this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+    }
   }
 
   void CommonReadFile(String path,
@@ -633,6 +644,9 @@ class KfToHomeState extends BaseRemotePageState {
       double dx = event.position.dx - left_widnth_drag_start_pos.dx;
       setState(() {
         left_width_real = left_width_drag_start + dx;
+        if (left_width_real < 10) {
+          left_width_real = 10;
+        }
       });
     }
   }
@@ -641,7 +655,10 @@ class KfToHomeState extends BaseRemotePageState {
     setState(() {
       dragLineColor = dragLineInActiveColor;
       FlutterDesktopCefWeb.allWebViews.forEach((element) { 
-        element.show();
+        if (!isTreeCardMode) {
+
+          element.show();
+        }
       });
       web.loadCefContainer();
 
@@ -733,7 +750,8 @@ class KfToHomeState extends BaseRemotePageState {
       },
     ) : cefContainer;
     dragLineColor = ColorManager.Get("textr");
-    var childs = [
+
+    var listModeChilds = [
       new Container(
         width: left_width_real,
         child: ACard(
@@ -759,6 +777,7 @@ class KfToHomeState extends BaseRemotePageState {
           ],
         )),
       ),
+      isTreeCardMode ? Container() :
       Expanded(
           child: Container(
         child: Card(
@@ -860,7 +879,7 @@ class KfToHomeState extends BaseRemotePageState {
             Expanded(
               child: new Row(
                 mainAxisAlignment: MainAxisAlignment.start,
-                children: childs,
+                children: listModeChilds,
               ),
             ),
             Container(
@@ -870,6 +889,20 @@ class KfToHomeState extends BaseRemotePageState {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
+                      onPressFunc: () {
+                        setState(() {
+                          isTreeCardMode = !isTreeCardMode;
+                          web.toggle();
+                        });
+                    },
+                    color: ColorManager.Get("textdarkr"),
+                    icon: Icon(
+                        Icons.trending_down,
+                        color: ColorManager.Get("textdarkr"),
+                        size: ViewBuilder.size(2),
+                      )
+                  ),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
                         setState(() {
@@ -895,7 +928,7 @@ class KfToHomeState extends BaseRemotePageState {
                       onPressFunc: () {
                         setState(() {
                           ColorManager.rerandom();
-                          _refresh();
+                          _refresh(justUi: true);
                         });
                         
                     },
