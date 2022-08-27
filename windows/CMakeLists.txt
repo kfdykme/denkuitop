@@ -86,7 +86,7 @@ install(FILES "../denkui/denkui.bundle.js" DESTINATION "${INSTALL_BUNDLE_LIB_DIR
   
 file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/*.*")
 # message("EDITOR_FILES: ${EDITOR_FILES}")
-install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/editor"
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-editor"
   COMPONENT Runtime)
 
 execute_process(COMMAND "cmd.exe /c del /F /S /Q  bundle")

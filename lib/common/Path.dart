@@ -7,7 +7,7 @@ String get DirSpelator {
     return '\\';
   } else {
     return '/';
-  } 
+  }
 }
 
 String GetDirFromPath(String filePath) {
@@ -23,10 +23,9 @@ String GetFileNameFromPath(String filePath) {
   if (filePath.endsWith(DirSpelator)) {
     return '';
   }
-  return filePath.substring(filePath.lastIndexOf(DirSpelator) + DirSpelator.length);
+  return filePath
+      .substring(filePath.lastIndexOf(DirSpelator) + DirSpelator.length);
 }
-
-
 
 class DenkuiRunJsPathHelper {
   static String GetResourcePaht() {
@@ -36,8 +35,9 @@ class DenkuiRunJsPathHelper {
       var runableJsPath = "${executableDirPath + '/../Resources'}";
       return runableJsPath;
     } else if (Platform.isWindows) {
-      // throw new Error('not support');
-      return '.';
+      var executableDirPath = Platform.resolvedExecutable.substring(
+          0, Platform.resolvedExecutable.lastIndexOf('denkuitop.exe'));
+      return executableDirPath;
     }
 
     return '';

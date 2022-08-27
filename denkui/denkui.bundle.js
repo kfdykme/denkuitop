@@ -5252,10 +5252,7 @@ class KfTodoController {
                 }
             });
         }
-        this.send({
-            name: "initData",
-            data: listDataRes.data
-        });
+        this.initByConfig();
         const lastReadPathRes = await __default5.get({
             key: "lastReadPath"
         });
@@ -5564,6 +5561,7 @@ const startHttpServer = async ()=>{
             }
             let file;
             const targetPath = homePath1 === '' ? __default3.homePath() + __default3.Dir.Spelator + 'editor' : homePath1;
+            console.info('httpserver open ', targetPath + filepath);
             try {
                 file = await Deno.open(targetPath + filepath, {
                     read: true
