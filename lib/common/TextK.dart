@@ -37,6 +37,7 @@ class TextK {
     add("切换语言", "Switch Language");
     add("没有找到文件保存目录，是否选择文件夹", "The file save directory is not found, whether to select a folder");
     add("重随机颜色", "Re-Random Color");
+    add("树卡", "Tree Card");
   }
 
   add(String ch, String en) {

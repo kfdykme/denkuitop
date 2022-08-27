@@ -134,4 +134,11 @@ class KfToDoTagData {
   String toString() {
     return this.name;
   }
+
+  void randomColor() {
+      KfTodoTagDataCache.darkColor[name] = ViewBuilder.RandomDarkColor() ;
+      KfTodoTagDataCache.darkColor2[name] = ViewBuilder.RandomDarkColor();
+      KfTodoTagDataCache.lightColor[name] = ViewBuilder.RandomColor();
+      KfTodoTagDataCache.lightColor2[name] = ViewBuilder.RandomColor();
+  }
 }
