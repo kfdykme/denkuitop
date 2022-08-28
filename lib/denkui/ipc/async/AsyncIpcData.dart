@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -19,18 +18,15 @@ class AsyncIpcData {
   String raw = '';
   Map<String, dynamic> rawMap;
   static int S_GLOBAL_ID_COUNT = 0;
-  
-  AsyncIpcData() {
 
-  }
+  AsyncIpcData() {}
 
-  AsyncIpcData.raw(String message) { 
+  AsyncIpcData.raw(String message) {
     raw = message;
     rawMap = jsonDecode(raw);
     _id = rawMap['id'];
     isResponse = rawMap['isResponse'];
   }
- 
 
   String GenerateId() {
     var id = "async-" + S_GLOBAL_ID_COUNT.toString();
@@ -49,15 +45,19 @@ class AsyncIpcData {
     return this;
   }
 
-  Map<String,dynamic> map() {
+  Map<String, dynamic> map() {
     if (_id == null) {
       GenerateId();
     }
-    var map = new Map<String,dynamic>();
+    var map = new Map<String, dynamic>();
     map['id'] = _id;
     map['wait'] = wait;
     map['isResponse'] = isResponse;
     return map;
+  }
+
+  bool hasError() {
+    return this.rawMap['data']['error'] == null;
   }
 
   String json() {

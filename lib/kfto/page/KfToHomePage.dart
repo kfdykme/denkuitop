@@ -33,6 +33,7 @@ Logger logger = Logger("KfToHomeState");
 
 const RIGHT_WIDTH = 1280 * 0.618;
 const MAX_HEIGHT = 720.0;
+
 class KfToHomePage extends BaseRemotePage {
   @override
   BaseRemotePageState createState() {
@@ -135,20 +136,19 @@ class KfToHomeState extends BaseRemotePageState {
         var basePath = ktoData.data['basePath'];
         if (basePath == null || basePath == ".") {
           initConfigDirectory(ktoData.data);
-        } 
+        }
         var isDarkmode = ktoData.data['isDarkmode'];
         if (isDarkmode != null) {
           setState(() {
             ColorManager.instance().isDarkmode = isDarkmode;
           });
-
         }
       });
     };
   }
 
   void ensureWebViewShow() {
-    if (cefContainer == null ) {
+    if (cefContainer == null) {
       cefContainer = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
       web.loadCefContainer();
       web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
@@ -168,14 +168,15 @@ class KfToHomeState extends BaseRemotePageState {
           if (editorInjectJsPath.runtimeType == String) {
             injectJsList.add(editorInjectJsPath.toString());
           } else if (editorInjectJsPath.runtimeType == List) {
-            List<dynamic> list = ktoData.data['editorInjectJsPath'] as List<dynamic>;
-            for(var x = 0; x < list.length; x++) {
-               var path = list[x].toString();
-               injectJsList.add(path);
+            List<dynamic> list =
+                ktoData.data['editorInjectJsPath'] as List<dynamic>;
+            for (var x = 0; x < list.length; x++) {
+              var path = list[x].toString();
+              injectJsList.add(path);
             }
           }
-         
-          for(var x = 0; x < injectJsList.length ; x++) {
+
+          for (var x = 0; x < injectJsList.length; x++) {
             CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
               print("CommonReadFile ${content} ${path}");
               web.executeJs(content);
@@ -185,7 +186,6 @@ class KfToHomeState extends BaseRemotePageState {
               }
             }));
           }
-
         }
       });
     });
@@ -212,43 +212,52 @@ class KfToHomeState extends BaseRemotePageState {
     });
   }
 
-  void initConfigDirectory(dynamic config, { String title}) {
+  void initConfigDirectory(dynamic config, {String title}) {
     print("initConfigDirectory");
-    
-    DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择文件夹") : title, options: [
-      CommonDialogButtonOption(
-          text: TextK.Get("选择目录"),
-          callback: () async {
-            var newPath = await _flutterDesktopFileManagerPlugin.OnSelectFile();
 
-             this.ipc().invokeNyName({"invokeName": "getConfig"},
-              callback: (AsyncIpcData data) {
-                var ktoData = KfToDoIpcData.fromAsync(data);
-                var basePath = ktoData.data['basePath'];
-                var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
-                config['basePath'] = newPath;
-                if (editorInjectJsPath == null) {
-                  config['editorInjectJsPath'] = newPath + DirSpelator + "inject.js";
-                } else {
-                  config['editorInjectJsPath'] = editorInjectJsPath;
-                }
-                config['isDarkmode'] = ColorManager.instance().isDarkmode;
-                this.ipc()
-                    .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
-                      _refresh();
-                    }));
-                web.hide();
-                Future.delayed(Duration(seconds: 1)).then((value){
+    DenktuiDialog.initContext(context);
+    DenktuiDialog.ShowCommonDialog(
+        contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择文件夹") : title,
+        options: [
+          CommonDialogButtonOption(
+              text: TextK.Get("选择目录"),
+              callback: () async {
+                var newPath =
+                    await _flutterDesktopFileManagerPlugin.OnSelectFile();
+
+                this.ipc().invokeNyName({"invokeName": "getConfig"},
+                    callback: (AsyncIpcData data) {
+                  var ktoData = KfToDoIpcData.fromAsync(data);
+                  var basePath = ktoData.data['basePath'];
+                  var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
+                  config['basePath'] = newPath;
+                  if (editorInjectJsPath == null) {
+                    config['editorInjectJsPath'] =
+                        newPath + DirSpelator + "inject.js";
+                  } else {
+                    config['editorInjectJsPath'] = editorInjectJsPath;
+                  }
+                  config['isDarkmode'] = ColorManager.instance().isDarkmode;
+                  this.ipc().invokeNyName(
+                      {"invokeName": "saveConfig", "data": config},
+                      callback: ((data) {
+                    _refresh();
+                  }));
+                  web.hide();
+                  Future.delayed(Duration(seconds: 1)).then((value) {
                     web.needInsertFirst = false;
                     web.executeJs("location.reload(false)");
                     web.show();
                   });
-            });
-          },
-          icon: Icons.folder),
-      CommonDialogButtonOption(text: TextK.Get("退出"), callback: () {}, icon: Icons.error, optionType: 1)
-    ]);
+                });
+              },
+              icon: Icons.folder),
+          CommonDialogButtonOption(
+              text: TextK.Get("退出"),
+              callback: () {},
+              icon: Icons.error,
+              optionType: 1)
+        ]);
   }
 
   void refreshByData(KfToDoIpcData data) {
@@ -298,7 +307,6 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _insertIntoEditor(String content, {String editorId}) {
-    
     if (cefContainer == null) {
       ensureWebViewShow();
       web.toggleInsertFirst();
@@ -306,6 +314,10 @@ class KfToHomeState extends BaseRemotePageState {
 
     if (editorId == null) {
       editorId = currentFilePath;
+    }
+
+    if (!editorId.startsWith("_")) {
+      editorId = "_" + editorId;
     }
 
     web.insertByContentNId(content, editorId);
@@ -339,12 +351,12 @@ class KfToHomeState extends BaseRemotePageState {
 
   void showCommonSnack({String msg, String error}) {
     Color bkGC = null;
-     bkGC = ColorManager.Get("snackbackground");
+    bkGC = ColorManager.Get("snackbackground");
     if (error != null) {
       msg = error;
       bkGC = Color(0xffffbcd4);
     }
-   
+
     if (msg == null) {
       msg = TextK.Get("ERRRRRRRRRRRRRRR");
     }
@@ -385,19 +397,20 @@ class KfToHomeState extends BaseRemotePageState {
       this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
           callback: (AsyncIpcData data) {
         showSnack(data);
-        _refresh();
+        // if (!data.hasError()) {
+        //   _refresh();
+        // }
       });
     }).catchError((err) {
       showCommonSnack(msg: null, error: err.toString());
     });
   }
 
-  void _refresh({ bool justUi = false}) {
+  void _refresh({bool justUi = false}) {
     if (justUi) {
-      
       setState(() {
         for (KfToDoTagData item in dataTags) {
-        item.randomColor();
+          item.randomColor();
         }
       });
     } else {
@@ -413,17 +426,15 @@ class KfToHomeState extends BaseRemotePageState {
       String path = ktoData.data['path'] as String;
       String error = ktoData.data['error'];
       if (error != null) {
-
         showCommonSnack(error: error);
         return;
       }
       dynamic content = ktoData.data['content'];
       if (content != null) {
         if (content.runtimeType == String) {
-
           String content = ktoData.data['content'] as String;
           content = content?.replaceAll('\t', '    ');
-          func(content: content, path: path, suc:true);
+          func(content: content, path: path, suc: true);
         } else if (content.runtimeType == LinkedHashMap) {
           String name = content['name'];
           showCommonSnack(msg: name);
@@ -458,28 +469,33 @@ class KfToHomeState extends BaseRemotePageState {
           'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
 
       CommonReadFile(itemData.path, func: ({content, path, suc}) {
-        currentFilePath = path;
+        currentFilePath = path.replaceAll("\\", DirSpelator);
+        print(
+            "path ${path} ${currentFilePath} ${"\\"} ${DirSpelator}\n\n\n\n----------------");
         content = content.replaceAll('\t', '    ');
         _refreshFilePathTextField();
         _insertIntoEditor(content);
 
-        web.executeJs('window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+        web.executeJs(
+            'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
       });
     }
   }
 
   void onLongPressSingleItemFunc(ListItemData itemData) {
     DenktuiDialog.initContext(context);
-    DenktuiDialog.ShowCommonDialog(contentTitle: TextK.Get("Delete this item"), options: [
-      CommonDialogButtonOption(
-          text: TextK.Get("Delete"),
-          callback: () {
-            this.onPressDeleteFunc(itemData);
-          },
-          icon: Icons.delete),
-      CommonDialogButtonOption(
-          text: TextK.Get("Cancel"), callback: () {}, icon: Icons.cancel)
-    ]);
+    DenktuiDialog.ShowCommonDialog(
+        contentTitle: TextK.Get("Delete this item"),
+        options: [
+          CommonDialogButtonOption(
+              text: TextK.Get("Delete"),
+              callback: () {
+                this.onPressDeleteFunc(itemData);
+              },
+              icon: Icons.delete),
+          CommonDialogButtonOption(
+              text: TextK.Get("Cancel"), callback: () {}, icon: Icons.cancel)
+        ]);
   }
 
   void onPressAddNewFunc() {
@@ -495,12 +511,16 @@ class KfToHomeState extends BaseRemotePageState {
             children: [
               Container(
                 height: 204,
-                child: Column(
-                  
-                  children: [
+                child: Column(children: [
                   ListTile(
-                    leading: Icon(Icons.rss_feed, color: ColorManager.Get("textdarkr"),),
-                    title: Text('RSS', style: TextStyle(color: ColorManager.Get("textdarkr")),),
+                    leading: Icon(
+                      Icons.rss_feed,
+                      color: ColorManager.Get("textdarkr"),
+                    ),
+                    title: Text(
+                      'RSS',
+                      style: TextStyle(color: ColorManager.Get("textdarkr")),
+                    ),
                     subtitle: Text(
                       TextK.Get('Add a rss '),
                       style: TextStyle(color: ColorManager.Get("textdarkr")),
@@ -520,7 +540,8 @@ class KfToHomeState extends BaseRemotePageState {
                             TextStyle(color: ColorManager.Get("textdarkr")),
                         helperText: TextK.Get('Input a rss url '),
                         fillColor: ColorManager.Get("textr"),
-                        helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
+                        helperStyle:
+                            TextStyle(color: ColorManager.Get("textdarkr")),
                         enabledBorder: UnderlineInputBorder(
                           borderSide:
                               BorderSide(color: ColorManager.Get("textdarkr")),
@@ -529,9 +550,7 @@ class KfToHomeState extends BaseRemotePageState {
                     ),
                   ),
                   ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
-                  
-                  color:  ColorManager.Get("textdarkr"),
-                      onPressFunc: () {
+                      color: ColorManager.Get("textdarkr"), onPressFunc: () {
                     Navigator.pop(context);
                     this.ipc().invokeNyName({
                       "invokeName": "addRss",
@@ -546,43 +565,50 @@ class KfToHomeState extends BaseRemotePageState {
               Container(
                 height: 204,
                 child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.text_format, color: ColorManager.Get("textdarkr"),),
-                    title: Text(TextK.Get('Text'), style: TextStyle(color: ColorManager.Get("textdarkr")),),
-                    subtitle: Text(
-                      TextK.Get('Add a text '),
-                      style: TextStyle(color:ColorManager.Get("textdarkr")),
-                    ),
-                  ),
-                  ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
-                  color:  ColorManager.Get("textdarkr"),
-                      icon: Icon(
-                        Icons.newspaper,
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.text_format,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
-                      ), onPressFunc: () {
-                    Navigator.pop(context);
-                    var map = new Map();
-                    map['invokeName'] = "getNewBlogTemplate";
-                    this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
-                        callback: (AsyncIpcData data) {
-                      var ktoData = KfToDoIpcData.fromAsync(data);
-                      String content = ktoData.data['content'] as String;
-                      String path = ktoData.data['path'] as String;
-                      currentFilePath = path +
-                          "/" +
-                          DateTime.now().microsecond.toString() +
-                          ".md";
-                      _refreshFilePathTextField();
-                      content = content.replaceFirst("\$\{title\}", "请输入你的标题");
-                      content = content.replaceFirst("\$\{tag\}", "第一个标签");
-                      _insertIntoEditor(content, editorId: currentFilePath);
-                      isWriteWithoutRead = true;
-                    });
-                  })
-                ],
-              ),
+                      ),
+                      title: Text(
+                        TextK.Get('Text'),
+                        style: TextStyle(color: ColorManager.Get("textdarkr")),
+                      ),
+                      subtitle: Text(
+                        TextK.Get('Add a text '),
+                        style: TextStyle(color: ColorManager.Get("textdarkr")),
+                      ),
+                    ),
+                    ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
+                        color: ColorManager.Get("textdarkr"),
+                        icon: Icon(
+                          Icons.newspaper,
+                          color: ColorManager.Get("textdarkr"),
+                          size: ViewBuilder.size(2),
+                        ), onPressFunc: () {
+                      Navigator.pop(context);
+                      var map = new Map();
+                      map['invokeName'] = "getNewBlogTemplate";
+                      this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
+                          callback: (AsyncIpcData data) {
+                        var ktoData = KfToDoIpcData.fromAsync(data);
+                        String content = ktoData.data['content'] as String;
+                        String path = ktoData.data['path'] as String;
+                        currentFilePath = path +
+                            DirSpelator +
+                            DateTime.now().microsecond.toString() +
+                            ".md";
+                        _refreshFilePathTextField();
+                        content =
+                            content.replaceFirst("\$\{title\}", "请输入你的标题");
+                        content = content.replaceFirst("\$\{tag\}", "第一个标签");
+                        _insertIntoEditor(content, editorId: currentFilePath);
+                        isWriteWithoutRead = true;
+                      });
+                    })
+                  ],
+                ),
               )
             ],
           ),
@@ -616,14 +642,24 @@ class KfToHomeState extends BaseRemotePageState {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
-        children: [Loading(indicator: BallPulseIndicator(), size: 100.0, color: ViewBuilder.RandomColor(),)],
+        children: [
+          Loading(
+            indicator: BallPulseIndicator(),
+            size: 100.0,
+            color: ViewBuilder.RandomColor(),
+          )
+        ],
       ),
       margin: const EdgeInsets.all(16),
     );
   }
 
   Card ACard(Widget widget) {
-    return Card(clipBehavior: Clip.antiAlias, child: widget, color: ColorManager.Get("cardbackground"),);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: widget,
+      color: ColorManager.Get("cardbackground"),
+    );
   }
 
   void onDragLineStart(PointerDownEvent event) {
@@ -631,7 +667,7 @@ class KfToHomeState extends BaseRemotePageState {
       dragLineColor = dragLineActiveColor;
     });
 
-    FlutterDesktopCefWeb.allWebViews.forEach((element) { 
+    FlutterDesktopCefWeb.allWebViews.forEach((element) {
       element.hide();
     });
     left_width_drag_start = left_width_real;
@@ -654,14 +690,12 @@ class KfToHomeState extends BaseRemotePageState {
   void onDragLineEnd() {
     setState(() {
       dragLineColor = dragLineInActiveColor;
-      FlutterDesktopCefWeb.allWebViews.forEach((element) { 
+      FlutterDesktopCefWeb.allWebViews.forEach((element) {
         if (!isTreeCardMode) {
-
           element.show();
         }
       });
       web.loadCefContainer();
-
     });
     isDragingLine = false;
   }
@@ -690,7 +724,6 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildListView() {
-
     return Column(
       children: [
         searchTagField.view(),
@@ -709,14 +742,13 @@ class KfToHomeState extends BaseRemotePageState {
                 } else {
                   var element = this.searchedTags[index];
                   var childViewList = this.buildListItemView(element.name);
-                  if (childViewList.length > 0|| true) {
-
-                  return ViewBuilder.BuildSingleTagContainor(element.name,
-                      tagData: element, onPressFunc: (String tag) {
-                    setState(() {
-                      element.isOpen = !element.isOpen;
-                    });
-                  }, childListItems: childViewList);
+                  if (childViewList.length > 0 || true) {
+                    return ViewBuilder.BuildSingleTagContainor(element.name,
+                        tagData: element, onPressFunc: (String tag) {
+                      setState(() {
+                        element.isOpen = !element.isOpen;
+                      });
+                    }, childListItems: childViewList);
                   } else {
                     return null;
                   }
@@ -731,7 +763,6 @@ class KfToHomeState extends BaseRemotePageState {
 
   @override
   Widget build(BuildContext context) {
-
     if (searchTagField == null) {
       searchTagField = KfTodoTextField(onChange: (String value) {
         print("KfTodoTextField onChange ${value}");
@@ -741,21 +772,24 @@ class KfToHomeState extends BaseRemotePageState {
       });
     }
 
-
-    Widget webCView = cefContainer == null ? MaterialButton(
-      child: Loading(indicator: BallPulseIndicator(), size: 100.0, color: ViewBuilder.RandomColor()),
-      onPressed: () {
-        web.generateCefContainer(400, 500);
-    web.loadCefContainer();
-      },
-    ) : cefContainer;
+    Widget webCView = cefContainer == null
+        ? MaterialButton(
+            child: Loading(
+                indicator: BallPulseIndicator(),
+                size: 100.0,
+                color: ViewBuilder.RandomColor()),
+            onPressed: () {
+              web.generateCefContainer(400, 500);
+              web.loadCefContainer();
+            },
+          )
+        : cefContainer;
     dragLineColor = ColorManager.Get("textr");
 
     var listModeChilds = [
       new Container(
         width: left_width_real,
-        child: ACard(
-          Row(
+        child: ACard(Row(
           children: [
             Expanded(child: buildListView()),
             Listener(
@@ -777,98 +811,101 @@ class KfToHomeState extends BaseRemotePageState {
           ],
         )),
       ),
-      isTreeCardMode ? Container() :
-      Expanded(
-          child: Container(
-        child: Card(
-          // clipBehavior: Clip.antiAlias,
-          color: ColorManager.Get("cardbackground"),
-          child: Column(
-            children: [
-              new Container(
-                height: 60,
-                child: Row(
+      isTreeCardMode
+          ? Container()
+          : Expanded(
+              child: Container(
+              child: Card(
+                // clipBehavior: Clip.antiAlias,
+                color: ColorManager.Get("cardbackground"),
+                child: Column(
                   children: [
-                    ViewBuilder.BuildMaterialButton("", onPressFunc: () {
-                      _saveFile();
-                    },
-                        color: ColorManager.Get("textdarkr"),
-                        icon: Icon(
-                          Icons.save_as_sharp,
-                          color: ColorManager.Get("textdarkr"),
-                          size: ViewBuilder.size(2),
-                        )),
-                    ViewBuilder.BuildMaterialButton("",
-                        onPressFunc: () => this.onPressAddNewFunc(),
-                        color: ColorManager.Get("textdarkr"),
-                        icon: Icon(
-                          Icons.edit,
-                          color: ColorManager.Get("textdarkr"),
-                          size: ViewBuilder.size(2),
-                        )),
-                    Expanded(
-                      child: Container(
-                        color: ColorManager.Get("buttonbackground"),
-                        margin: EdgeInsets.symmetric(vertical: ViewBuilder.size(1)),
-                        child: TextField(
-                          controller: _currentPathcontroller,
-                          style: TextStyle(color: ColorManager.Get("font")),
-                          decoration: InputDecoration(
-                              fillColor: null,
-                              border: OutlineInputBorder(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8))),
-                              focusColor: Colors.white,
-                              // labelText: filePathLabelText,
-                              label: Container(
-                                margin: EdgeInsets.fromLTRB(0, ViewBuilder.size(3.5), 0, 0),
-                                // color: Colors.black,
-                                child: Text(filePathLabelText, style: TextStyle(
-                                  color: ColorManager.Get("textdarkr")
-                                ),),
-                              ),
-                              // labelStyle: TextStyle(
-                              //   color: ViewBuilder.RandomDarkColor()r
-                              // ),
-                              enabled: false,
-                              disabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color(0x00000000)
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color(0x00000000)
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                  color: Color(0x00000000)
-                                ),
+                    new Container(
+                      height: 60,
+                      child: Row(
+                        children: [
+                          ViewBuilder.BuildMaterialButton("", onPressFunc: () {
+                            _saveFile();
+                          },
+                              color: ColorManager.Get("textdarkr"),
+                              icon: Icon(
+                                Icons.save_as_sharp,
+                                color: ColorManager.Get("textdarkr"),
+                                size: ViewBuilder.size(2),
                               )),
-                          onChanged: _onFilePathInputChange),
-                      )
-                    )
+                          ViewBuilder.BuildMaterialButton("",
+                              onPressFunc: () => this.onPressAddNewFunc(),
+                              color: ColorManager.Get("textdarkr"),
+                              icon: Icon(
+                                Icons.edit,
+                                color: ColorManager.Get("textdarkr"),
+                                size: ViewBuilder.size(2),
+                              )),
+                          Expanded(
+                              child: Container(
+                            color: ColorManager.Get("buttonbackground"),
+                            margin: EdgeInsets.symmetric(
+                                vertical: ViewBuilder.size(1)),
+                            child: TextField(
+                                controller: _currentPathcontroller,
+                                style:
+                                    TextStyle(color: ColorManager.Get("font")),
+                                decoration: InputDecoration(
+                                    fillColor: null,
+                                    border: OutlineInputBorder(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(8))),
+                                    focusColor: Colors.white,
+                                    // labelText: filePathLabelText,
+                                    label: Container(
+                                      margin: EdgeInsets.fromLTRB(
+                                          0, ViewBuilder.size(3.5), 0, 0),
+                                      // color: Colors.black,
+                                      child: Text(
+                                        filePathLabelText,
+                                        style: TextStyle(
+                                            color:
+                                                ColorManager.Get("textdarkr")),
+                                      ),
+                                    ),
+                                    // labelStyle: TextStyle(
+                                    //   color: ViewBuilder.RandomDarkColor()r
+                                    // ),
+                                    enabled: false,
+                                    disabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Color(0x00000000)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Color(0x00000000)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Color(0x00000000)),
+                                    )),
+                                onChanged: _onFilePathInputChange),
+                          ))
+                        ],
+                      ),
+                    ),
+                    webCView
+                    // Expanded(
+                    //   key: containerKey,
+                    //   child: Container(
+                    //     alignment: Alignment.topLeft,
+                    //   // child: Text("flexable"),
+                    //     child: cefContainer == null ? Container(
+                    //       color: Colors.amberAccent,
+                    //       width: 400,
+                    //       height: 400,
+                    //     ): cefContainer,
+                    //   ),
+                    // )
                   ],
                 ),
               ),
-              webCView
-              // Expanded(
-              //   key: containerKey,
-              //   child: Container(
-              //     alignment: Alignment.topLeft,
-              //   // child: Text("flexable"),
-              //     child: cefContainer == null ? Container(
-              //       color: Colors.amberAccent,
-              //       width: 400,
-              //       height: 400,
-              //     ): cefContainer,
-              //   ),
-              // )
-            ],
-          ),
-        ),
-      ))
+            ))
     ];
 
     return Scaffold(
@@ -891,70 +928,65 @@ class KfToHomeState extends BaseRemotePageState {
                 children: [
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
                       onPressFunc: () {
-                        setState(() {
-                          isTreeCardMode = !isTreeCardMode;
-                          web.toggle();
-                        });
-                    },
-                    color: ColorManager.Get("textdarkr"),
-                    icon: Icon(
+                    setState(() {
+                      isTreeCardMode = !isTreeCardMode;
+                      web.toggle();
+                    });
+                  },
+                      color: ColorManager.Get("textdarkr"),
+                      icon: Icon(
                         Icons.trending_down,
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
-                      )
-                  ),
+                      )),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
-                        setState(() {
-                          ColorManager.instance().isDarkmode = !ColorManager.instance().isDarkmode;
-                        });
-                        web.executeJs('window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-                        
-                        var config = {} ;
-                        config['isDarkmode'] = ColorManager.instance().isDarkmode;
-                        this.ipc()
-                            .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
-                            }));
-                    },
-                    color: ColorManager.Get("textdarkr"),
-                    icon: Icon(
+                    setState(() {
+                      ColorManager.instance().isDarkmode =
+                          !ColorManager.instance().isDarkmode;
+                    });
+                    web.executeJs(
+                        'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+
+                    var config = {};
+                    config['isDarkmode'] = ColorManager.instance().isDarkmode;
+                    // this.ipc()
+                    //     .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
+                    //     }));
+                  },
+                      color: ColorManager.Get("textdarkr"),
+                      icon: Icon(
                         Icons.dark_mode,
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
-                      )
-                  ),
-
-                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Re-Random Color"),
-                      onPressFunc: () {
-                        setState(() {
-                          ColorManager.rerandom();
-                          _refresh(justUi: true);
-                        });
-                        
-                    },
-                    color: ColorManager.Get("textdarkr"),
-                    icon: Icon(
+                      )),
+                  ViewBuilder.BuildInLineMaterialButton(
+                      TextK.Get("Re-Random Color"), onPressFunc: () {
+                    setState(() {
+                      ColorManager.rerandom();
+                      _refresh(justUi: true);
+                    });
+                  },
+                      color: ColorManager.Get("textdarkr"),
+                      icon: Icon(
                         Icons.color_lens,
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
-                      )
-                  ),
-
-                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("Switch Language"),
-                      onPressFunc: () {
-                        setState(() {
-                          TextK.toggle();
-                        });
-                    },
-                    color: ColorManager.Get("textdarkr"),
-                    icon: Icon(
+                      )),
+                  ViewBuilder.BuildInLineMaterialButton(
+                      TextK.Get("Switch Language"), onPressFunc: () {
+                    setState(() {
+                      TextK.toggle();
+                    });
+                  },
+                      color: ColorManager.Get("textdarkr"),
+                      icon: Icon(
                         Icons.language,
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
-                      )
-                  ),
-                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Reload Editor"),
-                      onPressFunc: () {
+                      )),
+                  ViewBuilder.BuildInLineMaterialButton(
+                      TextK.Get("Reload Editor"), onPressFunc: () {
                     web.executeJs("location.reload(false)");
                   },
                       color: ColorManager.Get("textdarkr"),
@@ -963,16 +995,16 @@ class KfToHomeState extends BaseRemotePageState {
                         color: ColorManager.Get("textdarkr"),
                         size: ViewBuilder.size(2),
                       )),
-                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Reset WorkSpace"),
-                      onPressFunc: () {
+                  ViewBuilder.BuildInLineMaterialButton(
+                      TextK.Get("Reset WorkSpace"), onPressFunc: () {
                     this.ipc().invokeNyName({"invokeName": "getConfig"},
                         callback: (AsyncIpcData data) {
                       var ktoData = KfToDoIpcData.fromAsync(data);
-          
-                      initConfigDirectory(ktoData.data, title: TextK.Get('是否重新选择文件目录'));
+
+                      initConfigDirectory(ktoData.data,
+                          title: TextK.Get('是否重新选择文件目录'));
                     });
                   },
-                  
                       color: ColorManager.Get("textdarkr"),
                       icon: Icon(
                         Icons.settings,
