@@ -289,6 +289,7 @@ class KfToHomeState extends BaseRemotePageState {
         });
       });
       dataTags.sort((left, right) => left.name.compareTo(right.name));
+     
     });
   }
 
@@ -477,7 +478,12 @@ class KfToHomeState extends BaseRemotePageState {
         _insertIntoEditor(content);
 
         web.executeJs(
-            'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+            'window.denkGetKey("funcSwitchDarkMode",${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+        var jsCode = "window.denkSetKeyValue('dataList', decodeURIComponent(\"${Uri.encodeComponent( this.data.json)}\"))";
+        print("jsCode ${jsCode}");
+        web.executeJs(jsCode);
+        web.executeJs("window.denkGetKey('funcUpdateSuggestions')()");
+    
       });
     }
   }

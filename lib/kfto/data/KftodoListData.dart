@@ -25,9 +25,14 @@ class ListData {
 
   List<ListItemData> data = [];
 
+  String json = "{}";
+
   ListData(String json): this.fromMap(jsonDecode(json));
+  
+
 
   ListData.fromMap(Map<String, dynamic> map) {
+    this.json = jsonEncode(map);
     List<dynamic> infos = map['headerInfos'];
     infos.forEach((element) {
       
