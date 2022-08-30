@@ -129,14 +129,17 @@ class KfTodoTextField {
                       controller: tec,
                       cursorHeight: 26,
                       // focusNode: fn,R
-                      style: TextStyle(color: ColorManager.Get("font")),
+                      style: TextStyle(color: ColorManager.Get("fontdark")),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: tagsFieldController.hasTags ? '' : TextK.Get("Enter tag..."),
+                        hintStyle: TextStyle(color: ColorManager.Get("font")),
                         enabledBorder: new UnderlineInputBorder(
                           borderSide: new BorderSide(
+                            color: Color(0x00000000)
                           )
                         ),
+                        
                         focusedBorder: new UnderlineInputBorder(
                           borderSide: new BorderSide(
                             color: Color(0x00000000)
