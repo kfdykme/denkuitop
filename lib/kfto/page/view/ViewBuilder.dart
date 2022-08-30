@@ -5,7 +5,7 @@ import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:flutter/material.dart';
 
 class ViewBuilder {
-  static int RANDOM_COLOR_TOP = 255;
+  static int RANDOM_COLOR_TOP = 210;
   static int RANDOM_COLOR_BOTTOM = 160;
   static int RANDOM_COLOR_BOTTOM_2 = 100;
   static double BASE_SIZE = 8;
@@ -78,14 +78,14 @@ class ViewBuilder {
             children: [
               Icon(
                 getIconByTagData(tagData),
-                color: !ColorManager.instance().isDarkmode ? tagData.lightColor2 : tagData.darkColor2,
+                color: !ColorManager.instance().isDarkmode ? tagData.darkColor2: tagData.lightColor,
                 size: size(3),
               ),
               Container(
                 margin: EdgeInsets.fromLTRB(size(1), 0, 0, 0),
                 child: Text(
                   tag,
-                  style: TextStyle(color:  !ColorManager.instance().isDarkmode ?  tagData.darkColor: tagData.lightColor),
+                  style: TextStyle(color:  !ColorManager.instance().isDarkmode ?  tagData.darkColor2: tagData.lightColor),
                 ),
               ),
             ],
@@ -94,7 +94,7 @@ class ViewBuilder {
             tagData.isOpen
                 ? Icons.arrow_drop_down_sharp
                 : Icons.arrow_left_sharp,
-            color: !ColorManager.instance().isDarkmode ? tagData.darkColor2 : tagData.lightColor2,
+            color: !ColorManager.instance().isDarkmode ? tagData.darkColor : tagData.lightColor2,
             size: size(3),
           )
         ],
@@ -157,20 +157,18 @@ class ViewBuilder {
       child: Container(
           height: size(4),
           width: double.infinity,
-          color: Color(0x33FFFFFF),
+          color: Color(0x00000000),
           margin: EdgeInsets.all(size(1)),
           padding: EdgeInsets.only(left: size(1)),
           child: Stack(
-            alignment: AlignmentDirectional.center,
+            alignment: AlignmentDirectional.topStart,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [listItemEndView],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [Text(e.title != null ? e.title : "empty", overflow: TextOverflow.ellipsis, style: TextStyle(color:  ColorManager.Get("font")),)],
-              ),
+              
+              Text(e.title != null ? e.title : "empty", overflow: TextOverflow.ellipsis, style: TextStyle(color:  ColorManager.Get("font")), textAlign: TextAlign.left, maxLines: 1,)
             ],
           )),
     );

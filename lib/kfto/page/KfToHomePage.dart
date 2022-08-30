@@ -289,7 +289,6 @@ class KfToHomeState extends BaseRemotePageState {
         });
       });
       dataTags.sort((left, right) => left.name.compareTo(right.name));
-     
     });
   }
 
@@ -479,11 +478,11 @@ class KfToHomeState extends BaseRemotePageState {
 
         web.executeJs(
             'window.denkGetKey("funcSwitchDarkMode",${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-        var jsCode = "window.denkSetKeyValue('dataList', decodeURIComponent(\"${Uri.encodeComponent( this.data.json)}\"))";
+        var jsCode =
+            "window.denkSetKeyValue('dataList', decodeURIComponent(\"${Uri.encodeComponent(this.data.json)}\"))";
         print("jsCode ${jsCode}");
         web.executeJs(jsCode);
         web.executeJs("window.denkGetKey('funcUpdateSuggestions')()");
-    
       });
     }
   }
@@ -795,34 +794,40 @@ class KfToHomeState extends BaseRemotePageState {
     var listModeChilds = [
       new Container(
         width: left_width_real,
-        child: ACard(Row(
-          children: [
-            Expanded(child: buildListView()),
-            Listener(
-                onPointerDown: (event) => {onDragLineStart(event)},
-                onPointerUp: ((event) => {onDragLineEnd()}),
-                onPointerMove: ((event) {
-                  onDragLineMoving(event);
-                }),
-                child: Container(
-                    color: dragLineColor,
-                    width: 4,
-                    height: double.infinity,
-                    alignment: Alignment.center,
-                    child: Container(
-                      width: 2,
-                      height: 20,
-                      color: Colors.blueGrey,
-                    ))),
-          ],
-        )),
+        padding: EdgeInsets.zero,
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.zero,
+          child: Row(
+            children: [
+              Expanded(child: buildListView()),
+              Listener(
+                  onPointerDown: (event) => {onDragLineStart(event)},
+                  onPointerUp: ((event) => {onDragLineEnd()}),
+                  onPointerMove: ((event) {
+                    onDragLineMoving(event);
+                  }),
+                  child: Container(
+                      color: dragLineColor,
+                      width: 4,
+                      height: double.infinity,
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 2,
+                        height: 20,
+                        color: Colors.blueGrey,
+                      ))),
+            ],
+          ),
+          color: ColorManager.Get("cardbackground"),
+        ),
       ),
       isTreeCardMode
           ? Container()
           : Expanded(
               child: Container(
               child: Card(
-                // clipBehavior: Clip.antiAlias,
+                margin: EdgeInsets.zero,
                 color: ColorManager.Get("cardbackground"),
                 child: Column(
                   children: [
