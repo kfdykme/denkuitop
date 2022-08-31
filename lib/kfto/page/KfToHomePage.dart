@@ -85,7 +85,7 @@ class KfToHomeState extends BaseRemotePageState {
     return ColorManager.Get("textr");
   }
 
-  Color dragLineColor = Colors.amberAccent;
+  Color dragLineColor = Color(0x00000000);
 
   bool isDragingLine = false;
 
@@ -689,7 +689,7 @@ class KfToHomeState extends BaseRemotePageState {
           left_width_real = 10;
         }
       });
-    }
+    } 
   }
 
   void onDragLineEnd() {
@@ -789,8 +789,7 @@ class KfToHomeState extends BaseRemotePageState {
             },
           )
         : cefContainer;
-    dragLineColor = ColorManager.Get("textr");
-
+    
     var listModeChilds = [
       new Container(
         width: left_width_real,
@@ -806,6 +805,12 @@ class KfToHomeState extends BaseRemotePageState {
                   onPointerUp: ((event) => {onDragLineEnd()}),
                   onPointerMove: ((event) {
                     onDragLineMoving(event);
+                  }),
+                  onPointerHover: ((event) {
+                    print("onPointerHover ${event}");
+                    setState(() {
+                      dragLineColor = ViewBuilder.RandomColor();
+                    });
                   }),
                   child: Container(
                       color: dragLineColor,
@@ -835,7 +840,7 @@ class KfToHomeState extends BaseRemotePageState {
                       height: 60,
                       child: Row(
                         children: [
-                          ViewBuilder.BuildMaterialButton("", onPressFunc: () {
+                          filePathLabelText.isEmpty ? Container() :ViewBuilder.BuildMaterialButton("", onPressFunc: () {
                             _saveFile();
                           },
                               color: ColorManager.Get("textdarkr"),
@@ -854,7 +859,7 @@ class KfToHomeState extends BaseRemotePageState {
                               )),
                           Expanded(
                               child: Container(
-                            color: ColorManager.Get("buttonbackground"),
+                            color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
                             child: TextField(
@@ -945,10 +950,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
                         Icons.trending_down,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
@@ -966,10 +972,11 @@ class KfToHomeState extends BaseRemotePageState {
                     //     }));
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
-                        Icons.dark_mode,
+                        !ColorManager.instance().isDarkmode ? Icons.dark_mode : Icons.dark_mode_outlined,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Re-Random Color"), onPressFunc: () {
@@ -979,10 +986,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
                         Icons.color_lens,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Switch Language"), onPressFunc: () {
@@ -991,20 +999,22 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
                         Icons.language,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Reload Editor"), onPressFunc: () {
                     web.executeJs("location.reload(false)");
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
                         Icons.refresh,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Reset WorkSpace"), onPressFunc: () {
@@ -1017,10 +1027,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
+                      withText:false,
                       icon: Icon(
                         Icons.settings,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(2),
+                        size: ViewBuilder.size(false ? 2: 3),
                       )),
                 ],
               ),

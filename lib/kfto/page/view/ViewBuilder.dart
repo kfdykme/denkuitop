@@ -85,6 +85,7 @@ class ViewBuilder {
                 margin: EdgeInsets.fromLTRB(size(1), 0, 0, 0),
                 child: Text(
                   tag,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(color:  !ColorManager.instance().isDarkmode ?  tagData.darkColor2: tagData.lightColor),
                 ),
               ),
@@ -112,9 +113,9 @@ class ViewBuilder {
     return Container(
       height: tagData.isOpen ? null : size(4),
       width: double.infinity,
-      margin: EdgeInsets.all(size(1)),
+      margin: EdgeInsets.symmetric(vertical: 2, horizontal: size(1)),
       child: Column(children: tagContainorChilds),
-      color:  !ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
+      color:  Color(0x11111111)//!ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
     );
   }
 
@@ -176,15 +177,18 @@ class ViewBuilder {
   }
 
   static Widget BuildInLineMaterialButton(String text,
-      {Function onPressFunc, Color color, Icon icon}) {
+      {Function onPressFunc, Color color, Icon icon, bool withText = true}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
     }
-    buttonChildrenItems.add(Container(
-      padding: EdgeInsets.only(left: size(1)),
-      child: Text(text),
-    ));
+    if (withText) {
+
+      buttonChildrenItems.add(Container(
+        padding: EdgeInsets.only(left: size(1)),
+        child: Text(text),
+      ));
+    }
     return MaterialButton(
       textColor: color,
       onPressed: () {
@@ -200,12 +204,12 @@ class ViewBuilder {
   }
 
   static Widget BuildMaterialButton(String text,
-      {Function onPressFunc, Color color, Icon icon, Color backgroundColor = const Color(0xffffff)}) {
+      {Function onPressFunc, Color color, Icon icon, Color backgroundColor = const Color(0xffffff), bool withText = true}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
     }
-    if (text != "") {
+    if (text != "" && withText) {
 
       buttonChildrenItems.add(Container(
         padding: EdgeInsets.only(left: size(1)),
