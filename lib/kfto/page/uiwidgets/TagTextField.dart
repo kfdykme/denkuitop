@@ -112,7 +112,7 @@ class KfTodoTextField {
                   print("rebuild TextFieldTags");
                   return Container(
                     margin: EdgeInsets.all(ViewBuilder.size(1)),
-                    color:  ColorManager.Get("tagtextfieldlight"),
+                    // color:  ColorManager.Get("tagtextfieldlight"),
                     height: 40,
                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10.0, vertical: 5.0),
@@ -124,12 +124,18 @@ class KfTodoTextField {
                           tagsFieldController.tryDeleteTag();
                         }
                       },
-                      child:
+                      child:Row(
+                        children: [Container(
+                          color: ColorManager.Get("textr"),
+                          margin: EdgeInsets.fromLTRB(0, 0, 5, 0),
+                          width: 5,
+                        ),
+                        Expanded(child:
                     TextField(
                       controller: tec,
                       cursorHeight: 26,
                       // focusNode: fn,R
-                      style: TextStyle(color: ColorManager.Get("fontdark")),
+                      style: TextStyle(color: ColorManager.Get("font")),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: tagsFieldController.hasTags ? '' : TextK.Get("Enter tag..."),
@@ -203,7 +209,8 @@ class KfTodoTextField {
                       ),
                       onChanged: onChanged,
                       onSubmitted: onSubmitted,
-                    ),
+                    ))],
+                      ),
                   ));});}
               );
   }

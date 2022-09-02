@@ -17,6 +17,7 @@ import 'package:denkuitop/kfto/data/DenoLibSocketLife.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/KfToNavigator.dart';
 import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
+import 'package:denkuitop/kfto/page/view/TreeCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/material.dart';
@@ -789,7 +790,12 @@ class KfToHomeState extends BaseRemotePageState {
             },
           )
         : cefContainer;
-    
+    Paint paint = Paint()
+    ..isAntiAlias = true
+    ..color = Colors.pink
+    ..blendMode = BlendMode.colorDodge
+    ..strokeWidth = 10
+    ..style = PaintingStyle.fill;
     var listModeChilds = [
       new Container(
         width: left_width_real,
@@ -828,7 +834,9 @@ class KfToHomeState extends BaseRemotePageState {
         ),
       ),
       isTreeCardMode
-          ? Container()
+          ? CustomPaint(
+            painter: TreeCardPainter(),
+          )
           : Expanded(
               child: Container(
               child: Card(
@@ -857,9 +865,14 @@ class KfToHomeState extends BaseRemotePageState {
                                 color: ColorManager.Get("textdarkr"),
                                 size: ViewBuilder.size(2),
                               )),
+                            Container(
+                              color: filePathLabelText.isEmpty  ? null : ColorManager.Get("textdarkr"),   margin: EdgeInsets.symmetric(
+                                vertical: ViewBuilder.size(1)),
+                              width: 5,
+                            ),
                           Expanded(
                               child: Container(
-                            color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
+                            // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
                             child: TextField(
