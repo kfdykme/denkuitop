@@ -781,16 +781,17 @@ class KfToHomeState extends BaseRemotePageState {
     if (!is_darging_tree_card) {
       return;
     }
-      Future.delayed(Duration(microseconds: 60)).then((value) {
-          setState(() {
-          var hasChange = treeCardData.calc();
-          if (hasChange) {
-              treeCardData.calc();
-              treeCardData = treeCardData;
-              RefreshTreeCard();
-          }
-          });
+    Future.delayed(Duration(microseconds: 60)).then((value) {
+      setState(() {
+        var hasChange = treeCardData.calc();
+        if (hasChange) {
+          treeCardData.calc();
+          RefreshTreeCard();
+        } else {
+          treeCardData.is_darging_tree_card = false;
+        }
       });
+    });
   }
 
   @override
@@ -818,14 +819,17 @@ class KfToHomeState extends BaseRemotePageState {
         : cefContainer;
 
     if (treeCardData == null) {
-      treeCardData = TreeCardData(data: this.data, dataTags: this.dataTags);
+      treeCardData = TreeCardData(data: this.data, dataTags: this.searchedTags);
     }
     if (treeCardData.data == null) {
       treeCardData.data = this.data;
     }
 
     if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
-      treeCardData.dataTags = this.dataTags;
+      treeCardData.dataTags = this.searchedTags;
+    }
+    if (isTreeCardMode) {
+      RefreshTreeCard();
     }
 
     var listModeChilds = [
@@ -876,14 +880,14 @@ class KfToHomeState extends BaseRemotePageState {
                       darging_tree_card_pos_cache = event.position;
                       setState(() {
                         // is_darging_tree_card = is_darging_tree_card;
-                        treeCardData.is_darging_tree_card = is_darging_tree_card;
+                        treeCardData.is_darging_tree_card =
+                            is_darging_tree_card;
                         // treeCardData.calc();
                         RefreshTreeCard();
                       });
-                      
                     },
                     onPointerUp: ((event) {
-                      treeCardData.is_darging_tree_card = is_darging_tree_card;
+                      // treeCardData.is_darging_tree_card = is_darging_tree_card;
                       // darging_tree_card_pos_cache = Offset.zero;
                     }),
                     onPointerMove: ((event) {
@@ -896,7 +900,6 @@ class KfToHomeState extends BaseRemotePageState {
                         var offset = Offset(
                             event.position.dx - darging_tree_card_pos_cache.dx,
                             event.position.dy - darging_tree_card_pos_cache.dy);
-                       
                       } else {
                         setState(() {
                           tree_card_mouse_pos = event.position;
@@ -907,15 +910,16 @@ class KfToHomeState extends BaseRemotePageState {
                       key: treeCardPainterKey,
                       width: 1080,
                       child: CustomPaint(
-                        
                         // // painter:
                         foregroundPainter: TreeCardPainter(treeCardData,
-                        isDarkmode: ColorManager.instance().isDarkmode,
-                        customKey: treeCardPainterKey,
+                            isDarkmode: ColorManager.instance().isDarkmode,
+                            customKey: treeCardPainterKey,
                             offset: darging_tree_card_pos,
-                            dataTags: this.dataTags,
+                            dataTags: this.searchedTags,
                             mouseOffset: tree_card_mouse_pos,
-                            isDraging: is_darging_tree_card),
+                            onNeedRefreshCallback: () {
+                          // RefreshTreeCard();
+                        }, isDraging: is_darging_tree_card),
                         child: Container(
                           color: Color(0x333333),
                           height: currentWindowHeight - 50,
@@ -923,16 +927,6 @@ class KfToHomeState extends BaseRemotePageState {
                       ),
                       height: double.infinity,
                     )),
-                // Expanded (
-                // child:Container(color: ColorManager.Get("cardbackground"),
-                // child:  CustomPaint(
-                // // painter:
-                // foregroundPainter: TreeCardPainter(this.data, offset: darging_tree_card_pos),
-                // child: Container(
-                //   color: Colors.white,
-                //   height: currentWindowHeight - 50,
-                // ),
-                // )))
               ],
             )
           : Expanded(

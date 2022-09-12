@@ -42,7 +42,7 @@ class TreeCardNode {
     return edgeSize >= maxEdgeSize - 1;
   }
 
-  int maxEdgeSize = 10;
+  int maxEdgeSize = 9;
   int edgeSize = 0;
 
   bool isShow = true;
@@ -76,8 +76,12 @@ class TreeCardData {
   List<Edge> edges = [];
 
   bool is_darging_tree_card = false;
-  
+
   bool isDarkmode;
+
+  int lastTagsLength = -1;
+  
+  Function onNeedRefreshCallback;
 
   TreeCardData({ListData data, List<KfToDoTagData> dataTags}) {
     this.data = data;
@@ -98,17 +102,12 @@ class TreeCardData {
     double res = 0;
 
     double distanceMaxCalc = distanceMax * (1 + (weight / 10));
-    double distanceMinCalc = distanceMin + (20 * (weight * 2));
-    if (d < distanceMin) {
-      // if (hasEdge) {
-      //   res = -1 * d * d * (distanceMin - d).abs() * d / ((d * 2));
-      // } else {
-        // res = (d - distanceMin) / d;
-      // }
-      res = (d - distanceMin) ;
+    double distanceMinCalc = distanceMin + (10 * (weight + 2));
+    if (d < distanceMinCalc) {
+      res = (d - distanceMinCalc);
       if (hasEdge) {
         res = res * 1.1;
-      } 
+      }
     } else if (d >= distanceMinCalc && d <= distanceMaxCalc) {
       res = 0;
     } else if (d > distanceMaxCalc) {
@@ -143,6 +142,10 @@ class TreeCardData {
     }
   }
 
+  void resetNodes() {
+    nodes = [];
+  }
+
   bool innerCalc() {
     bool hasChange = false;
     if (this.data != null) {
@@ -161,25 +164,39 @@ class TreeCardData {
       edges = [];
 
       // 1. 随机所有节点的位置
-      if (nodes.length == 0 && this.dataTags.length > 0 && hasSetSize) {
+      if (this.dataTags.length > 0 && hasSetSize) {
         // print("randomw");
+        lastTagsLength = this.dataTags.length;
+        
+        List<TreeCardNode> newNodes = [];
         this.data.data.forEach((element) {
-          TreeCardNode node = TreeCardNode();
-
-          node.postion = Offset(
-              new Random()
-                      .nextInt(size.width.toInt() - paddingX.toInt())
-                      .toDouble() +
-                  paddingX,
-              new Random().nextInt(size.height.toInt()).toDouble());
-          node.item = element;
           if (tagList.where((tag) {
                 return element.tags.contains(tag.name);
               }).length >
               0) {
-            nodes.add(node);
+            
+            TreeCardNode node = TreeCardNode();
+            var attachNodes = nodes.where((node) {
+              return node.item == element;
+            });
+            if (attachNodes.length == 0) {
+              node.postion = Offset(
+                  new Random()
+                          .nextInt(size.width.toInt() - paddingX.toInt())
+                          .toDouble() +
+                      paddingX,
+                  new Random().nextInt(size.height.toInt()).toDouble());
+              node.item = element; 
+              hasChange = true;
+            } else {
+              node = attachNodes.first;
+            }
+            newNodes.add(node);
           }
         });
+
+        
+        nodes = newNodes;
 
         nodes.sort((a, b) {
           return (a.postion - Offset(size.width / 2, size.height / 2))
@@ -189,21 +206,21 @@ class TreeCardData {
                   .distance
                   .toInt();
         });
+      } else {
+        print("${lastTagsLength}");
       }
 
       // 2. 计算所有节点的加速度
       for (int x = 0; x < nodes.length; x++) {
         TreeCardNode nx = nodes[x];
-      // 1.1 重设节点颜色
-        var targetTag = this.dataTags.where((tag) { return nx.item.tags.contains(tag.name);}).first;
+        // 1.1 重设节点颜色
+        var targetTag = this.dataTags.where((tag) {
+          return nx.item.tags.contains(tag.name);
+        }).first;
         if (isDarkmode) {
-            nx.color = targetTag
-                .darkColor2
-                .withAlpha(255);
+          nx.color = targetTag.darkColor2.withAlpha(255);
         } else {
-          nx.color = targetTag
-              .lightColor
-              .withAlpha(255);
+          nx.color = targetTag.lightColor.withAlpha(255);
         }
 
         var minWidth = 11 * nx.weight + 20;
@@ -232,10 +249,10 @@ class TreeCardData {
           nx.accs.add(boderAcc);
         }
 
-        var maxWidth = (size.width ) - (10 * nx.weight) - 20;
-        if (nx.postion.dx >  maxWidth){
+        var maxWidth = (size.width) - (10 * nx.weight) - 20;
+        if (nx.postion.dx > maxWidth) {
           AccPair boderAcc = AccPair();
-          boderAcc.acc = Offset((maxWidth- nx.postion.dx), 0);
+          boderAcc.acc = Offset((maxWidth - nx.postion.dx), 0);
           boderAcc.color = nx.color;
           // boderAcc.show = true;
           nx.accs.add(boderAcc);
@@ -292,6 +309,11 @@ class TreeCardData {
       print("this.data is null");
     }
     // print("innerCalc ${hasChange}");
+    if (hasChange) {
+      if (onNeedRefreshCallback != null) {
+        onNeedRefreshCallback();
+      }
+    }
     return hasChange;
   }
 
@@ -301,12 +323,7 @@ class TreeCardData {
 
   bool calc() {
     var hasChange = innerCalc();
-    innerCalc();
-    innerCalc();
-    innerCalc();
-    innerCalc();
-    innerCalc();
-    var size = 0;
+    // innerCalc();;
     // while(hasChange = innerCalc() && size++ < 100);
     // print("calc end ${size}");
     return hasChange;
@@ -331,7 +348,8 @@ class TreeCardPainter extends CustomPainter {
       List<KfToDoTagData> dataTags,
       bool isDraging = false,
       Offset mouseOffset,
-      GlobalKey customKey, bool isDarkmode}) {
+      GlobalKey customKey,
+      bool isDarkmode, Function onNeedRefreshCallback}) {
     this.data = data;
     this.offset = offset;
     this.dataTags = dataTags;
@@ -340,6 +358,8 @@ class TreeCardPainter extends CustomPainter {
     this.customKey = customKey;
     this.isDarkmode = isDarkmode;
     this.data.isDarkmode = isDarkmode;
+    this.data.dataTags = this.dataTags;
+    this.data.onNeedRefreshCallback = onNeedRefreshCallback;
   }
 
   Offset relativePosition() {
@@ -371,11 +391,11 @@ class TreeCardPainter extends CustomPainter {
     Paint paint = Paint()
       ..color = Colors.red
       ..style = PaintingStyle.fill
-      ..strokeWidth = 3;
+      ..strokeWidth = 0.5;
 
     if (isDraging) {
       paint.style = PaintingStyle.stroke;
-      paint.color = ViewBuilder.RandomColor();
+      // paint.color = ViewBuilder.RandomColor();
       canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
     }
     paint.style = PaintingStyle.fill;
@@ -473,9 +493,9 @@ class TreeCardPainter extends CustomPainter {
             isAlpha: !node.isOnHover && !node.isLinked);
         canvas.drawRect(
             Rect.fromPoints(
-                node.postion,
+                node.postion - Offset(10,10),
                 node.postion +
-                    Offset(textPainter.size.width, textPainter.size.height)),
+                    Offset(textPainter.size.width, textPainter.size.height) + Offset(10,10)),
             paint);
         textPainter..paint(canvas, node.postion);
       }
@@ -529,6 +549,8 @@ class TreeCardPainter extends CustomPainter {
   }
 
   Color getColorFromTag(KfToDoTagData tagData) {
-    return isDarkmode ? tagData.darkColor2.withAlpha(255) : tagData.lightColor.withAlpha(255);
+    return isDarkmode
+        ? tagData.darkColor2.withAlpha(255)
+        : tagData.lightColor.withAlpha(255);
   }
 }
