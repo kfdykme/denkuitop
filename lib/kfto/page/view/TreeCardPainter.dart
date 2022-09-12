@@ -148,7 +148,7 @@ class TreeCardData {
     if (this.data != null) {
       var tagList = dataTags; //[dataTags[1], dataTags[0]];
       nodes.forEach((node) {
-        if (node.acc.distance > 0) {
+        if (node.acc.distance > 1) {
           hasChange = true;
         }
         if (shouldReCalc()) {
@@ -165,25 +165,6 @@ class TreeCardData {
         // print("randomw");
         this.data.data.forEach((element) {
           TreeCardNode node = TreeCardNode();
-          if (isDarkmode) {
-            node.color = dataTags
-                .where((tag) {
-                  return element.tags.contains(tag.name);
-                })
-                .first
-                .darkColor
-                .withAlpha(255);
-
-          } else {
-
-            node.color = dataTags
-                .where((tag) {
-                  return element.tags.contains(tag.name);
-                })
-                .first
-                .lightColor
-                .withAlpha(255);
-          }
 
           node.postion = Offset(
               new Random()
@@ -213,33 +194,48 @@ class TreeCardData {
       // 2. 计算所有节点的加速度
       for (int x = 0; x < nodes.length; x++) {
         TreeCardNode nx = nodes[x];
+      // 1.1 重设节点颜色
+        var targetTag = this.dataTags.where((tag) { return nx.item.tags.contains(tag.name);}).first;
+        if (isDarkmode) {
+            nx.color = targetTag
+                .darkColor2
+                .withAlpha(255);
+        } else {
+          nx.color = targetTag
+              .lightColor
+              .withAlpha(255);
+        }
 
-        if (nx.postion.dx < 100 + paddingX) {
+        var minWidth = 11 * nx.weight + 20;
+        if (nx.postion.dx < minWidth + paddingX) {
           AccPair boderAcc = AccPair();
-          boderAcc.acc = Offset(((10 + paddingX) - nx.postion.dx), 0);
+          boderAcc.acc = Offset(((minWidth + paddingX) - nx.postion.dx), 0);
           boderAcc.color = nx.color;
           // boderAcc.show = true;
           nx.accs.add(boderAcc);
         }
-        if (nx.postion.dy < 10) {
+        var minHeight = 11 * nx.weight + 20;
+        if (nx.postion.dy < minHeight) {
           AccPair boderAcc = AccPair();
-          boderAcc.acc = Offset(0, 10);
+          boderAcc.acc = Offset(0, minHeight - nx.postion.dy);
           boderAcc.color = nx.color;
           // boderAcc.show = true;
           nx.accs.add(boderAcc);
         }
 
-        if (nx.postion.dy > (size.height) - (10 * nx.weight)) {
+        var maxHeight = (size.height) - (10 * nx.weight) - 20;
+        if (nx.postion.dy > maxHeight) {
           AccPair boderAcc = AccPair();
-          boderAcc.acc = Offset(0, -10);
+          boderAcc.acc = Offset(0, maxHeight - nx.postion.dy);
           boderAcc.color = nx.color;
           // boderAcc.show = true;
           nx.accs.add(boderAcc);
         }
 
-        if (nx.postion.dx > (size.width ) - (10 * nx.weight)) {
+        var maxWidth = (size.width ) - (10 * nx.weight) - 20;
+        if (nx.postion.dx >  maxWidth){
           AccPair boderAcc = AccPair();
-          boderAcc.acc = Offset((size.width - nx.postion.dx), 0);
+          boderAcc.acc = Offset((maxWidth- nx.postion.dx), 0);
           boderAcc.color = nx.color;
           // boderAcc.show = true;
           nx.accs.add(boderAcc);
@@ -533,6 +529,6 @@ class TreeCardPainter extends CustomPainter {
   }
 
   Color getColorFromTag(KfToDoTagData tagData) {
-    return isDarkmode ? tagData.lightColor.withAlpha(255) : tagData.lightColor.withAlpha(255);
+    return isDarkmode ? tagData.darkColor2.withAlpha(255) : tagData.lightColor.withAlpha(255);
   }
 }
