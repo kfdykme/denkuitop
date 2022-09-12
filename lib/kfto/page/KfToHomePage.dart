@@ -74,7 +74,8 @@ class KfToHomeState extends BaseRemotePageState {
   String filePathLabelText = '';
 
   TextEditingController _currentPathcontroller;
-  var containerKey = GlobalKey();
+
+  var treeCardPainterKey = GlobalKey();
 
   Widget cefContainer = null;
 
@@ -100,7 +101,16 @@ class KfToHomeState extends BaseRemotePageState {
   String dialog_editor_blog_file_name = "";
   bool isWriteWithoutRead = false;
 
+  bool is_darging_tree_card = false;
+  Offset darging_tree_card_pos = Offset.zero;
+  Offset tree_card_mouse_pos = Offset.zero;
+  Offset darging_tree_card_pos_cache = Offset.zero;
+
   KfTodoTextField searchTagField;
+
+  TreeCardData treeCardData = null;
+
+  double currentWindowHeight = 650;
 
   // other module
   DenoLibSocketLife denoLibSocketLife = DenoLibSocketLife();
@@ -690,7 +700,7 @@ class KfToHomeState extends BaseRemotePageState {
           left_width_real = 10;
         }
       });
-    } 
+    }
   }
 
   void onDragLineEnd() {
@@ -767,6 +777,22 @@ class KfToHomeState extends BaseRemotePageState {
     );
   }
 
+  void RefreshTreeCard() {
+    if (!is_darging_tree_card) {
+      return;
+    }
+      Future.delayed(Duration(microseconds: 60)).then((value) {
+          setState(() {
+          var hasChange = treeCardData.calc();
+          if (hasChange) {
+              treeCardData.calc();
+              treeCardData = treeCardData;
+              RefreshTreeCard();
+          }
+          });
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (searchTagField == null) {
@@ -790,12 +816,18 @@ class KfToHomeState extends BaseRemotePageState {
             },
           )
         : cefContainer;
-    Paint paint = Paint()
-    ..isAntiAlias = true
-    ..color = Colors.pink
-    ..blendMode = BlendMode.colorDodge
-    ..strokeWidth = 10
-    ..style = PaintingStyle.fill;
+
+    if (treeCardData == null) {
+      treeCardData = TreeCardData(data: this.data, dataTags: this.dataTags);
+    }
+    if (treeCardData.data == null) {
+      treeCardData.data = this.data;
+    }
+
+    if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
+      treeCardData.dataTags = this.dataTags;
+    }
+
     var listModeChilds = [
       new Container(
         width: left_width_real,
@@ -813,7 +845,7 @@ class KfToHomeState extends BaseRemotePageState {
                     onDragLineMoving(event);
                   }),
                   onPointerHover: ((event) {
-                    print("onPointerHover ${event}");
+                    // print("onPointerHover ${event}");
                     setState(() {
                       dragLineColor = ViewBuilder.RandomColor();
                     });
@@ -834,9 +866,75 @@ class KfToHomeState extends BaseRemotePageState {
         ),
       ),
       isTreeCardMode
-          ? CustomPaint(
-            painter: TreeCardPainter(),
-          )
+          ? Stack(
+              children: [
+                Listener(
+                    onPointerDown: (event) {
+                      is_darging_tree_card = !is_darging_tree_card;
+                      print(
+                          "toggle is_darging_tree_card ${is_darging_tree_card}");
+                      darging_tree_card_pos_cache = event.position;
+                      setState(() {
+                        // is_darging_tree_card = is_darging_tree_card;
+                        treeCardData.is_darging_tree_card = is_darging_tree_card;
+                        // treeCardData.calc();
+                        RefreshTreeCard();
+                      });
+                      
+                    },
+                    onPointerUp: ((event) {
+                      treeCardData.is_darging_tree_card = is_darging_tree_card;
+                      // darging_tree_card_pos_cache = Offset.zero;
+                    }),
+                    onPointerMove: ((event) {
+                      // print("${event}");
+                    }),
+                    onPointerHover: ((event) {
+                      // print("onPointerHover r${event}");
+                      if (is_darging_tree_card) {
+                        // print("${event.delta}");
+                        var offset = Offset(
+                            event.position.dx - darging_tree_card_pos_cache.dx,
+                            event.position.dy - darging_tree_card_pos_cache.dy);
+                       
+                      } else {
+                        setState(() {
+                          tree_card_mouse_pos = event.position;
+                        });
+                      }
+                    }),
+                    child: Container(
+                      key: treeCardPainterKey,
+                      width: 1080,
+                      child: CustomPaint(
+                        
+                        // // painter:
+                        foregroundPainter: TreeCardPainter(treeCardData,
+                        isDarkmode: ColorManager.instance().isDarkmode,
+                        customKey: treeCardPainterKey,
+                            offset: darging_tree_card_pos,
+                            dataTags: this.dataTags,
+                            mouseOffset: tree_card_mouse_pos,
+                            isDraging: is_darging_tree_card),
+                        child: Container(
+                          color: Color(0x333333),
+                          height: currentWindowHeight - 50,
+                        ),
+                      ),
+                      height: double.infinity,
+                    )),
+                // Expanded (
+                // child:Container(color: ColorManager.Get("cardbackground"),
+                // child:  CustomPaint(
+                // // painter:
+                // foregroundPainter: TreeCardPainter(this.data, offset: darging_tree_card_pos),
+                // child: Container(
+                //   color: Colors.white,
+                //   height: currentWindowHeight - 50,
+                // ),
+                // )))
+              ],
+            )
           : Expanded(
               child: Container(
               child: Card(
@@ -848,15 +946,18 @@ class KfToHomeState extends BaseRemotePageState {
                       height: 60,
                       child: Row(
                         children: [
-                          filePathLabelText.isEmpty ? Container() :ViewBuilder.BuildMaterialButton("", onPressFunc: () {
-                            _saveFile();
-                          },
-                              color: ColorManager.Get("textdarkr"),
-                              icon: Icon(
-                                Icons.save_as_sharp,
-                                color: ColorManager.Get("textdarkr"),
-                                size: ViewBuilder.size(2),
-                              )),
+                          filePathLabelText.isEmpty
+                              ? Container()
+                              : ViewBuilder.BuildMaterialButton("",
+                                  onPressFunc: () {
+                                  _saveFile();
+                                },
+                                  color: ColorManager.Get("textdarkr"),
+                                  icon: Icon(
+                                    Icons.save_as_sharp,
+                                    color: ColorManager.Get("textdarkr"),
+                                    size: ViewBuilder.size(2),
+                                  )),
                           ViewBuilder.BuildMaterialButton("",
                               onPressFunc: () => this.onPressAddNewFunc(),
                               color: ColorManager.Get("textdarkr"),
@@ -865,11 +966,14 @@ class KfToHomeState extends BaseRemotePageState {
                                 color: ColorManager.Get("textdarkr"),
                                 size: ViewBuilder.size(2),
                               )),
-                            Container(
-                              color: filePathLabelText.isEmpty  ? null : ColorManager.Get("textdarkr"),   margin: EdgeInsets.symmetric(
+                          Container(
+                            color: filePathLabelText.isEmpty
+                                ? null
+                                : ColorManager.Get("textdarkr"),
+                            margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
-                              width: 5,
-                            ),
+                            width: 5,
+                          ),
                           Expanded(
                               child: Container(
                             // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
@@ -963,11 +1067,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
                         Icons.trending_down,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
@@ -985,11 +1089,13 @@ class KfToHomeState extends BaseRemotePageState {
                     //     }));
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
-                        !ColorManager.instance().isDarkmode ? Icons.dark_mode : Icons.dark_mode_outlined,
+                        !ColorManager.instance().isDarkmode
+                            ? Icons.dark_mode
+                            : Icons.dark_mode_outlined,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Re-Random Color"), onPressFunc: () {
@@ -999,11 +1105,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
                         Icons.color_lens,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Switch Language"), onPressFunc: () {
@@ -1012,22 +1118,22 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
                         Icons.language,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Reload Editor"), onPressFunc: () {
                     web.executeJs("location.reload(false)");
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
                         Icons.refresh,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                   ViewBuilder.BuildInLineMaterialButton(
                       TextK.Get("Reset WorkSpace"), onPressFunc: () {
@@ -1040,11 +1146,11 @@ class KfToHomeState extends BaseRemotePageState {
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
-                      withText:false,
+                      withText: false,
                       icon: Icon(
                         Icons.settings,
                         color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2: 3),
+                        size: ViewBuilder.size(false ? 2 : 3),
                       )),
                 ],
               ),

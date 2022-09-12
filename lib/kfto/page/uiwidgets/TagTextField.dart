@@ -109,7 +109,6 @@ class KfTodoTextField {
               inputfieldBuilder:
                   (context, tec, fn, error, onChanged, onSubmitted) {
                 return ((context, sc, tags, onTagDelete) {
-                  print("rebuild TextFieldTags");
                   return Container(
                     margin: EdgeInsets.all(ViewBuilder.size(1)),
                     // color:  ColorManager.Get("tagtextfieldlight"),

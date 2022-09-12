@@ -5,7 +5,7 @@ import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:flutter/material.dart';
 
 class ViewBuilder {
-  static int RANDOM_COLOR_TOP = 210;
+  static int RANDOM_COLOR_TOP = 230;
   static int RANDOM_COLOR_BOTTOM = 160;
   static int RANDOM_COLOR_BOTTOM_2 = 100;
   static double BASE_SIZE = 8;
