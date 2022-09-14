@@ -22,7 +22,7 @@ class KfTodoTextFieldController extends TextfieldTagsController {
 
     _doublesDeleteTag.debounceTime(Duration(milliseconds: 100))
     .listen((event) {
-        if (this.currentCache.trim() == "" || getTags.last.trim() == this.currentCache.trim()) {
+        if (this.currentCache.trim() == "" ||( getTags.length > 0 && getTags.last.trim() == this.currentCache.trim())) {
         // remove last tags
         if (getTags.length > 0) {
 

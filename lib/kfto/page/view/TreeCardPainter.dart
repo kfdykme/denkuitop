@@ -49,6 +49,7 @@ class TreeCardNode {
   bool isOnHover = false;
   bool isLinked = false;
   List<AccPair> accs = [];
+  List<AccPair> eaccs = [];
   Offset get acc {
     var tempO = Offset.zero;
     accs.forEach((element) {
@@ -56,6 +57,7 @@ class TreeCardNode {
     });
     return tempO;
   }
+  
 
   double get weight {
     return item.tags.length.toDouble();
@@ -105,9 +107,9 @@ class TreeCardData {
     double distanceMinCalc = distanceMin + (10 * (weight + 2));
     if (d < distanceMinCalc) {
       res = (d - distanceMinCalc);
-      if (hasEdge) {
-        res = res * 1.1;
-      }
+      // if (hasEdge) {
+      //   res = res * 1.1;
+      // }
     } else if (d >= distanceMinCalc && d <= distanceMaxCalc) {
       res = 0;
     } else if (d > distanceMaxCalc) {
@@ -151,8 +153,10 @@ class TreeCardData {
     if (this.data != null) {
       var tagList = dataTags; //[dataTags[1], dataTags[0]];
       nodes.forEach((node) {
-        if (node.acc.distance > 1) {
+        if (node.acc.distance > 10) {
           hasChange = true;
+        } else {
+          return;
         }
         if (shouldReCalc()) {
           node.postion = node.postion + node.acc / 10;
@@ -437,7 +441,7 @@ class TreeCardPainter extends CustomPainter {
     data.edges.forEach((edge) {
       paint.color =
           getColorFrom(edge.color, isAlpha: isHovering && !edge.isHovering);
-      paint.strokeWidth = 1;
+      paint.strokeWidth = 0.5;
       // canvas.drawLine(edge.x, edge.y, paint);
       Path pathP = Path();
       pathP.moveTo(edge.x.dx, edge.x.dy);

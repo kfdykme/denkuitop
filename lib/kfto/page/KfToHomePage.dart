@@ -17,6 +17,7 @@ import 'package:denkuitop/kfto/data/DenoLibSocketLife.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
 import 'package:denkuitop/kfto/page/KfToNavigator.dart';
 import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
+import 'package:denkuitop/kfto/page/view/GridCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/TreeCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
@@ -46,6 +47,8 @@ class KfToHomeState extends BaseRemotePageState {
   ListData data = null;
   List<KfToDoTagData> dataTags = [];
   String searchKey = "";
+  
+  SplitCardData gridCardData;
 
   List<KfToDoTagData> get searchedTags {
     if (searchKey == "") {
@@ -68,6 +71,15 @@ class KfToHomeState extends BaseRemotePageState {
       });
       return searchRes;
     }
+  }
+
+  List<ListItemData> get searchedListData {
+    List<ListItemData> items = [];
+    searchedTags.forEach((tag) {
+      var searcedItems = this.data.data.where((element) => element.tags.contains(tag.name));
+      items.addAll(searcedItems);
+    });
+    return items;
   }
 
   String currentFilePath = '';
@@ -777,21 +789,20 @@ class KfToHomeState extends BaseRemotePageState {
     );
   }
 
-  void RefreshTreeCard() {
-    if (!is_darging_tree_card) {
-      return;
+  CustomPainter buildTreeCardPainter() {
+    SplitCardPainter painter =  SplitCardPainter(ValueNotifier<int>(this.searchedTags.length));
+    if (this.gridCardData == null) {
+      gridCardData = SplitCardData();
+
+      // gridCardData.calcAll();
+      // RefreshTreeCardData();
     }
-    Future.delayed(Duration(microseconds: 60)).then((value) {
-      setState(() {
-        var hasChange = treeCardData.calc();
-        if (hasChange) {
-          treeCardData.calc();
-          RefreshTreeCard();
-        } else {
-          treeCardData.is_darging_tree_card = false;
-        }
-      });
-    });
+    gridCardData.setData(this.searchedListData, this.searchedTags);
+    // painter.gridCardData = gridCardData;
+    painter.setPainterSplitData(gridCardData);
+    // RefreshTreeCard()
+
+    return painter;
   }
 
   @override
@@ -828,9 +839,9 @@ class KfToHomeState extends BaseRemotePageState {
     if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
       treeCardData.dataTags = this.searchedTags;
     }
-    if (isTreeCardMode) {
-      RefreshTreeCard();
-    }
+    // if (isTreeCardMode) {
+    //   RefreshTreeCard();
+    // }
 
     var listModeChilds = [
       new Container(
@@ -878,13 +889,14 @@ class KfToHomeState extends BaseRemotePageState {
                       print(
                           "toggle is_darging_tree_card ${is_darging_tree_card}");
                       darging_tree_card_pos_cache = event.position;
-                      setState(() {
+                      // setState(() {
                         // is_darging_tree_card = is_darging_tree_card;
-                        treeCardData.is_darging_tree_card =
-                            is_darging_tree_card;
+                        // treeCardData.is_darging_tree_card =
+                        //     is_darging_tree_card;
                         // treeCardData.calc();
-                        RefreshTreeCard();
-                      });
+                        // RefreshTreeCard();
+                      // });
+                      RefreshTreeCardData();
                     },
                     onPointerUp: ((event) {
                       // treeCardData.is_darging_tree_card = is_darging_tree_card;
@@ -901,9 +913,9 @@ class KfToHomeState extends BaseRemotePageState {
                             event.position.dx - darging_tree_card_pos_cache.dx,
                             event.position.dy - darging_tree_card_pos_cache.dy);
                       } else {
-                        setState(() {
-                          tree_card_mouse_pos = event.position;
-                        });
+                        // setState(() {
+                        //   // tree_card_mouse_pos = event.position;
+                        // });
                       }
                     }),
                     child: Container(
@@ -911,15 +923,16 @@ class KfToHomeState extends BaseRemotePageState {
                       width: 1080,
                       child: CustomPaint(
                         // // painter:
-                        foregroundPainter: TreeCardPainter(treeCardData,
-                            isDarkmode: ColorManager.instance().isDarkmode,
-                            customKey: treeCardPainterKey,
-                            offset: darging_tree_card_pos,
-                            dataTags: this.searchedTags,
-                            mouseOffset: tree_card_mouse_pos,
-                            onNeedRefreshCallback: () {
-                          // RefreshTreeCard();
-                        }, isDraging: is_darging_tree_card),
+                        // foregroundPainter: TreeCardPainter(treeCardData,
+                        //     isDarkmode: ColorManager.instance().isDarkmode,
+                        //     customKey: treeCardPainterKey,
+                        //     offset: darging_tree_card_pos,
+                        //     dataTags: this.searchedTags,
+                        //     mouseOffset: tree_card_mouse_pos,
+                        //     onNeedRefreshCallback: () {
+                        //   // RefreshTreeCard();
+                        // }, isDraging: is_darging_tree_card),
+                        foregroundPainter: buildTreeCardPainter(),
                         child: Container(
                           color: Color(0x333333),
                           height: currentWindowHeight - 50,
@@ -1165,6 +1178,23 @@ class KfToHomeState extends BaseRemotePageState {
     this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
         callback: (AsyncIpcData data) {
       _refresh();
+    });
+  }
+  
+  void RefreshTreeCardData() {
+    if (gridCardData.isFull) {
+      return;
+    }
+    setState(() {
+
+    gridCardData.calc();
+    });
+    if (gridCardData.isFull) {
+      return;
+    }
+    Future.delayed(Duration(microseconds: 100), () {
+      
+      RefreshTreeCardData();
     });
   }
 }
