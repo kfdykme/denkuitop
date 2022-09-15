@@ -476,8 +476,8 @@ class SplitCardData extends GridCardData {
     };
 
 
-    var cardSizeWidth = min(width * .9/ (lastMaxLength + 1), 300.0);
-    var cardSizeHeight = min(height * .7/ (lastMaxLength + 1), 400.0);
+    var cardSizeWidth = min((width -200 )/ (lastMaxLength + 1), 300.0);
+    var cardSizeHeight = min((height - 100)/ (lastMaxLength + 1), 400.0);
 // print("calc cardSize ${cardSize}");
     cardSize = Offset(cardSizeWidth,cardSizeHeight);
     

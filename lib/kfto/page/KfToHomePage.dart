@@ -489,8 +489,11 @@ class KfToHomeState extends BaseRemotePageState {
     print('onPressSingleItemFunc ' + itemData.type);
     // if (itemData.type )
      setState(() {
-        isTreeCardMode = !isTreeCardMode;
-        web.toggle();
+        if (isTreeCardMode) {
+
+          isTreeCardMode = !isTreeCardMode;
+          web.toggle();
+        }
       });
     if (itemData.path.startsWith('http://') ||
         itemData.path.startsWith('https://')) {
@@ -510,13 +513,14 @@ class KfToHomeState extends BaseRemotePageState {
             "path ${path} ${currentFilePath} ${"\\"} ${DirSpelator}\n\n\n\n----------------");
         content = content.replaceAll('\t', '    ');
         _refreshFilePathTextField();
-        _insertIntoEditor(content);
-
         web.executeJs(
             'window.denkGetKey("funcSwitchDarkMode",${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+        _insertIntoEditor(content);
+
+        print("switch to darkmode ${ColorManager.instance().isDarkmode}");
         var jsCode =
             "window.denkSetKeyValue('dataList', decodeURIComponent(\"${Uri.encodeComponent(this.data.json)}\"))";
-        print("jsCode ${jsCode}");
+        // print("jsCode ${jsCode}");
         web.executeJs(jsCode);
         web.executeJs("window.denkGetKey('funcUpdateSuggestions')()");
       });
@@ -1126,6 +1130,9 @@ class KfToHomeState extends BaseRemotePageState {
                     setState(() {
                       isTreeCardMode = !isTreeCardMode;
                       web.toggle();
+                        web.executeJs(
+                        'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
