@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:denkuitop/common/ColorManager.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
+import 'package:denkuitop/kfto/page/view/SplitCardNode.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:flutter/material.dart';
 
@@ -223,7 +224,7 @@ class MStack<E> {
   bool get isEmpty => _top == -1;
   bool get isFull => _top == max - 1;
   int get size => _top + 1;
-  Map<E,bool> marks = new Map();
+  Map<E, bool> marks = new Map();
   void push(E e) {
     if (isFull) return null;
     marks[e] = true;
@@ -231,7 +232,7 @@ class MStack<E> {
   }
 
   bool has(E e) {
-    bool hasRes =  marks.keys.contains(e);
+    bool hasRes = marks.keys.contains(e);
     return hasRes;
   }
 
@@ -253,20 +254,30 @@ class SplitCardData extends GridCardData {
   // List<List<int>> maps = [];
 
   Map<String, int> maps = Map();
-  Map<String, ListItemData> itemMaps = Map();
+  Map<String, SplitCardNode> itemMaps = Map();
 
   int lastMaxLength = 0;
 
   // init nodemaps
   int maxX = 0;
   int maxY = 0;
-  
+
   int tagIndex = 0;
 
   Offset lastNode = Offset.zero;
+  Offset hoverPosition = Offset.zero;
+  Offset hoverCardSize = Offset.zero;
+
+  Function getRelationPosFunc = null;
+
+  bool hasHover = false;
+
+  SplitCardNode hoverNode = null;
+
   String pos(int x, int y) {
     return Offset(x.toDouble(), y.toDouble()).toString();
   }
+
   Offset posOffset(int x, int y) {
     return Offset(x.toDouble(), y.toDouble());
   }
@@ -275,16 +286,16 @@ class SplitCardData extends GridCardData {
     return tagIndex >= filteredTags.length;
   }
 
-
   List<KfToDoTagData> get filteredTags {
-    if (tags == null ){
+    if (tags == null) {
       return [];
     }
-    return List.from(tags.where((element) => !element.isRss && !element.isRssItem && !element.name.startsWith("_")));
+    return List.from(tags.where((element) =>
+        !element.isRss && !element.isRssItem && !element.name.startsWith("_")));
   }
 
-  int  get getTagIndex {
-    if (tags == null ) {
+  int get getTagIndex {
+    if (tags == null) {
       return 0;
     }
     if (tagIndex + 1 > filteredTags.length) {
@@ -318,14 +329,17 @@ class SplitCardData extends GridCardData {
       tryNodeMStack.push(Offset(0, 0));
     }
 
+    hoverCardSize = Offset(500, 309);
+
     isInited = true;
   }
 
   void calcAll() {
-    while(tagIndex < filteredTags.length) {
+    while (tagIndex < filteredTags.length) {
       calc();
     }
   }
+
   @override
   void setData(List<ListItemData> data, List<KfToDoTagData> tags) {
     bool shouldCalc = false;
@@ -336,7 +350,7 @@ class SplitCardData extends GridCardData {
       shouldCalc = true;
     }
 
-    if ( this.data != null && data.length != this.data.length) {
+    if (this.data != null && data.length != this.data.length) {
       shouldCalc = true;
     }
 
@@ -344,6 +358,7 @@ class SplitCardData extends GridCardData {
     if (shouldCalc) {
       lastLength = 0;
       tagIndex = 0;
+      maps = Map();
       calcAll();
     }
   }
@@ -355,7 +370,7 @@ class SplitCardData extends GridCardData {
     }
 
     if (tagIndex == 0) {
-       // init maps
+      // init maps
       for (int x = 0; x < count; x++) {
         for (int y = 0; y < count; y++) {
           maps[pos(x, y)] = 0;
@@ -387,7 +402,7 @@ class SplitCardData extends GridCardData {
       // print(items.length);
       //
       Offset block = Offset((--itemCount).toDouble(), itemCount.toDouble());
-      
+
       // mark block in maps
 
       var cacheMaps = Map.from(maps);
@@ -397,45 +412,52 @@ class SplitCardData extends GridCardData {
       var currentShortestOri = ori;
       var currentShortestMaxY = maxY;
       var currentShortestMaxX = maxX;
-      var lists = List.from(tryNodeMStack._stack.where((element) => element != null));
-      lists.sort((a,b) {
-        return ((a.distance-b.distance)* 10) .toInt();
+      var lists =
+          List.from(tryNodeMStack._stack.where((element) => element != null));
+      lists.sort((a, b) {
+        return ((a.distance - b.distance) * 10).toInt();
       });
       // while (!tryNodeMStack.isEmpty) {
       // while (!tryNodeMStack.isEmpty) {
       // print("${lists}");
-      if (lists.length > 0)
-      {
+      if (lists.length > 0) {
         //  ori= tryNodeMStack.pop();
-        ori= lists.first;
+        ori = lists.first;
         lastNode = ori;
-        maps =  Map.from(cacheMaps);
-
+        maps = Map.from(cacheMaps);
 
         int itemIndex = 0;
         for (int x = 0; x < block.dx; x++) {
           for (int y = 0; y < block.dy; y++) {
             if (itemIndex < items.length) {
               // maps[x + ori.dx.toInt()][y + ori.dy.toInt()] = 1;
-              maps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] = ColorManager.instance().isDarkmode ? tag.lightColor.value : tag.darkColor2.value;
-              itemMaps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] = items[itemIndex++];
+              maps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] =
+                  ColorManager.instance().isDarkmode
+                      ? tag.lightColor.value
+                      : tag.darkColor2.value;
+              SplitCardNode node = SplitCardNode();
+              node.item = items[itemIndex++];
+              node.tag = tag.name;
+              itemMaps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] = node;
               maxX = max(maxX, x + ori.dx.toInt());
               maxY = max(maxY, y + ori.dy.toInt());
+            } else {
+              maps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] =
+                  Colors.redAccent.value;
+              itemMaps[pos(x + ori.dx.toInt(), y + ori.dy.toInt())] = null;
             }
           }
         }
-        
 
-          var blockLength = max(maxX, maxY);
-          if (blockLength < currentSHortestLength) {
-            currentSHortestLength = blockLength;
-            currentShortestMap = Map.from(maps);
-            currentShortestOri = ori;
-            currentShortestMaxX = maxX;
-            currentShortestMaxY = maxY;
-            lastMaxLength = blockLength;
-          }
-        
+        var blockLength = max(maxX, maxY);
+        if (blockLength < currentSHortestLength) {
+          currentSHortestLength = blockLength;
+          currentShortestMap = Map.from(maps);
+          currentShortestOri = ori;
+          currentShortestMaxX = maxX;
+          currentShortestMaxY = maxY;
+          lastMaxLength = blockLength;
+        }
       }
       maps = Map.from(currentShortestMap);
       ori = currentShortestOri;
@@ -456,16 +478,20 @@ class SplitCardData extends GridCardData {
         oriY = ori.dy.toInt();
         // top
         // if (maps[oriX][oriY - 1] == 0) {
-        if (maps[pos(oriX, oriY - 1)] == 0 && !tryNodeMStack.has(posOffset(oriX, oriY -1))) {
+        if (maps[pos(oriX, oriY - 1)] == 0 &&
+            !tryNodeMStack.has(posOffset(oriX, oriY - 1))) {
           oriY--;
           continue;
         }
         // if (oriX + 1 < maps.length && maps[oriX + 1][oriY] == 0) {
-        if (oriX + 1 < maps.length && maps[pos(oriX + 1, oriY)] == 0 && !tryNodeMStack.has(posOffset(oriX +1, oriY))) {
+        if (oriX + 1 < maps.length &&
+            maps[pos(oriX + 1, oriY)] == 0 &&
+            !tryNodeMStack.has(posOffset(oriX + 1, oriY))) {
           oriX++;
           continue;
         }
-        if (maps[pos(oriX, oriY + 1)] == 0 && !tryNodeMStack.has(posOffset(oriX, oriY +1))) {
+        if (maps[pos(oriX, oriY + 1)] == 0 &&
+            !tryNodeMStack.has(posOffset(oriX, oriY + 1))) {
           oriY++;
           continue;
         }
@@ -473,25 +499,78 @@ class SplitCardData extends GridCardData {
 
       ori = Offset(oriX.toDouble(), (oriY).toDouble());
       tryNodeMStack.push(ori);
-    };
+    }
+    ;
 
-
-    var cardSizeWidth = min((width -200 )/ (lastMaxLength + 1), 300.0);
-    var cardSizeHeight = min((height - 100)/ (lastMaxLength + 1), 400.0);
+    var cardSizeWidth = min((width - 200) / (lastMaxLength + 1), 300.0);
+    var cardSizeHeight = min((height - 100) / (lastMaxLength + 1), 400.0);
 // print("calc cardSize ${cardSize}");
-    cardSize = Offset(cardSizeWidth,cardSizeHeight);
-    
+    cardSize = Offset(cardSizeWidth, cardSizeHeight);
+  }
+
+  void onHover(Offset position) {
+    this.hoverPosition = position;
+
+    this.hasHover = false;
+    hoverNode = null;
+    // get Relation pos
+    if (getRelationPosFunc != null) {
+      var rePos = getRelationPosFunc(hoverPosition);
+
+      for (int x = 0; x <= lastMaxLength; x++) {
+        for (int y = 0; y <= lastMaxLength; y++) {
+          var ori = Offset(x * cardSize.dx, y * cardSize.dy);
+          // if (maps[x][y] != 0) {
+
+          var end = ori + cardSize;
+          SplitCardNode node = itemMaps[pos(x, y)];
+          if (node == null) {
+            continue;
+          }
+          if (rePos.dx >= ori.dx &&
+              rePos.dy >= ori.dy &&
+              rePos.dx <= end.dx &&
+              rePos.dy <= end.dy) {
+            hasHover = true;
+            hoverNode = node;
+            node.hover = true;
+          } else {
+            node.hover = false;
+          }
+        }
+      }
+    } else {
+      return;
+    }
+  }
+
+  void setGetRelationPosFunc(Offset Function(Offset offset) func) {
+    if (this.getRelationPosFunc == null) {
+      this.getRelationPosFunc = func;
+    }
   }
 }
 
 class SplitCardPainter extends GridCardPainter {
-  SplitCardPainter(ValueNotifier<int> dataLength) : super(dataLength);
+  bool mouseEventEnable = true;
+
+  GlobalKey<State<StatefulWidget>> customKey;
+
+  Offset position;
+
+  SplitCardPainter(ValueNotifier<int> dataLength, {GlobalKey customKey})
+      : super(dataLength) {
+    this.customKey = customKey;
+  }
 
   SplitCardData splitCardData;
 
   @override
   void paint(Canvas canvas, Size size) {
     this.splitCardData.setCanvasSize(size);
+    this.splitCardData.setGetRelationPosFunc((Offset offset) {
+      return relativePosition(offset);
+    });
 
     Paint paint = Paint()
       ..color = Colors.red
@@ -500,9 +579,8 @@ class SplitCardPainter extends GridCardPainter {
     if (!splitCardData.isInited) {
       return;
     }
-
-
-    canvas.translate(100, 10);
+    canvas.save();
+    // canvas.translate(100, 10);
     // DrawText(canvas, Offset.zero, splitCardData.getTagIndex.toString());
 
     // int stackSize = splitCardData.tryNodeMStack.size;
@@ -515,8 +593,11 @@ class SplitCardPainter extends GridCardPainter {
           node.dy * splitCardData.cardSize.dy);
       // paint.style = PaintingStyle.stroke;
       // paint.srtrokeWidth = 10;
-      paint.color = ColorManager.highLightColor;//.withAlpha((255 * (stackSize - index/stackSize)).toInt());
-      if (splitCardData.maps[splitCardData.pos(node.dx.toInt(), node.dy.toInt())] != 0) {
+      paint.color = ColorManager
+          .highLightColor; //.withAlpha((255 * (stackSize - index/stackSize)).toInt());
+      if (splitCardData
+              .maps[splitCardData.pos(node.dx.toInt(), node.dy.toInt())] !=
+          0) {
         paint.color = Colors.redAccent;
         paint.style = PaintingStyle.fill;
       }
@@ -525,7 +606,6 @@ class SplitCardPainter extends GridCardPainter {
       //     Rect.fromPoints(ori, ori + splitCardData.cardSize), paint);
     }
 
-   
     // print("${splitCardData.maps}");
     for (int x = 0; x <= splitCardData.lastMaxLength; x++) {
       for (int y = 0; y <= splitCardData.lastMaxLength; y++) {
@@ -535,13 +615,34 @@ class SplitCardPainter extends GridCardPainter {
         if (splitCardData.maps[splitCardData.pos(x, y)] != 0) {
           paint.style = PaintingStyle.fill;
           paint.color = Color(splitCardData.maps[splitCardData.pos(x, y)]);
-        canvas.drawRect(
-            Rect.fromPoints(ori, ori + splitCardData.cardSize * 0.8), paint);
-        DrawText(canvas, ori + Offset(4, 4),
-            splitCardData.itemMaps[splitCardData.pos(x, y)].title,
-            maxWidth: splitCardData.cardSize.dx * 0.8 - 4,
-            color: ColorManager.Get("font"));
-        } 
+
+          var node = splitCardData.itemMaps[splitCardData.pos(x, y)];
+          if (node != null) {
+            if (!splitCardData.hasHover ||
+                (splitCardData.hasHover &&
+                    node.item.tags
+                        .join(',')
+                        .contains(splitCardData.hoverNode.tag))) {
+              canvas.drawRect(
+                  Rect.fromPoints(ori + splitCardData.cardSize * 0.1,
+                      ori + splitCardData.cardSize * 0.9),
+                  paint);
+              DrawText(
+                  canvas,
+                  ori + splitCardData.cardSize * 0.1 + Offset(4, 4),
+                  node.item.title,
+                  maxWidth: splitCardData.cardSize.dx * 0.9 - 8,
+                  color: ColorManager.Get("font"));
+            }
+
+            if (node.hover) {
+              paint.strokeWidth = 1;
+              paint.style = PaintingStyle.stroke;
+              canvas.drawRect(
+                  Rect.fromPoints(ori, ori + splitCardData.cardSize), paint);
+            }
+          }
+        }
       }
     }
 
@@ -551,7 +652,6 @@ class SplitCardPainter extends GridCardPainter {
     //     paint.style = PaintingStyle.fill;
     //   canvas.drawRect(
     //       Rect.fromPoints(ori, ori + splitCardData.cardSize), paint);
-
 
     // var lists = List.from(splitCardData.tryNodeMStack._stack.where((element) => element != null));
     // lists.sort((a,b) {
@@ -566,6 +666,34 @@ class SplitCardPainter extends GridCardPainter {
     //         maxWidth: splitCardData.cardSize.dx,
     //         color: ColorManager.Get("font"));
     // });
+    canvas.restore();
+
+    // mouse event
+    if (mouseEventEnable && splitCardData.hasHover) {
+      var pos = relativePosition(splitCardData.hoverPosition);
+      canvas.drawRect(
+          Rect.fromPoints(pos, pos + splitCardData.hoverCardSize), paint);
+
+      DrawText(canvas, pos + Offset(16, 16), splitCardData.hoverNode.item.title,
+          maxWidth: splitCardData.hoverCardSize.dx - 6,
+          color: ColorManager.Get('font'));
+      DrawText(canvas, pos + Offset(16, 16) + Offset(0, 100),
+          splitCardData.hoverNode.item.tags.join(','),
+          maxWidth: splitCardData.hoverCardSize.dx - 6,
+          color: ColorManager.Get('font'));
+    }
+  }
+
+  Offset relativePosition(Offset offset) {
+    var size = customKey.currentContext.findRenderObject().paintBounds;
+    RenderObject renderObject = customKey.currentContext.findRenderObject();
+    RenderBox box = renderObject as RenderBox;
+    if (box != null) {
+      Offset position = box.localToGlobal(Offset.zero);
+      this.position = position;
+    }
+
+    return offset - this.position;
   }
 
   void setPainterSplitData(SplitCardData gridCardData) {

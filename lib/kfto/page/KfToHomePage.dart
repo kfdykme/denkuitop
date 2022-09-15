@@ -846,8 +846,9 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   CustomPainter buildTreeCardPainter() {
-    SplitCardPainter painter =
-        SplitCardPainter(ValueNotifier<int>(this.searchedTags.length));
+    SplitCardPainter painter = SplitCardPainter(
+        ValueNotifier<int>(this.searchedTags.length),
+        customKey: treeCardPainterKey);
     if (this.gridCardData == null) {
       gridCardData = SplitCardData();
 
@@ -963,6 +964,10 @@ class KfToHomeState extends BaseRemotePageState {
                       // print("${event}");
                     }),
                     onPointerHover: ((event) {
+                      setState(() {
+                        gridCardData.onHover(event.position);
+                      });
+
                       // print("onPointerHover r${event}");
                       if (is_darging_tree_card) {
                         // print("${event.delta}");
@@ -973,6 +978,7 @@ class KfToHomeState extends BaseRemotePageState {
                         // setState(() {
                         //   // tree_card_mouse_pos = event.position;
                         // });
+
                       }
                     }),
                     child: Container(
