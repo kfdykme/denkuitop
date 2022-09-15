@@ -124,6 +124,7 @@ class GridCardData {
   }
 
   void setData(List<ListItemData> data, List<KfToDoTagData> tags) {
+    // print("set data");
     if (data == null) {
       print("setData null");
       return;
@@ -325,9 +326,29 @@ class SplitCardData extends GridCardData {
       calc();
     }
   }
+  @override
+  void setData(List<ListItemData> data, List<KfToDoTagData> tags) {
+    bool shouldCalc = false;
+    if (this.tags == null) {
+      shouldCalc = true;
+    }
+    if (this.tags != null && tags.length != this.tags.length) {
+      shouldCalc = true;
+    }
+
+    if ( this.data != null && data.length != this.data.length) {
+      shouldCalc = true;
+    }
+
+    super.setData(data, tags);
+    if (shouldCalc) {
+      lastLength = 0;
+      tagIndex = 0;
+      calcAll();
+    }
+  }
 
   void calc() {
-
     // forEach tags
     if (filteredTags.length == 0) {
       return;
@@ -353,7 +374,6 @@ class SplitCardData extends GridCardData {
     tagIndex++;
     {
       // get nodes
-      print("tag ${tag}");
       List<ListItemData> items =
           List.from(data.where((node) => node.tags.contains(tag.name)));
 
@@ -364,7 +384,7 @@ class SplitCardData extends GridCardData {
       // get item count
       int itemCount = 1;
       while (itemCount * itemCount++ < items.length);
-      print(items.length);
+      // print(items.length);
       //
       Offset block = Offset((--itemCount).toDouble(), itemCount.toDouble());
       
@@ -455,7 +475,12 @@ class SplitCardData extends GridCardData {
       tryNodeMStack.push(ori);
     };
 
-    cardSize = Offset(width * .9/ lastMaxLength, height * 0.9/lastMaxLength);
+
+    var cardSizeWidth = min(width * .9/ (lastMaxLength + 1), 300.0);
+    var cardSizeHeight = min(height * .7/ (lastMaxLength + 1), 400.0);
+// print("calc cardSize ${cardSize}");
+    cardSize = Offset(cardSizeWidth,cardSizeHeight);
+    
   }
 }
 
@@ -512,9 +537,9 @@ class SplitCardPainter extends GridCardPainter {
           paint.color = Color(splitCardData.maps[splitCardData.pos(x, y)]);
         canvas.drawRect(
             Rect.fromPoints(ori, ori + splitCardData.cardSize * 0.8), paint);
-        DrawText(canvas, ori + Offset(2, 2),
+        DrawText(canvas, ori + Offset(4, 4),
             splitCardData.itemMaps[splitCardData.pos(x, y)].title,
-            maxWidth: splitCardData.cardSize.dx,
+            maxWidth: splitCardData.cardSize.dx * 0.8 - 4,
             color: ColorManager.Get("font"));
         } 
       }

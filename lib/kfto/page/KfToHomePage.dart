@@ -488,6 +488,10 @@ class KfToHomeState extends BaseRemotePageState {
     web.loadCefContainer();
     print('onPressSingleItemFunc ' + itemData.type);
     // if (itemData.type )
+     setState(() {
+        isTreeCardMode = !isTreeCardMode;
+        web.toggle();
+      });
     if (itemData.path.startsWith('http://') ||
         itemData.path.startsWith('https://')) {
       web.executeJs('location.href = "${itemData.path}"');
@@ -880,16 +884,16 @@ class KfToHomeState extends BaseRemotePageState {
           )
         : cefContainer;
 
-    if (treeCardData == null) {
-      treeCardData = TreeCardData(data: this.data, dataTags: this.searchedTags);
-    }
-    if (treeCardData.data == null) {
-      treeCardData.data = this.data;
-    }
+    // if (treeCardData == null) {
+    //   treeCardData = TreeCardData(data: this.data, dataTags: this.searchedTags);
+    // }
+    // if (treeCardData.data == null) {
+    //   treeCardData.data = this.data;
+    // }
 
-    if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
-      treeCardData.dataTags = this.searchedTags;
-    }
+    // if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
+    //   treeCardData.dataTags = this.searchedTags;
+    // }
     // if (isTreeCardMode) {
     //   RefreshTreeCard();
     // }
