@@ -38,6 +38,11 @@ class TextK {
     add("没有找到文件保存目录，是否选择文件夹", "The file save directory is not found, whether to select a folder");
     add("重随机颜色", "Re-Random Color");
     add("树卡", "Tree Card");
+    add("第一个标签", "firstTab");
+    add("请输入你的标题", "Please enter your title");
+    add("请输入有效的文件名称", "Please enter a valid file name");
+    add("请检查是否已存在同名文件", "Please check if a file with the same name already exists");
+    add("文件名称", "text file name");
   }
 
   add(String ch, String en) {

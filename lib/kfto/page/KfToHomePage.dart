@@ -47,7 +47,7 @@ class KfToHomeState extends BaseRemotePageState {
   ListData data = null;
   List<KfToDoTagData> dataTags = [];
   String searchKey = "";
-  
+
   SplitCardData gridCardData;
 
   List<KfToDoTagData> get searchedTags {
@@ -76,7 +76,8 @@ class KfToHomeState extends BaseRemotePageState {
   List<ListItemData> get searchedListData {
     List<ListItemData> items = [];
     searchedTags.forEach((tag) {
-      var searcedItems = this.data.data.where((element) => element.tags.contains(tag.name));
+      var searcedItems =
+          this.data.data.where((element) => element.tags.contains(tag.name));
       items.addAll(searcedItems);
     });
     return items;
@@ -330,6 +331,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void _insertIntoEditor(String content, {String editorId}) {
+    print("_insertIntoEditor ${content} ${editorId}");
     if (cefContainer == null) {
       ensureWebViewShow();
       web.toggleInsertFirst();
@@ -442,14 +444,21 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void CommonReadFile(String path,
-      {Function({String content, String path, bool suc}) func}) {
+      {Function({String content, String path, bool suc}) func,
+      bool showError = true,
+      bool callbackOnError = false}) {
     _readFile(path, callback: (AsyncIpcData data) {
       var ktoData = KfToDoIpcData.fromAsync(data);
-      print("onPressSingleItemFunc _readFile callback" + ktoData.toString());
+      print("CommonReadFile _readFile callback" + ktoData.toString());
       String path = ktoData.data['path'] as String;
       String error = ktoData.data['error'];
       if (error != null) {
-        showCommonSnack(error: error);
+        if (showError) {
+          showCommonSnack(error: error);
+        }
+        if (callbackOnError) {
+          func(content: '', path: path, suc: false);
+        }
         return;
       }
       dynamic content = ktoData.data['content'];
@@ -539,6 +548,95 @@ class KfToHomeState extends BaseRemotePageState {
             children: [
               Container(
                 height: 204,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.text_format,
+                        color: ColorManager.Get("textdarkr"),
+                      ),
+                      title: Text(
+                        TextK.Get('Text'),
+                        style: TextStyle(color: ColorManager.Get("textdarkr")),
+                      ),
+                      subtitle: Text(
+                        TextK.Get('Add a text '),
+                        style: TextStyle(color: ColorManager.Get("textdarkr")),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                      child: TextFormField(
+                        initialValue: '',
+                        style: TextStyle(color: ColorManager.Get("font")),
+                        onChanged: (String value) {
+                          this.dialog_editor_blog_file_name = value;
+                        },
+                        decoration: InputDecoration(
+                          labelText: TextK.Get('text file name'),
+                          labelStyle:
+                              TextStyle(color: ColorManager.Get("textdarkr")),
+                          fillColor: ColorManager.Get("textr"),
+                          helperStyle:
+                              TextStyle(color: ColorManager.Get("textdarkr")),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                                color: ColorManager.Get("textdarkr")),
+                          ),
+                        ),
+                      ),
+                    ),
+                    ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
+                        color: ColorManager.Get("textdarkr"),
+                        icon: Icon(
+                          Icons.newspaper,
+                          color: ColorManager.Get("textdarkr"),
+                          size: ViewBuilder.size(2),
+                        ), onPressFunc: () {
+                      Navigator.pop(context);
+                      var map = new Map();
+                      map['invokeName'] = "getNewBlogTemplate";
+                      this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
+                          callback: (AsyncIpcData data) {
+                        var ktoData = KfToDoIpcData.fromAsync(data);
+                        String initContent = ktoData.data['content'] as String;
+                        String path = ktoData.data['path'] as String;
+                        String name = DateTime.now().microsecond.toString();
+                        if (this.dialog_editor_blog_file_name != "") {
+                          name = this.dialog_editor_blog_file_name;
+                        } else {
+                          showCommonSnack(error: TextK.Get("请输入有效的文件名称"));
+                          return;
+                        }
+                        String newFilePath = path + DirSpelator + name + ".md";
+
+                        // check is already has this file
+                        CommonReadFile(newFilePath,
+                            showError: false, callbackOnError: true,
+                            func: (({content, path, suc}) {
+                          if (!suc) {
+                            currentFilePath = newFilePath;
+
+                            _refreshFilePathTextField();
+                            initContent =
+                                initContent.replaceFirst("\$\{title\}", TextK.Get("请输入你的标题"));
+                            initContent =
+                                initContent.replaceFirst("\$\{tag\}", TextK.Get("第一个标签"));
+                            _insertIntoEditor(initContent,
+                                editorId: currentFilePath);
+                            isWriteWithoutRead = true;
+                          } else {
+                            showCommonSnack(error: TextK.Get("请检查是否已存在同名文件"));
+                          }
+                        }));
+                      });
+                    })
+                  ],
+                ),
+              )
+              ,
+                            Container(
+                height: 204,
                 child: Column(children: [
                   ListTile(
                     leading: Icon(
@@ -590,54 +688,6 @@ class KfToHomeState extends BaseRemotePageState {
                   })
                 ]),
               ),
-              Container(
-                height: 204,
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: Icon(
-                        Icons.text_format,
-                        color: ColorManager.Get("textdarkr"),
-                      ),
-                      title: Text(
-                        TextK.Get('Text'),
-                        style: TextStyle(color: ColorManager.Get("textdarkr")),
-                      ),
-                      subtitle: Text(
-                        TextK.Get('Add a text '),
-                        style: TextStyle(color: ColorManager.Get("textdarkr")),
-                      ),
-                    ),
-                    ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
-                        color: ColorManager.Get("textdarkr"),
-                        icon: Icon(
-                          Icons.newspaper,
-                          color: ColorManager.Get("textdarkr"),
-                          size: ViewBuilder.size(2),
-                        ), onPressFunc: () {
-                      Navigator.pop(context);
-                      var map = new Map();
-                      map['invokeName'] = "getNewBlogTemplate";
-                      this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
-                          callback: (AsyncIpcData data) {
-                        var ktoData = KfToDoIpcData.fromAsync(data);
-                        String content = ktoData.data['content'] as String;
-                        String path = ktoData.data['path'] as String;
-                        currentFilePath = path +
-                            DirSpelator +
-                            DateTime.now().microsecond.toString() +
-                            ".md";
-                        _refreshFilePathTextField();
-                        content =
-                            content.replaceFirst("\$\{title\}", "请输入你的标题");
-                        content = content.replaceFirst("\$\{tag\}", "第一个标签");
-                        _insertIntoEditor(content, editorId: currentFilePath);
-                        isWriteWithoutRead = true;
-                      });
-                    })
-                  ],
-                ),
-              )
             ],
           ),
         ),
@@ -790,7 +840,8 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   CustomPainter buildTreeCardPainter() {
-    SplitCardPainter painter =  SplitCardPainter(ValueNotifier<int>(this.searchedTags.length));
+    SplitCardPainter painter =
+        SplitCardPainter(ValueNotifier<int>(this.searchedTags.length));
     if (this.gridCardData == null) {
       gridCardData = SplitCardData();
 
@@ -890,11 +941,11 @@ class KfToHomeState extends BaseRemotePageState {
                           "toggle is_darging_tree_card ${is_darging_tree_card}");
                       darging_tree_card_pos_cache = event.position;
                       // setState(() {
-                        // is_darging_tree_card = is_darging_tree_card;
-                        // treeCardData.is_darging_tree_card =
-                        //     is_darging_tree_card;
-                        // treeCardData.calc();
-                        // RefreshTreeCard();
+                      // is_darging_tree_card = is_darging_tree_card;
+                      // treeCardData.is_darging_tree_card =
+                      //     is_darging_tree_card;
+                      // treeCardData.calc();
+                      // RefreshTreeCard();
                       // });
                       RefreshTreeCardData();
                     },
@@ -1180,20 +1231,18 @@ class KfToHomeState extends BaseRemotePageState {
       _refresh();
     });
   }
-  
+
   void RefreshTreeCardData() {
     if (gridCardData.isFull) {
       return;
     }
     setState(() {
-
-    gridCardData.calc();
+      gridCardData.calc();
     });
     if (gridCardData.isFull) {
       return;
     }
     Future.delayed(Duration(microseconds: 100), () {
-      
       RefreshTreeCardData();
     });
   }
