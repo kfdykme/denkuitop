@@ -488,13 +488,12 @@ class KfToHomeState extends BaseRemotePageState {
     web.loadCefContainer();
     print('onPressSingleItemFunc ' + itemData.type);
     // if (itemData.type )
-     setState(() {
-        if (isTreeCardMode) {
-
-          isTreeCardMode = !isTreeCardMode;
-          web.toggle();
-        }
-      });
+    setState(() {
+      if (isTreeCardMode) {
+        isTreeCardMode = !isTreeCardMode;
+        web.toggle();
+      }
+    });
     if (itemData.path.startsWith('http://') ||
         itemData.path.startsWith('https://')) {
       web.executeJs('location.href = "${itemData.path}"');
@@ -626,10 +625,10 @@ class KfToHomeState extends BaseRemotePageState {
                             currentFilePath = newFilePath;
 
                             _refreshFilePathTextField();
-                            initContent =
-                                initContent.replaceFirst("\$\{title\}", TextK.Get("请输入你的标题"));
-                            initContent =
-                                initContent.replaceFirst("\$\{tag\}", TextK.Get("第一个标签"));
+                            initContent = initContent.replaceFirst(
+                                "\$\{title\}", TextK.Get("请输入你的标题"));
+                            initContent = initContent.replaceFirst(
+                                "\$\{tag\}", TextK.Get("第一个标签"));
                             _insertIntoEditor(initContent,
                                 editorId: currentFilePath);
                             isWriteWithoutRead = true;
@@ -641,9 +640,8 @@ class KfToHomeState extends BaseRemotePageState {
                     })
                   ],
                 ),
-              )
-              ,
-                            Container(
+              ),
+              Container(
                 height: 204,
                 child: Column(children: [
                   ListTile(
@@ -1130,9 +1128,8 @@ class KfToHomeState extends BaseRemotePageState {
                     setState(() {
                       isTreeCardMode = !isTreeCardMode;
                       web.toggle();
-                        web.executeJs(
-                        'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-
+                      web.executeJs(
+                          'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
                     });
                   },
                       color: ColorManager.Get("textdarkr"),
