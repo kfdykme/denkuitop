@@ -57,7 +57,7 @@ class AsyncIpcData {
   }
 
   bool hasError() {
-    return this.rawMap['data']['error'] == null;
+    return this.rawMap['data']['error'] != null;
   }
 
   String json() {

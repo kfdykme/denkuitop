@@ -422,9 +422,11 @@ class KfToHomeState extends BaseRemotePageState {
       this.ipc().invoke(KfToDoIpcData.from("invoke", omap),
           callback: (AsyncIpcData data) {
         showSnack(data);
-        // if (!data.hasError()) {
-        //   _refresh();
-        // }
+        if (!data.hasError()) {
+          _refresh();
+        } else {
+          print("_saveFile " + data.hasError().toString());
+        }
       });
     }).catchError((err) {
       showCommonSnack(msg: null, error: err.toString());
