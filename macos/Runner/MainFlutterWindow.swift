@@ -18,13 +18,35 @@ class MainFlutterWindow: NSWindow, NSWindowDelegate {
     _ sender: NSWindow,
     to frameSize: NSSize
   ) -> NSSize {
-    // print("windowWillResize")
-      FlutterDesktopCefWebPlugin.OnResize()
+      print("windowWillResize")
+      print(frameSize);
+      FlutterDesktopCefWebPlugin.OnResize(delay: true)
     return frameSize
   }
 
+    
+    func windowDidChangeScreen(_ notification: Notification) {
+        
+//        FlutterDesktopCefWebPlugin.OnResize()
+    }
+    
+    func windowDidEndLiveResize(_ notification: Notification) {
+//        FlutterDesktopCefWebPlugin.OnResize()
+    
+    }
+    
+    func windowDidEnterFullScreen(_ notification: Notification) {
+        
+//        FlutterDesktopCefWebPlugin.OnResize()
+    }
+
+    func windowDidExitFullScreen(_ notification: Notification) {
+        
+//        FlutterDesktopCefWebPlugin.OnResize()
+    }
+    
   func windowDidResize(_ notification: Notification) {
-    print(notification)
+    print("windowDidResize")
     
     FlutterDesktopCefWebPlugin.OnResize()
   }

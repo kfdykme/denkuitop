@@ -706,24 +706,6 @@ class KfToHomeState extends BaseRemotePageState {
     handleRemoveThis(itemData);
   }
 
-  Widget buildAddNewButtonItem() {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          MaterialButton(
-            textColor: ColorManager.Get("textdarkr"),
-            onPressed: () {
-              this.onPressAddNewFunc();
-            },
-            child: const Text('New'),
-          )
-        ],
-      ),
-      margin: const EdgeInsets.all(16),
-    );
-  }
-
   Widget buildLoadingItem() {
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -878,10 +860,7 @@ class KfToHomeState extends BaseRemotePageState {
 
     Widget webCView = cefContainer == null
         ? MaterialButton(
-            child: Loading(
-                indicator: BallPulseIndicator(),
-                size: 100.0,
-                color: ViewBuilder.RandomColor()),
+            child: Container(),
             onPressed: () {
               web.generateCefContainer(400, 500);
               web.loadCefContainer();
@@ -1030,7 +1009,7 @@ class KfToHomeState extends BaseRemotePageState {
                                     color: ColorManager.Get("textdarkr"),
                                     size: ViewBuilder.size(2),
                                   )),
-                          ViewBuilder.BuildMaterialButton("",
+                          this.searchedTags.length == 0 ? Container() : ViewBuilder.BuildMaterialButton("",
                               onPressFunc: () => this.onPressAddNewFunc(),
                               color: ColorManager.Get("textdarkr"),
                               icon: Icon(
