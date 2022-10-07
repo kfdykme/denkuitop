@@ -834,7 +834,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildLocalHistoryView() {
-    return Expanded(child: ListView.builder(itemBuilder: (BuildContext context, int index) {
+    return ListView.builder(itemBuilder: (BuildContext context, int index) {
       if (this.localHistoryDatas.length == 0) {
         return buildLoadingItem();
       } else {
@@ -846,7 +846,7 @@ class KfToHomeState extends BaseRemotePageState {
           });
         });
       }
-    }, itemCount:  this.localHistoryDatas.length,));
+    }, itemCount:  this.localHistoryDatas.length);
   }
 
   Widget buildListView() {
@@ -1069,7 +1069,7 @@ class KfToHomeState extends BaseRemotePageState {
                                   )),
                           filePathLabelText.isEmpty
                               ? Container()
-                              : ViewBuilder.BuildMaterialButton("history",
+                              : ViewBuilder.BuildMaterialButton("",
                                   onPressFunc: () {
                                   // _saveFile();
                                   onReadLocalHistory();
@@ -1183,22 +1183,22 @@ class KfToHomeState extends BaseRemotePageState {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
-                      onPressFunc: () {
-                    setState(() {
-                      isTreeCardMode = !isTreeCardMode;
-                      web.toggle();
-                      web.executeJs(
-                          'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-                    });
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        Icons.trending_down,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
+                  // ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
+                  //     onPressFunc: () {
+                  //   setState(() {
+                  //     isTreeCardMode = !isTreeCardMode;
+                  //     web.toggle();
+                  //     web.executeJs(
+                  //         'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+                  //   });
+                  // },
+                  //     color: ColorManager.Get("textdarkr"),
+                  //     withText: false,
+                  //     icon: Icon(
+                  //       Icons.trending_down,
+                  //       color: ColorManager.Get("textdarkr"),
+                  //       size: ViewBuilder.size(false ? 2 : 3),
+                  //     )),
                   ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
                       onPressFunc: () {
                     setState(() {
