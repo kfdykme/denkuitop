@@ -5,7 +5,7 @@ import 'package:libdeno_plugin/libdeno_plugin.dart';
 
 class DenoManager {
 
-    static int port = 8082;
+    static int port = 8673;
 
     Libdeno libdeno = Libdeno();
     DenoManager() {
@@ -19,7 +19,7 @@ class DenoManager {
       print("${runableJsPath}");
       var isDevDeno = false;
       if (isDevDeno) {
-        port = 8082;
+        port = 8673;
       } else {
         libdeno.load();
         libdeno.run("deno run -A ${runableJsPath} --port=${port}");

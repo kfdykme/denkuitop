@@ -5135,18 +5135,28 @@ class KfTodoController {
     config = {
         basePath: "."
     };
+    initIpc(iport) {
+        try {
+            this.ipc = new AsyncIpcController(iport || 8673);
+        } catch (err) {
+            this.initIpc(iport + 1);
+        }
+    }
     async start() {
         let res = await __default5.get({
             key: "GLOBAL_PORT"
         });
-        let iport = 8082;
+        let iport = 8673;
         try {
             iport = Number.parseInt(res.data);
         } catch (err) {
             __default1.error("KfTodoController", err);
         }
         __default1.info("KfTodoController port ", res.data, iport);
-        this.ipc = new AsyncIpcController(iport || 8082);
+        this.initIpc(iport);
+        if (this.ipc == null) {
+            return;
+        }
         const onMessageHandler = (message)=>{
             this.onMessage(message);
         };
@@ -5579,7 +5589,7 @@ const __default13 = {
 let args = __default.GetArgs();
 let isLcOpen = false;
 let global = {
-    port: 8082
+    port: 8673
 };
 args.forEach((val)=>{
     const portPrefix = '--port=';
