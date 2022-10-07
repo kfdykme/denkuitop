@@ -81,6 +81,7 @@ class KfTodoTextField {
 
   Color textFieldColor = null;
 
+  Widget _view = null;
 
   KfTodoTextField ({ onChange: Function, prefixColor: Color}) {
     if (prefixColor == null) {
@@ -92,7 +93,8 @@ class KfTodoTextField {
   }
 
   Widget view() {
-    return TextFieldTags(
+    if (_view == null) {
+      _view =  TextFieldTags(
               textfieldTagsController: tagsFieldController,
               initialTags: const [
               ],
@@ -212,5 +214,7 @@ class KfTodoTextField {
                       ),
                   ));});}
               );
+    } 
+    return _view;
   }
 }

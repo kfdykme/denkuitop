@@ -137,6 +137,14 @@ class KfToHomeState extends BaseRemotePageState {
 
   bool isTreeCardMode = false;
 
+  // Feature 101 文件本地历史记录 START
+
+  bool isReadingLocalHistory = false;
+
+  List<Object> localHistoryDatas = [];
+
+  // Feature 101 文件本地历史记录 END
+
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
@@ -330,7 +338,7 @@ class KfToHomeState extends BaseRemotePageState {
     return denoLibSocketLife.ipc();
   }
 
-  void _insertIntoEditor(String content, {String editorId}) {
+  void _insertIntoEditor(String content, {String editorId, String force = 'false'}) {
     print("_insertIntoEditor ${content} ${editorId}");
     if (cefContainer == null) {
       ensureWebViewShow();
@@ -345,7 +353,7 @@ class KfToHomeState extends BaseRemotePageState {
       editorId = "_" + editorId;
     }
 
-    web.insertByContentNId(content, editorId);
+    web.insertByContentNId(content, editorId, force: force);
     web.needInsertContent = content;
     web.needInsertPath = editorId;
   }
@@ -442,6 +450,39 @@ class KfToHomeState extends BaseRemotePageState {
       });
     } else {
       this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+    }
+  }
+
+  void onReadLocalHistory() {
+    if (isReadingLocalHistory) {
+      setState(() {
+        isReadingLocalHistory = false;
+      });
+    } else {
+      setState(() {
+        isReadingLocalHistory = true;
+        searchTagField = null;
+        searchKey = '';
+      });
+      // 1. 拿到当前正在编辑的文件路径
+
+      var map = Map<String, dynamic>();
+      map['path'] = GetDirFromPath(currentFilePath) +
+          DirSpelator +
+          _currentPathcontroller.text;
+      var omap = Map<String, dynamic>();
+
+      omap['data'] = map;
+      omap['invokeName'] = 'readLocalHistory';
+      this.ipc().invoke(KfToDoIpcData.from("invoke", omap), callback: ((data) {
+        
+        var ktoData = KfToDoIpcData.fromAsync(data);
+        var historys = ktoData.data['history'] as List<Object>;
+        
+        setState(() {
+          localHistoryDatas = historys;
+        });
+      }));
     }
   }
 
@@ -709,6 +750,7 @@ class KfToHomeState extends BaseRemotePageState {
   Widget buildLoadingItem() {
     return Card(
       clipBehavior: Clip.antiAlias,
+      color: ColorManager.Get('cardbackground'),
       child: Column(
         children: [
           Loading(
@@ -789,6 +831,22 @@ class KfToHomeState extends BaseRemotePageState {
       );
     });
     return res;
+  }
+
+  Widget buildLocalHistoryView() {
+    return Expanded(child: ListView.builder(itemBuilder: (BuildContext context, int index) {
+      if (this.localHistoryDatas.length == 0) {
+        return buildLoadingItem();
+      } else {
+        var date = new DateTime.fromMillisecondsSinceEpoch(int.parse((localHistoryDatas[index] as dynamic)['name']));
+        var path = (localHistoryDatas[index] as dynamic)['path'];
+        return ViewBuilder.BuildMaterialButton(date.toString(), onPressFunc: () {
+          CommonReadFile(path, func: ({content, path, suc}) {
+             _insertIntoEditor(content, force: 'true');
+          });
+        });
+      }
+    }, itemCount:  this.localHistoryDatas.length,));
   }
 
   Widget buildListView() {
@@ -891,7 +949,7 @@ class KfToHomeState extends BaseRemotePageState {
           margin: EdgeInsets.zero,
           child: Row(
             children: [
-              Expanded(child: buildListView()),
+              Expanded(child: isReadingLocalHistory ? Container(width: left_width_real, child: buildLocalHistoryView(),) : buildListView()),
               Listener(
                   onPointerDown: (event) => {onDragLineStart(event)},
                   onPointerUp: ((event) => {onDragLineEnd()}),
@@ -1009,14 +1067,29 @@ class KfToHomeState extends BaseRemotePageState {
                                     color: ColorManager.Get("textdarkr"),
                                     size: ViewBuilder.size(2),
                                   )),
-                          this.searchedTags.length == 0 ? Container() : ViewBuilder.BuildMaterialButton("",
-                              onPressFunc: () => this.onPressAddNewFunc(),
-                              color: ColorManager.Get("textdarkr"),
-                              icon: Icon(
-                                Icons.edit,
-                                color: ColorManager.Get("textdarkr"),
-                                size: ViewBuilder.size(2),
-                              )),
+                          filePathLabelText.isEmpty
+                              ? Container()
+                              : ViewBuilder.BuildMaterialButton("history",
+                                  onPressFunc: () {
+                                  // _saveFile();
+                                  onReadLocalHistory();
+                                },
+                                  color: ColorManager.Get("textdarkr"),
+                                  icon: Icon(
+                                    Icons.history_sharp,
+                                    color: ColorManager.Get("textdarkr"),
+                                    size: ViewBuilder.size(2),
+                                  )),
+                          this.searchedTags.length == 0
+                              ? Container()
+                              : ViewBuilder.BuildMaterialButton("",
+                                  onPressFunc: () => this.onPressAddNewFunc(),
+                                  color: ColorManager.Get("textdarkr"),
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: ColorManager.Get("textdarkr"),
+                                    size: ViewBuilder.size(2),
+                                  )),
                           Container(
                             color: filePathLabelText.isEmpty
                                 ? null

@@ -81,8 +81,8 @@ const readFileSync = (filePath)=>{
 const writeFileSync = (filePath, content)=>{
     return Deno.writeFileSync(filePath, encoder.encode(content));
 };
-const mkdirSync = (path1, option)=>{
-    return Deno.mkdirSync(path1, option);
+const mkdirSync = (path, option)=>{
+    return Deno.mkdirSync(path, option);
 };
 const readDirSync = (filePath)=>{
     let res = [];
@@ -244,10 +244,10 @@ new RegExp([
     "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))", 
 ].join("|"), "g");
 var DiffType;
-(function(DiffType1) {
-    DiffType1["removed"] = "removed";
-    DiffType1["common"] = "common";
-    DiffType1["added"] = "added";
+(function(DiffType) {
+    DiffType["removed"] = "removed";
+    DiffType["common"] = "common";
+    DiffType["added"] = "added";
 })(DiffType || (DiffType = {}));
 class DenoStdInternalError extends Error {
     constructor(message){
@@ -266,12 +266,8 @@ async function writeAll(w, arr) {
         nwritten += await w.write(arr.subarray(nwritten));
     }
 }
-function writeAllSync(w, arr) {
-    let nwritten = 0;
-    while(nwritten < arr.length){
-        nwritten += w.writeSync(arr.subarray(nwritten));
-    }
-}
+TextDecoder;
+TextEncoder;
 function validateIntegerRange(value, name, min = -2147483648, max = 2147483647) {
     if (!Number.isInteger(value)) {
         throw new Error(`${name} must be 'an integer' but was ${value}`);
@@ -328,15 +324,15 @@ class EventEmitter {
     addListener(eventName, listener) {
         return this._addListener(eventName, listener, false);
     }
-    emit(eventName, ...args1) {
+    emit(eventName, ...args) {
         if (this._events.has(eventName)) {
             if (eventName === "error" && this._events.get(EventEmitter.errorMonitor)) {
-                this.emit(EventEmitter.errorMonitor, ...args1);
+                this.emit(EventEmitter.errorMonitor, ...args);
             }
             const listeners = this._events.get(eventName).slice();
             for (const listener of listeners){
                 try {
-                    listener.apply(this, args1);
+                    listener.apply(this, args);
                 } catch (err) {
                     this.emit("error", err);
                 }
@@ -344,9 +340,9 @@ class EventEmitter {
             return true;
         } else if (eventName === "error") {
             if (this._events.get(EventEmitter.errorMonitor)) {
-                this.emit(EventEmitter.errorMonitor, ...args1);
+                this.emit(EventEmitter.errorMonitor, ...args);
             }
-            const errMsg = args1.length > 0 ? args1[0] : Error("Unhandled error.");
+            const errMsg = args.length > 0 ? args[0] : Error("Unhandled error.");
             throw errMsg;
         }
         return false;
@@ -399,9 +395,9 @@ class EventEmitter {
         return this;
     }
     onceWrap(eventName, listener) {
-        const wrapper = function(...args2) {
+        const wrapper = function(...args) {
             this.context.removeListener(this.eventName, this.rawListener);
-            this.listener.apply(this.context, args2);
+            this.listener.apply(this.context, args);
         };
         const wrapperContext = {
             eventName: eventName,
@@ -477,8 +473,8 @@ class EventEmitter {
     static once(emitter, name) {
         return new Promise((resolve, reject)=>{
             if (emitter instanceof EventTarget) {
-                emitter.addEventListener(name, (...args3)=>{
-                    resolve(args3);
+                emitter.addEventListener(name, (...args)=>{
+                    resolve(args);
                 }, {
                     once: true,
                     passive: false,
@@ -486,11 +482,11 @@ class EventEmitter {
                 });
                 return;
             } else if (emitter instanceof EventEmitter) {
-                const eventListener = (...args4)=>{
+                const eventListener = (...args)=>{
                     if (errorListener !== undefined) {
                         emitter.removeListener("error", errorListener);
                     }
-                    resolve(args4);
+                    resolve(args);
                 };
                 let errorListener;
                 if (name !== "error") {
@@ -552,12 +548,12 @@ class EventEmitter {
         emitter.on(event, eventHandler);
         emitter.on("error", errorHandler);
         return iterator;
-        function eventHandler(...args5) {
+        function eventHandler(...args) {
             const promise = unconsumedPromises.shift();
             if (promise) {
-                promise.resolve(createIterResult(args5, false));
+                promise.resolve(createIterResult(args, false));
             } else {
-                unconsumedEventValues.push(args5);
+                unconsumedEventValues.push(args);
             }
         }
         function errorHandler(err) {
@@ -679,10 +675,10 @@ class BufReader {
         if (p.byteLength === 0) return rr;
         if (this.r === this.w) {
             if (p.byteLength >= this.buf.byteLength) {
-                const rr = await this.rd.read(p);
-                const nread = rr ?? 0;
+                const rr1 = await this.rd.read(p);
+                const nread = rr1 ?? 0;
                 assert(nread >= 0, "negative read");
-                return rr;
+                return rr1;
             }
             this.r = 0;
             this.w = 0;
@@ -904,63 +900,6 @@ class BufWriter extends AbstractBufBase {
     }
     writer;
 }
-class BufWriterSync extends AbstractBufBase {
-    static create(writer, size = 4096) {
-        return writer instanceof BufWriterSync ? writer : new BufWriterSync(writer, size);
-    }
-    constructor(writer, size = 4096){
-        super();
-        this.writer = writer;
-        if (size <= 0) {
-            size = DEFAULT_BUF_SIZE;
-        }
-        this.buf = new Uint8Array(size);
-    }
-    reset(w) {
-        this.err = null;
-        this.usedBufferBytes = 0;
-        this.writer = w;
-    }
-    flush() {
-        if (this.err !== null) throw this.err;
-        if (this.usedBufferBytes === 0) return;
-        try {
-            writeAllSync(this.writer, this.buf.subarray(0, this.usedBufferBytes));
-        } catch (e) {
-            this.err = e;
-            throw e;
-        }
-        this.buf = new Uint8Array(this.buf.length);
-        this.usedBufferBytes = 0;
-    }
-    writeSync(data) {
-        if (this.err !== null) throw this.err;
-        if (data.length === 0) return 0;
-        let totalBytesWritten = 0;
-        let numBytesWritten = 0;
-        while(data.byteLength > this.available()){
-            if (this.buffered() === 0) {
-                try {
-                    numBytesWritten = this.writer.writeSync(data);
-                } catch (e) {
-                    this.err = e;
-                    throw e;
-                }
-            } else {
-                numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
-                this.usedBufferBytes += numBytesWritten;
-                this.flush();
-            }
-            totalBytesWritten += numBytesWritten;
-            data = data.subarray(numBytesWritten);
-        }
-        numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
-        this.usedBufferBytes += numBytesWritten;
-        totalBytesWritten += numBytesWritten;
-        return totalBytesWritten;
-    }
-    writer;
-}
 const decoder1 = new TextDecoder();
 const invalidHeaderCharRegex = /[^\t\x20-\x7e\x80-\xff]/g;
 function str(buf) {
@@ -1051,69 +990,69 @@ class TextProtoReader {
     r;
 }
 var Status;
-(function(Status1) {
-    Status1[Status1["Continue"] = 100] = "Continue";
-    Status1[Status1["SwitchingProtocols"] = 101] = "SwitchingProtocols";
-    Status1[Status1["Processing"] = 102] = "Processing";
-    Status1[Status1["EarlyHints"] = 103] = "EarlyHints";
-    Status1[Status1["OK"] = 200] = "OK";
-    Status1[Status1["Created"] = 201] = "Created";
-    Status1[Status1["Accepted"] = 202] = "Accepted";
-    Status1[Status1["NonAuthoritativeInfo"] = 203] = "NonAuthoritativeInfo";
-    Status1[Status1["NoContent"] = 204] = "NoContent";
-    Status1[Status1["ResetContent"] = 205] = "ResetContent";
-    Status1[Status1["PartialContent"] = 206] = "PartialContent";
-    Status1[Status1["MultiStatus"] = 207] = "MultiStatus";
-    Status1[Status1["AlreadyReported"] = 208] = "AlreadyReported";
-    Status1[Status1["IMUsed"] = 226] = "IMUsed";
-    Status1[Status1["MultipleChoices"] = 300] = "MultipleChoices";
-    Status1[Status1["MovedPermanently"] = 301] = "MovedPermanently";
-    Status1[Status1["Found"] = 302] = "Found";
-    Status1[Status1["SeeOther"] = 303] = "SeeOther";
-    Status1[Status1["NotModified"] = 304] = "NotModified";
-    Status1[Status1["UseProxy"] = 305] = "UseProxy";
-    Status1[Status1["TemporaryRedirect"] = 307] = "TemporaryRedirect";
-    Status1[Status1["PermanentRedirect"] = 308] = "PermanentRedirect";
-    Status1[Status1["BadRequest"] = 400] = "BadRequest";
-    Status1[Status1["Unauthorized"] = 401] = "Unauthorized";
-    Status1[Status1["PaymentRequired"] = 402] = "PaymentRequired";
-    Status1[Status1["Forbidden"] = 403] = "Forbidden";
-    Status1[Status1["NotFound"] = 404] = "NotFound";
-    Status1[Status1["MethodNotAllowed"] = 405] = "MethodNotAllowed";
-    Status1[Status1["NotAcceptable"] = 406] = "NotAcceptable";
-    Status1[Status1["ProxyAuthRequired"] = 407] = "ProxyAuthRequired";
-    Status1[Status1["RequestTimeout"] = 408] = "RequestTimeout";
-    Status1[Status1["Conflict"] = 409] = "Conflict";
-    Status1[Status1["Gone"] = 410] = "Gone";
-    Status1[Status1["LengthRequired"] = 411] = "LengthRequired";
-    Status1[Status1["PreconditionFailed"] = 412] = "PreconditionFailed";
-    Status1[Status1["RequestEntityTooLarge"] = 413] = "RequestEntityTooLarge";
-    Status1[Status1["RequestURITooLong"] = 414] = "RequestURITooLong";
-    Status1[Status1["UnsupportedMediaType"] = 415] = "UnsupportedMediaType";
-    Status1[Status1["RequestedRangeNotSatisfiable"] = 416] = "RequestedRangeNotSatisfiable";
-    Status1[Status1["ExpectationFailed"] = 417] = "ExpectationFailed";
-    Status1[Status1["Teapot"] = 418] = "Teapot";
-    Status1[Status1["MisdirectedRequest"] = 421] = "MisdirectedRequest";
-    Status1[Status1["UnprocessableEntity"] = 422] = "UnprocessableEntity";
-    Status1[Status1["Locked"] = 423] = "Locked";
-    Status1[Status1["FailedDependency"] = 424] = "FailedDependency";
-    Status1[Status1["TooEarly"] = 425] = "TooEarly";
-    Status1[Status1["UpgradeRequired"] = 426] = "UpgradeRequired";
-    Status1[Status1["PreconditionRequired"] = 428] = "PreconditionRequired";
-    Status1[Status1["TooManyRequests"] = 429] = "TooManyRequests";
-    Status1[Status1["RequestHeaderFieldsTooLarge"] = 431] = "RequestHeaderFieldsTooLarge";
-    Status1[Status1["UnavailableForLegalReasons"] = 451] = "UnavailableForLegalReasons";
-    Status1[Status1["InternalServerError"] = 500] = "InternalServerError";
-    Status1[Status1["NotImplemented"] = 501] = "NotImplemented";
-    Status1[Status1["BadGateway"] = 502] = "BadGateway";
-    Status1[Status1["ServiceUnavailable"] = 503] = "ServiceUnavailable";
-    Status1[Status1["GatewayTimeout"] = 504] = "GatewayTimeout";
-    Status1[Status1["HTTPVersionNotSupported"] = 505] = "HTTPVersionNotSupported";
-    Status1[Status1["VariantAlsoNegotiates"] = 506] = "VariantAlsoNegotiates";
-    Status1[Status1["InsufficientStorage"] = 507] = "InsufficientStorage";
-    Status1[Status1["LoopDetected"] = 508] = "LoopDetected";
-    Status1[Status1["NotExtended"] = 510] = "NotExtended";
-    Status1[Status1["NetworkAuthenticationRequired"] = 511] = "NetworkAuthenticationRequired";
+(function(Status) {
+    Status[Status["Continue"] = 100] = "Continue";
+    Status[Status["SwitchingProtocols"] = 101] = "SwitchingProtocols";
+    Status[Status["Processing"] = 102] = "Processing";
+    Status[Status["EarlyHints"] = 103] = "EarlyHints";
+    Status[Status["OK"] = 200] = "OK";
+    Status[Status["Created"] = 201] = "Created";
+    Status[Status["Accepted"] = 202] = "Accepted";
+    Status[Status["NonAuthoritativeInfo"] = 203] = "NonAuthoritativeInfo";
+    Status[Status["NoContent"] = 204] = "NoContent";
+    Status[Status["ResetContent"] = 205] = "ResetContent";
+    Status[Status["PartialContent"] = 206] = "PartialContent";
+    Status[Status["MultiStatus"] = 207] = "MultiStatus";
+    Status[Status["AlreadyReported"] = 208] = "AlreadyReported";
+    Status[Status["IMUsed"] = 226] = "IMUsed";
+    Status[Status["MultipleChoices"] = 300] = "MultipleChoices";
+    Status[Status["MovedPermanently"] = 301] = "MovedPermanently";
+    Status[Status["Found"] = 302] = "Found";
+    Status[Status["SeeOther"] = 303] = "SeeOther";
+    Status[Status["NotModified"] = 304] = "NotModified";
+    Status[Status["UseProxy"] = 305] = "UseProxy";
+    Status[Status["TemporaryRedirect"] = 307] = "TemporaryRedirect";
+    Status[Status["PermanentRedirect"] = 308] = "PermanentRedirect";
+    Status[Status["BadRequest"] = 400] = "BadRequest";
+    Status[Status["Unauthorized"] = 401] = "Unauthorized";
+    Status[Status["PaymentRequired"] = 402] = "PaymentRequired";
+    Status[Status["Forbidden"] = 403] = "Forbidden";
+    Status[Status["NotFound"] = 404] = "NotFound";
+    Status[Status["MethodNotAllowed"] = 405] = "MethodNotAllowed";
+    Status[Status["NotAcceptable"] = 406] = "NotAcceptable";
+    Status[Status["ProxyAuthRequired"] = 407] = "ProxyAuthRequired";
+    Status[Status["RequestTimeout"] = 408] = "RequestTimeout";
+    Status[Status["Conflict"] = 409] = "Conflict";
+    Status[Status["Gone"] = 410] = "Gone";
+    Status[Status["LengthRequired"] = 411] = "LengthRequired";
+    Status[Status["PreconditionFailed"] = 412] = "PreconditionFailed";
+    Status[Status["RequestEntityTooLarge"] = 413] = "RequestEntityTooLarge";
+    Status[Status["RequestURITooLong"] = 414] = "RequestURITooLong";
+    Status[Status["UnsupportedMediaType"] = 415] = "UnsupportedMediaType";
+    Status[Status["RequestedRangeNotSatisfiable"] = 416] = "RequestedRangeNotSatisfiable";
+    Status[Status["ExpectationFailed"] = 417] = "ExpectationFailed";
+    Status[Status["Teapot"] = 418] = "Teapot";
+    Status[Status["MisdirectedRequest"] = 421] = "MisdirectedRequest";
+    Status[Status["UnprocessableEntity"] = 422] = "UnprocessableEntity";
+    Status[Status["Locked"] = 423] = "Locked";
+    Status[Status["FailedDependency"] = 424] = "FailedDependency";
+    Status[Status["TooEarly"] = 425] = "TooEarly";
+    Status[Status["UpgradeRequired"] = 426] = "UpgradeRequired";
+    Status[Status["PreconditionRequired"] = 428] = "PreconditionRequired";
+    Status[Status["TooManyRequests"] = 429] = "TooManyRequests";
+    Status[Status["RequestHeaderFieldsTooLarge"] = 431] = "RequestHeaderFieldsTooLarge";
+    Status[Status["UnavailableForLegalReasons"] = 451] = "UnavailableForLegalReasons";
+    Status[Status["InternalServerError"] = 500] = "InternalServerError";
+    Status[Status["NotImplemented"] = 501] = "NotImplemented";
+    Status[Status["BadGateway"] = 502] = "BadGateway";
+    Status[Status["ServiceUnavailable"] = 503] = "ServiceUnavailable";
+    Status[Status["GatewayTimeout"] = 504] = "GatewayTimeout";
+    Status[Status["HTTPVersionNotSupported"] = 505] = "HTTPVersionNotSupported";
+    Status[Status["VariantAlsoNegotiates"] = 506] = "VariantAlsoNegotiates";
+    Status[Status["InsufficientStorage"] = 507] = "InsufficientStorage";
+    Status[Status["LoopDetected"] = 508] = "LoopDetected";
+    Status[Status["NotExtended"] = 510] = "NotExtended";
+    Status[Status["NetworkAuthenticationRequired"] = 511] = "NetworkAuthenticationRequired";
 })(Status || (Status = {}));
 const STATUS_TEXT = new Map([
     [
@@ -1444,8 +1383,8 @@ function chunkedBodyReader(h, r) {
                 return buf.byteLength;
             } else {
                 const bufToFill = buf.subarray(0, chunkSize);
-                const eof = await r.readFull(bufToFill);
-                if (eof === null) {
+                const eof1 = await r.readFull(bufToFill);
+                if (eof1 === null) {
                     throw new Deno.errors.UnexpectedEof();
                 }
                 if (await tp.readLine() === null) {
@@ -1488,16 +1427,14 @@ async function readTrailers(headers, r) {
     }
     const undeclared = [
         ...result.keys()
-    ].filter((k)=>!trailerNames.includes(k)
-    );
+    ].filter((k)=>!trailerNames.includes(k));
     if (undeclared.length > 0) {
         throw new Deno.errors.InvalidData(`Undeclared trailers: ${Deno.inspect(undeclared)}.`);
     }
-    for (const [k1, v] of result){
-        headers.append(k1, v);
+    for (const [k, v] of result){
+        headers.append(k, v);
     }
-    const missingTrailers = trailerNames.filter((k)=>!result.has(k)
-    );
+    const missingTrailers = trailerNames.filter((k)=>!result.has(k));
     if (missingTrailers.length > 0) {
         throw new Deno.errors.InvalidData(`Missing trailers: ${Deno.inspect(missingTrailers)}.`);
     }
@@ -1507,21 +1444,18 @@ function parseTrailer(field) {
     if (field == null) {
         return undefined;
     }
-    const trailerNames = field.split(",").map((v)=>v.trim().toLowerCase()
-    );
+    const trailerNames = field.split(",").map((v)=>v.trim().toLowerCase());
     if (trailerNames.length === 0) {
         throw new Deno.errors.InvalidData("Empty trailer header.");
     }
-    const prohibited = trailerNames.filter((k)=>isProhibidedForTrailer(k)
-    );
+    const prohibited = trailerNames.filter((k)=>isProhibidedForTrailer(k));
     if (prohibited.length > 0) {
         throw new Deno.errors.InvalidData(`Prohibited trailer names: ${Deno.inspect(prohibited)}.`);
     }
     return new Headers(trailerNames.map((key)=>[
             key,
             ""
-        ]
-    ));
+        ]));
 }
 async function writeChunkedBody(w, r) {
     for await (const chunk of Deno.iter(r)){
@@ -1546,17 +1480,14 @@ async function writeTrailers(w, headers, trailers) {
         throw new TypeError(`Trailers are only allowed for "transfer-encoding: chunked", got "transfer-encoding: ${transferEncoding}".`);
     }
     const writer = BufWriter.create(w);
-    const trailerNames = trailer.split(",").map((s)=>s.trim().toLowerCase()
-    );
-    const prohibitedTrailers = trailerNames.filter((k)=>isProhibidedForTrailer(k)
-    );
+    const trailerNames = trailer.split(",").map((s)=>s.trim().toLowerCase());
+    const prohibitedTrailers = trailerNames.filter((k)=>isProhibidedForTrailer(k));
     if (prohibitedTrailers.length > 0) {
         throw new TypeError(`Prohibited trailer names: ${Deno.inspect(prohibitedTrailers)}.`);
     }
     const undeclared = [
         ...trailers.keys()
-    ].filter((k)=>!trailerNames.includes(k)
-    );
+    ].filter((k)=>!trailerNames.includes(k));
     if (undeclared.length > 0) {
         throw new TypeError(`Undeclared trailers: ${Deno.inspect(undeclared)}.`);
     }
@@ -1596,14 +1527,14 @@ async function writeResponse(w, r) {
     const n = await writer.write(header);
     assert(n === header.byteLength);
     if (r.body instanceof Uint8Array) {
-        const n = await writer.write(r.body);
-        assert(n === r.body.byteLength);
+        const n1 = await writer.write(r.body);
+        assert(n1 === r.body.byteLength);
     } else if (headers.has("content-length")) {
         const contentLength = headers.get("content-length");
         assert(contentLength != null);
         const bodyLength = parseInt(contentLength);
-        const n = await Deno.copy(r.body, writer);
-        assert(n === bodyLength);
+        const n2 = await Deno.copy(r.body, writer);
+        assert(n2 === bodyLength);
     } else {
         await writeChunkedBody(writer, r.body);
     }
@@ -1628,8 +1559,7 @@ class ServerRequest {
     #body = undefined;
     #finalized = false;
     get done() {
-        return this.#done.then((e)=>e
-        );
+        return this.#done.then((e)=>e);
     }
     get contentLength() {
         if (this.#contentLength === undefined) {
@@ -1652,8 +1582,7 @@ class ServerRequest {
             } else {
                 const transferEncoding = this.headers.get("transfer-encoding");
                 if (transferEncoding != null) {
-                    const parts = transferEncoding.split(",").map((e)=>e.trim().toLowerCase()
-                    );
+                    const parts = transferEncoding.split(",").map((e)=>e.trim().toLowerCase());
                     assert(parts.includes("chunked"), 'transfer-encoding must include "chunked" if content-length is not set');
                     this.#body = chunkedBodyReader(this.headers, this.r);
                 } else {
@@ -1860,8 +1789,7 @@ function fixLength(req) {
         const arrClen = contentLength.split(",");
         if (arrClen.length > 1) {
             const distinct = [
-                ...new Set(arrClen.map((e)=>e.trim()
-                ))
+                ...new Set(arrClen.map((e)=>e.trim()))
             ];
             if (distinct.length > 1) {
                 throw Error("cannot contain multiple Content-Length headers");
@@ -1913,7 +1841,7 @@ async function readLong(buf) {
 function sliceLongToBytes(d, dest = new Array(8)) {
     let big = BigInt(d);
     for(let i = 0; i < 8; i++){
-        dest[7 - i] = Number(big & 255n);
+        dest[7 - i] = Number(big & 0xffn);
         big >>= 8n;
     }
     return dest;
@@ -1940,11 +1868,11 @@ class Sha1 {
     #hBytes;
     #finalized;
     #hashed;
-    #h0 = 1732584193;
-    #h1 = 4023233417;
-    #h2 = 2562383102;
-    #h3 = 271733878;
-    #h4 = 3285377520;
+    #h0 = 0x67452301;
+    #h1 = 0xefcdab89;
+    #h2 = 0x98badcfe;
+    #h3 = 0x10325476;
+    #h4 = 0xc3d2e1f0;
     #lastByteIndex = 0;
     constructor(sharedMemory = false){
         this.init(sharedMemory);
@@ -1974,11 +1902,11 @@ class Sha1 {
                 0
             ];
         }
-        this.#h0 = 1732584193;
-        this.#h1 = 4023233417;
-        this.#h2 = 2562383102;
-        this.#h3 = 271733878;
-        this.#h4 = 3285377520;
+        this.#h0 = 0x67452301;
+        this.#h1 = 0xefcdab89;
+        this.#h2 = 0x98badcfe;
+        this.#h3 = 0x10325476;
+        this.#h4 = 0xc3d2e1f0;
         this.#block = this.#start = this.#bytes = this.#hBytes = 0;
         this.#finalized = this.#hashed = false;
     }
@@ -1994,43 +1922,43 @@ class Sha1 {
         }
         let index = 0;
         const length = msg.length;
-        const blocks1 = this.#blocks;
+        const blocks = this.#blocks;
         while(index < length){
             let i;
             if (this.#hashed) {
                 this.#hashed = false;
-                blocks1[0] = this.#block;
-                blocks1[16] = blocks1[1] = blocks1[2] = blocks1[3] = blocks1[4] = blocks1[5] = blocks1[6] = blocks1[7] = blocks1[8] = blocks1[9] = blocks1[10] = blocks1[11] = blocks1[12] = blocks1[13] = blocks1[14] = blocks1[15] = 0;
+                blocks[0] = this.#block;
+                blocks[16] = blocks[1] = blocks[2] = blocks[3] = blocks[4] = blocks[5] = blocks[6] = blocks[7] = blocks[8] = blocks[9] = blocks[10] = blocks[11] = blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
             }
             if (typeof msg !== "string") {
                 for(i = this.#start; index < length && i < 64; ++index){
-                    blocks1[i >> 2] |= msg[index] << SHIFT[(i++) & 3];
+                    blocks[i >> 2] |= msg[index] << SHIFT[i++ & 3];
                 }
             } else {
                 for(i = this.#start; index < length && i < 64; ++index){
                     let code = msg.charCodeAt(index);
-                    if (code < 128) {
-                        blocks1[i >> 2] |= code << SHIFT[(i++) & 3];
-                    } else if (code < 2048) {
-                        blocks1[i >> 2] |= (192 | code >> 6) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code & 63) << SHIFT[(i++) & 3];
-                    } else if (code < 55296 || code >= 57344) {
-                        blocks1[i >> 2] |= (224 | code >> 12) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code >> 6 & 63) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code & 63) << SHIFT[(i++) & 3];
+                    if (code < 0x80) {
+                        blocks[i >> 2] |= code << SHIFT[i++ & 3];
+                    } else if (code < 0x800) {
+                        blocks[i >> 2] |= (0xc0 | code >> 6) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code & 0x3f) << SHIFT[i++ & 3];
+                    } else if (code < 0xd800 || code >= 0xe000) {
+                        blocks[i >> 2] |= (0xe0 | code >> 12) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code >> 6 & 0x3f) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code & 0x3f) << SHIFT[i++ & 3];
                     } else {
-                        code = 65536 + ((code & 1023) << 10 | msg.charCodeAt(++index) & 1023);
-                        blocks1[i >> 2] |= (240 | code >> 18) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code >> 12 & 63) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code >> 6 & 63) << SHIFT[(i++) & 3];
-                        blocks1[i >> 2] |= (128 | code & 63) << SHIFT[(i++) & 3];
+                        code = 0x10000 + ((code & 0x3ff) << 10 | msg.charCodeAt(++index) & 0x3ff);
+                        blocks[i >> 2] |= (0xf0 | code >> 18) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code >> 12 & 0x3f) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code >> 6 & 0x3f) << SHIFT[i++ & 3];
+                        blocks[i >> 2] |= (0x80 | code & 0x3f) << SHIFT[i++ & 3];
                     }
                 }
             }
             this.#lastByteIndex = i;
             this.#bytes += i - this.#start;
             if (i >= 64) {
-                this.#block = blocks1[16];
+                this.#block = blocks[16];
                 this.#start = i - 64;
                 this.hash();
                 this.#hashed = true;
@@ -2049,20 +1977,20 @@ class Sha1 {
             return;
         }
         this.#finalized = true;
-        const blocks2 = this.#blocks;
+        const blocks = this.#blocks;
         const i = this.#lastByteIndex;
-        blocks2[16] = this.#block;
-        blocks2[i >> 2] |= EXTRA[i & 3];
-        this.#block = blocks2[16];
+        blocks[16] = this.#block;
+        blocks[i >> 2] |= EXTRA[i & 3];
+        this.#block = blocks[16];
         if (i >= 56) {
             if (!this.#hashed) {
                 this.hash();
             }
-            blocks2[0] = this.#block;
-            blocks2[16] = blocks2[1] = blocks2[2] = blocks2[3] = blocks2[4] = blocks2[5] = blocks2[6] = blocks2[7] = blocks2[8] = blocks2[9] = blocks2[10] = blocks2[11] = blocks2[12] = blocks2[13] = blocks2[14] = blocks2[15] = 0;
+            blocks[0] = this.#block;
+            blocks[16] = blocks[1] = blocks[2] = blocks[3] = blocks[4] = blocks[5] = blocks[6] = blocks[7] = blocks[8] = blocks[9] = blocks[10] = blocks[11] = blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
         }
-        blocks2[14] = this.#hBytes << 3 | this.#bytes >>> 29;
-        blocks2[15] = this.#bytes << 3;
+        blocks[14] = this.#hBytes << 3 | this.#bytes >>> 29;
+        blocks[15] = this.#bytes << 3;
         this.hash();
     }
     hash() {
@@ -2074,97 +2002,97 @@ class Sha1 {
         let f;
         let j;
         let t;
-        const blocks3 = this.#blocks;
+        const blocks = this.#blocks;
         for(j = 16; j < 80; ++j){
-            t = blocks3[j - 3] ^ blocks3[j - 8] ^ blocks3[j - 14] ^ blocks3[j - 16];
-            blocks3[j] = t << 1 | t >>> 31;
+            t = blocks[j - 3] ^ blocks[j - 8] ^ blocks[j - 14] ^ blocks[j - 16];
+            blocks[j] = t << 1 | t >>> 31;
         }
         for(j = 0; j < 20; j += 5){
             f = b & c | ~b & d;
             t = a << 5 | a >>> 27;
-            e = t + f + e + 1518500249 + blocks3[j] >>> 0;
+            e = t + f + e + 1518500249 + blocks[j] >>> 0;
             b = b << 30 | b >>> 2;
             f = a & b | ~a & c;
             t = e << 5 | e >>> 27;
-            d = t + f + d + 1518500249 + blocks3[j + 1] >>> 0;
+            d = t + f + d + 1518500249 + blocks[j + 1] >>> 0;
             a = a << 30 | a >>> 2;
             f = e & a | ~e & b;
             t = d << 5 | d >>> 27;
-            c = t + f + c + 1518500249 + blocks3[j + 2] >>> 0;
+            c = t + f + c + 1518500249 + blocks[j + 2] >>> 0;
             e = e << 30 | e >>> 2;
             f = d & e | ~d & a;
             t = c << 5 | c >>> 27;
-            b = t + f + b + 1518500249 + blocks3[j + 3] >>> 0;
+            b = t + f + b + 1518500249 + blocks[j + 3] >>> 0;
             d = d << 30 | d >>> 2;
             f = c & d | ~c & e;
             t = b << 5 | b >>> 27;
-            a = t + f + a + 1518500249 + blocks3[j + 4] >>> 0;
+            a = t + f + a + 1518500249 + blocks[j + 4] >>> 0;
             c = c << 30 | c >>> 2;
         }
         for(; j < 40; j += 5){
             f = b ^ c ^ d;
             t = a << 5 | a >>> 27;
-            e = t + f + e + 1859775393 + blocks3[j] >>> 0;
+            e = t + f + e + 1859775393 + blocks[j] >>> 0;
             b = b << 30 | b >>> 2;
             f = a ^ b ^ c;
             t = e << 5 | e >>> 27;
-            d = t + f + d + 1859775393 + blocks3[j + 1] >>> 0;
+            d = t + f + d + 1859775393 + blocks[j + 1] >>> 0;
             a = a << 30 | a >>> 2;
             f = e ^ a ^ b;
             t = d << 5 | d >>> 27;
-            c = t + f + c + 1859775393 + blocks3[j + 2] >>> 0;
+            c = t + f + c + 1859775393 + blocks[j + 2] >>> 0;
             e = e << 30 | e >>> 2;
             f = d ^ e ^ a;
             t = c << 5 | c >>> 27;
-            b = t + f + b + 1859775393 + blocks3[j + 3] >>> 0;
+            b = t + f + b + 1859775393 + blocks[j + 3] >>> 0;
             d = d << 30 | d >>> 2;
             f = c ^ d ^ e;
             t = b << 5 | b >>> 27;
-            a = t + f + a + 1859775393 + blocks3[j + 4] >>> 0;
+            a = t + f + a + 1859775393 + blocks[j + 4] >>> 0;
             c = c << 30 | c >>> 2;
         }
         for(; j < 60; j += 5){
             f = b & c | b & d | c & d;
             t = a << 5 | a >>> 27;
-            e = t + f + e - 1894007588 + blocks3[j] >>> 0;
+            e = t + f + e - 1894007588 + blocks[j] >>> 0;
             b = b << 30 | b >>> 2;
             f = a & b | a & c | b & c;
             t = e << 5 | e >>> 27;
-            d = t + f + d - 1894007588 + blocks3[j + 1] >>> 0;
+            d = t + f + d - 1894007588 + blocks[j + 1] >>> 0;
             a = a << 30 | a >>> 2;
             f = e & a | e & b | a & b;
             t = d << 5 | d >>> 27;
-            c = t + f + c - 1894007588 + blocks3[j + 2] >>> 0;
+            c = t + f + c - 1894007588 + blocks[j + 2] >>> 0;
             e = e << 30 | e >>> 2;
             f = d & e | d & a | e & a;
             t = c << 5 | c >>> 27;
-            b = t + f + b - 1894007588 + blocks3[j + 3] >>> 0;
+            b = t + f + b - 1894007588 + blocks[j + 3] >>> 0;
             d = d << 30 | d >>> 2;
             f = c & d | c & e | d & e;
             t = b << 5 | b >>> 27;
-            a = t + f + a - 1894007588 + blocks3[j + 4] >>> 0;
+            a = t + f + a - 1894007588 + blocks[j + 4] >>> 0;
             c = c << 30 | c >>> 2;
         }
         for(; j < 80; j += 5){
             f = b ^ c ^ d;
             t = a << 5 | a >>> 27;
-            e = t + f + e - 899497514 + blocks3[j] >>> 0;
+            e = t + f + e - 899497514 + blocks[j] >>> 0;
             b = b << 30 | b >>> 2;
             f = a ^ b ^ c;
             t = e << 5 | e >>> 27;
-            d = t + f + d - 899497514 + blocks3[j + 1] >>> 0;
+            d = t + f + d - 899497514 + blocks[j + 1] >>> 0;
             a = a << 30 | a >>> 2;
             f = e ^ a ^ b;
             t = d << 5 | d >>> 27;
-            c = t + f + c - 899497514 + blocks3[j + 2] >>> 0;
+            c = t + f + c - 899497514 + blocks[j + 2] >>> 0;
             e = e << 30 | e >>> 2;
             f = d ^ e ^ a;
             t = c << 5 | c >>> 27;
-            b = t + f + b - 899497514 + blocks3[j + 3] >>> 0;
+            b = t + f + b - 899497514 + blocks[j + 3] >>> 0;
             d = d << 30 | d >>> 2;
             f = c ^ d ^ e;
             t = b << 5 | b >>> 27;
-            a = t + f + a - 899497514 + blocks3[j + 4] >>> 0;
+            a = t + f + a - 899497514 + blocks[j + 4] >>> 0;
             c = c << 30 | c >>> 2;
         }
         this.#h0 = this.#h0 + a >>> 0;
@@ -2180,7 +2108,7 @@ class Sha1 {
         const h2 = this.#h2;
         const h3 = this.#h3;
         const h4 = this.#h4;
-        return HEX_CHARS[h0 >> 28 & 15] + HEX_CHARS[h0 >> 24 & 15] + HEX_CHARS[h0 >> 20 & 15] + HEX_CHARS[h0 >> 16 & 15] + HEX_CHARS[h0 >> 12 & 15] + HEX_CHARS[h0 >> 8 & 15] + HEX_CHARS[h0 >> 4 & 15] + HEX_CHARS[h0 & 15] + HEX_CHARS[h1 >> 28 & 15] + HEX_CHARS[h1 >> 24 & 15] + HEX_CHARS[h1 >> 20 & 15] + HEX_CHARS[h1 >> 16 & 15] + HEX_CHARS[h1 >> 12 & 15] + HEX_CHARS[h1 >> 8 & 15] + HEX_CHARS[h1 >> 4 & 15] + HEX_CHARS[h1 & 15] + HEX_CHARS[h2 >> 28 & 15] + HEX_CHARS[h2 >> 24 & 15] + HEX_CHARS[h2 >> 20 & 15] + HEX_CHARS[h2 >> 16 & 15] + HEX_CHARS[h2 >> 12 & 15] + HEX_CHARS[h2 >> 8 & 15] + HEX_CHARS[h2 >> 4 & 15] + HEX_CHARS[h2 & 15] + HEX_CHARS[h3 >> 28 & 15] + HEX_CHARS[h3 >> 24 & 15] + HEX_CHARS[h3 >> 20 & 15] + HEX_CHARS[h3 >> 16 & 15] + HEX_CHARS[h3 >> 12 & 15] + HEX_CHARS[h3 >> 8 & 15] + HEX_CHARS[h3 >> 4 & 15] + HEX_CHARS[h3 & 15] + HEX_CHARS[h4 >> 28 & 15] + HEX_CHARS[h4 >> 24 & 15] + HEX_CHARS[h4 >> 20 & 15] + HEX_CHARS[h4 >> 16 & 15] + HEX_CHARS[h4 >> 12 & 15] + HEX_CHARS[h4 >> 8 & 15] + HEX_CHARS[h4 >> 4 & 15] + HEX_CHARS[h4 & 15];
+        return HEX_CHARS[h0 >> 28 & 0x0f] + HEX_CHARS[h0 >> 24 & 0x0f] + HEX_CHARS[h0 >> 20 & 0x0f] + HEX_CHARS[h0 >> 16 & 0x0f] + HEX_CHARS[h0 >> 12 & 0x0f] + HEX_CHARS[h0 >> 8 & 0x0f] + HEX_CHARS[h0 >> 4 & 0x0f] + HEX_CHARS[h0 & 0x0f] + HEX_CHARS[h1 >> 28 & 0x0f] + HEX_CHARS[h1 >> 24 & 0x0f] + HEX_CHARS[h1 >> 20 & 0x0f] + HEX_CHARS[h1 >> 16 & 0x0f] + HEX_CHARS[h1 >> 12 & 0x0f] + HEX_CHARS[h1 >> 8 & 0x0f] + HEX_CHARS[h1 >> 4 & 0x0f] + HEX_CHARS[h1 & 0x0f] + HEX_CHARS[h2 >> 28 & 0x0f] + HEX_CHARS[h2 >> 24 & 0x0f] + HEX_CHARS[h2 >> 20 & 0x0f] + HEX_CHARS[h2 >> 16 & 0x0f] + HEX_CHARS[h2 >> 12 & 0x0f] + HEX_CHARS[h2 >> 8 & 0x0f] + HEX_CHARS[h2 >> 4 & 0x0f] + HEX_CHARS[h2 & 0x0f] + HEX_CHARS[h3 >> 28 & 0x0f] + HEX_CHARS[h3 >> 24 & 0x0f] + HEX_CHARS[h3 >> 20 & 0x0f] + HEX_CHARS[h3 >> 16 & 0x0f] + HEX_CHARS[h3 >> 12 & 0x0f] + HEX_CHARS[h3 >> 8 & 0x0f] + HEX_CHARS[h3 >> 4 & 0x0f] + HEX_CHARS[h3 & 0x0f] + HEX_CHARS[h4 >> 28 & 0x0f] + HEX_CHARS[h4 >> 24 & 0x0f] + HEX_CHARS[h4 >> 20 & 0x0f] + HEX_CHARS[h4 >> 16 & 0x0f] + HEX_CHARS[h4 >> 12 & 0x0f] + HEX_CHARS[h4 >> 8 & 0x0f] + HEX_CHARS[h4 >> 4 & 0x0f] + HEX_CHARS[h4 & 0x0f];
     }
     toString() {
         return this.hex();
@@ -2193,26 +2121,26 @@ class Sha1 {
         const h3 = this.#h3;
         const h4 = this.#h4;
         return [
-            h0 >> 24 & 255,
-            h0 >> 16 & 255,
-            h0 >> 8 & 255,
-            h0 & 255,
-            h1 >> 24 & 255,
-            h1 >> 16 & 255,
-            h1 >> 8 & 255,
-            h1 & 255,
-            h2 >> 24 & 255,
-            h2 >> 16 & 255,
-            h2 >> 8 & 255,
-            h2 & 255,
-            h3 >> 24 & 255,
-            h3 >> 16 & 255,
-            h3 >> 8 & 255,
-            h3 & 255,
-            h4 >> 24 & 255,
-            h4 >> 16 & 255,
-            h4 >> 8 & 255,
-            h4 & 255, 
+            h0 >> 24 & 0xff,
+            h0 >> 16 & 0xff,
+            h0 >> 8 & 0xff,
+            h0 & 0xff,
+            h1 >> 24 & 0xff,
+            h1 >> 16 & 0xff,
+            h1 >> 8 & 0xff,
+            h1 & 0xff,
+            h2 >> 24 & 0xff,
+            h2 >> 16 & 0xff,
+            h2 >> 8 & 0xff,
+            h2 & 0xff,
+            h3 >> 24 & 0xff,
+            h3 >> 16 & 0xff,
+            h3 >> 8 & 0xff,
+            h3 & 0xff,
+            h4 >> 24 & 0xff,
+            h4 >> 16 & 0xff,
+            h4 >> 8 & 0xff,
+            h4 & 0xff, 
         ];
     }
     array() {
@@ -2231,13 +2159,13 @@ class Sha1 {
     }
 }
 var OpCode;
-(function(OpCode1) {
-    OpCode1[OpCode1["Continue"] = 0] = "Continue";
-    OpCode1[OpCode1["TextFrame"] = 1] = "TextFrame";
-    OpCode1[OpCode1["BinaryFrame"] = 2] = "BinaryFrame";
-    OpCode1[OpCode1["Close"] = 8] = "Close";
-    OpCode1[OpCode1["Ping"] = 9] = "Ping";
-    OpCode1[OpCode1["Pong"] = 10] = "Pong";
+(function(OpCode) {
+    OpCode[OpCode["Continue"] = 0x0] = "Continue";
+    OpCode[OpCode["TextFrame"] = 0x1] = "TextFrame";
+    OpCode[OpCode["BinaryFrame"] = 0x2] = "BinaryFrame";
+    OpCode[OpCode["Close"] = 0x8] = "Close";
+    OpCode[OpCode["Ping"] = 0x9] = "Ping";
+    OpCode[OpCode["Pong"] = 0xa] = "Pong";
 })(OpCode || (OpCode = {}));
 function isWebSocketCloseEvent(a) {
     return hasOwnProperty(a, "code");
@@ -2258,26 +2186,26 @@ function unmask(payload, mask) {
 async function writeFrame(frame, writer) {
     const payloadLength = frame.payload.byteLength;
     let header;
-    const hasMask = frame.mask ? 128 : 0;
+    const hasMask = frame.mask ? 0x80 : 0;
     if (frame.mask && frame.mask.byteLength !== 4) {
         throw new Error("invalid mask. mask must be 4 bytes: length=" + frame.mask.byteLength);
     }
     if (payloadLength < 126) {
         header = new Uint8Array([
-            128 | frame.opcode,
+            0x80 | frame.opcode,
             hasMask | payloadLength
         ]);
-    } else if (payloadLength < 65535) {
+    } else if (payloadLength < 0xffff) {
         header = new Uint8Array([
-            128 | frame.opcode,
-            hasMask | 126,
+            0x80 | frame.opcode,
+            hasMask | 0b01111110,
             payloadLength >>> 8,
-            payloadLength & 255, 
+            payloadLength & 0x00ff, 
         ]);
     } else {
         header = new Uint8Array([
-            128 | frame.opcode,
-            hasMask | 127,
+            0x80 | frame.opcode,
+            hasMask | 0b01111111,
             ...sliceLongToBytes(payloadLength), 
         ]);
     }
@@ -2295,28 +2223,28 @@ async function readFrame(buf) {
     assert(b !== null);
     let isLastFrame = false;
     switch(b >>> 4){
-        case 8:
+        case 0b1000:
             isLastFrame = true;
             break;
-        case 0:
+        case 0b0000:
             isLastFrame = false;
             break;
         default:
             throw new Error("invalid signature");
     }
-    const opcode = b & 15;
+    const opcode = b & 0x0f;
     b = await buf.readByte();
     assert(b !== null);
     const hasMask = b >>> 7;
-    let payloadLength = b & 127;
+    let payloadLength = b & 0b01111111;
     if (payloadLength === 126) {
         const l = await readShort(buf);
         assert(l !== null);
         payloadLength = l;
     } else if (payloadLength === 127) {
-        const l = await readLong(buf);
-        assert(l !== null);
-        payloadLength = Number(l);
+        const l1 = await readLong(buf);
+        assert(l1 !== null);
+        payloadLength = Number(l1);
     }
     let mask;
     if (hasMask) {
@@ -2345,7 +2273,7 @@ class WebSocketImpl {
         this.bufWriter = bufWriter || new BufWriter(conn);
     }
     async *[Symbol.asyncIterator]() {
-        const decoder2 = new TextDecoder();
+        const decoder = new TextDecoder();
         let frames = [];
         let payloadsLength = 0;
         while(!this._isClosed){
@@ -2364,16 +2292,16 @@ class WebSocketImpl {
                     frames.push(frame);
                     payloadsLength += frame.payload.length;
                     if (frame.isLastFrame) {
-                        const concat1 = new Uint8Array(payloadsLength);
+                        const concat = new Uint8Array(payloadsLength);
                         let offs = 0;
-                        for (const frame of frames){
-                            concat1.set(frame.payload, offs);
-                            offs += frame.payload.length;
+                        for (const frame1 of frames){
+                            concat.set(frame1.payload, offs);
+                            offs += frame1.payload.length;
                         }
                         if (frames[0].opcode === OpCode.TextFrame) {
-                            yield decoder2.decode(concat1);
+                            yield decoder.decode(concat);
                         } else {
-                            yield concat1;
+                            yield concat;
                         }
                         frames = [];
                         payloadsLength = 0;
@@ -2382,7 +2310,7 @@ class WebSocketImpl {
                 case OpCode.Close:
                     {
                         const code = frame.payload[0] << 8 | frame.payload[1];
-                        const reason = decoder2.decode(frame.payload.subarray(2, frame.payload.length));
+                        const reason = decoder.decode(frame.payload.subarray(2, frame.payload.length));
                         await this.close(code, reason);
                         yield {
                             code,
@@ -2416,9 +2344,7 @@ class WebSocketImpl {
         if (!entry) return;
         if (this._isClosed) return;
         const { d , frame  } = entry;
-        writeFrame(frame, this.bufWriter).then(()=>d.resolve()
-        ).catch((e)=>d.reject(e)
-        ).finally(()=>{
+        writeFrame(frame, this.bufWriter).then(()=>d.resolve()).catch((e)=>d.reject(e)).finally(()=>{
             this.sendQueue.shift();
             this.dequeue();
         });
@@ -2466,7 +2392,7 @@ class WebSocketImpl {
         try {
             const header = [
                 code >>> 8,
-                code & 255
+                code & 0x00ff
             ];
             let payload;
             if (reason) {
@@ -2496,14 +2422,13 @@ class WebSocketImpl {
         if (this.isClosed) return;
         try {
             this.conn.close();
-        } catch (e1) {
-            console.error(e1);
+        } catch (e) {
+            console.error(e);
         } finally{
             this._isClosed = true;
             const rest = this.sendQueue;
             this.sendQueue = [];
-            rest.forEach((e)=>e.d.reject(new Deno.errors.ConnectionReset("Socket has already been closed"))
-            );
+            rest.forEach((e)=>e.d.reject(new Deno.errors.ConnectionReset("Socket has already been closed")));
         }
     }
 }
@@ -2563,11 +2488,11 @@ class WebSocketError extends Error {
     }
 }
 var WebSocketState;
-(function(WebSocketState1) {
-    WebSocketState1[WebSocketState1["CONNECTING"] = 0] = "CONNECTING";
-    WebSocketState1[WebSocketState1["OPEN"] = 1] = "OPEN";
-    WebSocketState1[WebSocketState1["CLOSING"] = 2] = "CLOSING";
-    WebSocketState1[WebSocketState1["CLOSED"] = 3] = "CLOSED";
+(function(WebSocketState) {
+    WebSocketState[WebSocketState["CONNECTING"] = 0] = "CONNECTING";
+    WebSocketState[WebSocketState["OPEN"] = 1] = "OPEN";
+    WebSocketState[WebSocketState["CLOSING"] = 2] = "CLOSING";
+    WebSocketState[WebSocketState["CLOSED"] = 3] = "CLOSED";
 })(WebSocketState || (WebSocketState = {}));
 class WebSocketServer extends EventEmitter {
     clients;
@@ -2637,8 +2562,8 @@ class WebSocketAcceptedClient extends EventEmitter {
                     const [, body] = ev;
                     this.emit("ping", body);
                 } else if (isWebSocketPongEvent(ev)) {
-                    const [, body] = ev;
-                    this.emit("pong", body);
+                    const [, body1] = ev;
+                    this.emit("pong", body1);
                 } else if (isWebSocketCloseEvent(ev)) {
                     const { code , reason  } = ev;
                     this.state = WebSocketState.CLOSED;
@@ -2704,8 +2629,7 @@ class IpcController {
         this.wss.on("connection", (ws)=>{
             this.ws = ws;
             __default1.info('IpcController ws connection success at', new Date());
-            this.onConnected.forEach((i)=>i()
-            );
+            this.onConnected.forEach((i)=>i());
             this.ws.on("message", (message)=>{
                 __default1.info('IpcController on message', message);
                 this.callbacks.forEach((i)=>{
@@ -2741,8 +2665,7 @@ const handleFile = (content, filePath)=>{
     __default1.info('header', header);
     let headerText = header && header[0].replace(/tag *:/, 'tags:');
     const headerInfo = {};
-    headerText?.split('\n').filter((line)=>!line.includes('---')
-    ).forEach((line)=>{
+    headerText?.split('\n').filter((line)=>!line.includes('---')).forEach((line)=>{
         if (line.includes(':')) {
             let values = line.split(':');
             const key = values[0].trim();
@@ -2766,6 +2689,7 @@ const handleFile = (content, filePath)=>{
         }
     });
     __default1.info(headerText);
+    if (headerText == null) {}
     delete headerInfo.isArrayItem;
     delete headerInfo.arrItemTag;
     if (!headerInfo.tags || headerInfo.tags && headerInfo.tags.length === 0) {
@@ -2885,22 +2809,22 @@ new RegExp(`^[${NAME_CHAR}]$`, "u");
 const NAME_RE = new RegExp(`^[${NAME_START_CHAR}][${NAME_CHAR}]*$`, "u");
 new RegExp(`^[${NAME_CHAR}]+$`, "u");
 const S_LIST = [
-    32,
-    10,
-    13,
+    0x20,
+    0xA,
+    0xD,
     9
 ];
 function isChar(c) {
-    return c >= 32 && c <= 55295 || c === 10 || c === 13 || c === 9 || c >= 57344 && c <= 65533 || c >= 65536 && c <= 1114111;
+    return c >= 0x20 && c <= 0xD7FF || c === 0xA || c === 0xD || c === 9 || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000 && c <= 0x10FFFF;
 }
 function isS(c) {
-    return c === 32 || c === 10 || c === 13 || c === 9;
+    return c === 0x20 || c === 0xA || c === 0xD || c === 9;
 }
 function isNameStartChar(c) {
-    return c >= 65 && c <= 90 || c >= 97 && c <= 122 || c === 58 || c === 95 || c === 8204 || c === 8205 || c >= 192 && c <= 214 || c >= 216 && c <= 246 || c >= 248 && c <= 767 || c >= 880 && c <= 893 || c >= 895 && c <= 8191 || c >= 8304 && c <= 8591 || c >= 11264 && c <= 12271 || c >= 12289 && c <= 55295 || c >= 63744 && c <= 64975 || c >= 65008 && c <= 65533 || c >= 65536 && c <= 983039;
+    return c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A || c === 0x3A || c === 0x5F || c === 0x200C || c === 0x200D || c >= 0xC0 && c <= 0xD6 || c >= 0xD8 && c <= 0xF6 || c >= 0x00F8 && c <= 0x02FF || c >= 0x0370 && c <= 0x037D || c >= 0x037F && c <= 0x1FFF || c >= 0x2070 && c <= 0x218F || c >= 0x2C00 && c <= 0x2FEF || c >= 0x3001 && c <= 0xD7FF || c >= 0xF900 && c <= 0xFDCF || c >= 0xFDF0 && c <= 0xFFFD || c >= 0x10000 && c <= 0xEFFFF;
 }
 function isNameChar(c) {
-    return isNameStartChar(c) || c >= 48 && c <= 57 || c === 45 || c === 46 || c === 183 || c >= 768 && c <= 879 || c >= 8255 && c <= 8256;
+    return isNameStartChar(c) || c >= 0x30 && c <= 0x39 || c === 0x2D || c === 0x2E || c === 0xB7 || c >= 0x0300 && c <= 0x036F || c >= 0x203F && c <= 0x2040;
 }
 const CHAR1 = "\u0001-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}";
 const RESTRICTED_CHAR = "\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F-\u0084\u0086-\u009F";
@@ -2915,7 +2839,7 @@ new RegExp(`^[${NAME_CHAR1}]$`, "u");
 new RegExp(`^[${NAME_START_CHAR1}][${NAME_CHAR1}]*$`, "u");
 new RegExp(`^[${NAME_CHAR1}]+$`, "u");
 function isChar1(c) {
-    return c >= 1 && c <= 55295 || c >= 57344 && c <= 65533 || c >= 65536 && c <= 1114111;
+    return c >= 0x0001 && c <= 0xD7FF || c >= 0xE000 && c <= 0xFFFD || c >= 0x10000 && c <= 0x10FFFF;
 }
 const NC_NAME_START_CHAR = "A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}";
 const NC_NAME_CHAR = `-${NC_NAME_START_CHAR}.0-9\u00B7\u0300-\u036F\u203F-\u2040`;
@@ -2923,10 +2847,10 @@ new RegExp(`^[${NC_NAME_START_CHAR}]$`, "u");
 new RegExp(`^[${NC_NAME_CHAR}]$`, "u");
 const NC_NAME_RE = new RegExp(`^[${NC_NAME_START_CHAR}][${NC_NAME_CHAR}]*$`, "u");
 function isNCNameStartChar(c) {
-    return c >= 65 && c <= 90 || c === 95 || c >= 97 && c <= 122 || c >= 192 && c <= 214 || c >= 216 && c <= 246 || c >= 248 && c <= 767 || c >= 880 && c <= 893 || c >= 895 && c <= 8191 || c >= 8204 && c <= 8205 || c >= 8304 && c <= 8591 || c >= 11264 && c <= 12271 || c >= 12289 && c <= 55295 || c >= 63744 && c <= 64975 || c >= 65008 && c <= 65533 || c >= 65536 && c <= 983039;
+    return c >= 0x41 && c <= 0x5A || c === 0x5F || c >= 0x61 && c <= 0x7A || c >= 0xC0 && c <= 0xD6 || c >= 0xD8 && c <= 0xF6 || c >= 0x00F8 && c <= 0x02FF || c >= 0x0370 && c <= 0x037D || c >= 0x037F && c <= 0x1FFF || c >= 0x200C && c <= 0x200D || c >= 0x2070 && c <= 0x218F || c >= 0x2C00 && c <= 0x2FEF || c >= 0x3001 && c <= 0xD7FF || c >= 0xF900 && c <= 0xFDCF || c >= 0xFDF0 && c <= 0xFFFD || c >= 0x10000 && c <= 0xEFFFF;
 }
 function isNCNameChar(c) {
-    return isNCNameStartChar(c) || c === 45 || c === 46 || c >= 48 && c <= 57 || c === 183 || c >= 768 && c <= 879 || c >= 8255 && c <= 8256;
+    return isNCNameStartChar(c) || c === 0x2D || c === 0x2E || c >= 0x30 && c <= 0x39 || c === 0x00B7 || c >= 0x0300 && c <= 0x036F || c >= 0x203F && c <= 0x2040;
 }
 var isS1 = isS;
 var isChar10 = isChar;
@@ -3000,37 +2924,36 @@ const S_ATTRIB_VALUE_CLOSED = 41;
 const S_ATTRIB_VALUE_UNQUOTED = 42;
 const S_CLOSE_TAG = 43;
 const S_CLOSE_TAG_SAW_WHITE = 44;
-const NL = 10;
-const SPACE = 32;
-const MINUS = 45;
-const EQUAL = 61;
-const QUESTION = 63;
-const isQuote = (c)=>c === 34 || c === 39
-;
+const NL = 0xA;
+const SPACE = 0x20;
+const MINUS = 0x2D;
+const EQUAL = 0x3D;
+const QUESTION = 0x3F;
+const isQuote = (c)=>c === 0x22 || c === 0x27;
 const QUOTES = [
-    34,
-    39
+    0x22,
+    0x27
 ];
 const DOCTYPE_TERMINATOR = [
     ...QUOTES,
-    91,
-    62
+    0x5B,
+    0x3E
 ];
 const DTD_TERMINATOR = [
     ...QUOTES,
-    60,
-    93
+    0x3C,
+    0x5D
 ];
 const XML_DECL_NAME_TERMINATOR = [
-    61,
-    63,
+    0x3D,
+    0x3F,
     ...S_LIST1
 ];
 const ATTRIB_VALUE_UNQUOTED_TERMINATOR = [
     ...S_LIST1,
-    62,
-    38,
-    60
+    0x3E,
+    0x26,
+    0x3C
 ];
 function nsPairCheck(parser, prefix, uri) {
     switch(prefix){
@@ -3070,10 +2993,8 @@ function nsMappingCheck(parser, mapping) {
         nsPairCheck(parser, local, mapping[local]);
     }
 }
-const isNCName = (name)=>NC_NAME_RE1.test(name)
-;
-const isName = (name)=>NAME_RE1.test(name)
-;
+const isNCName = (name)=>NC_NAME_RE1.test(name);
+const isName = (name)=>NAME_RE1.test(name);
 const FORBIDDEN_START = 0;
 const FORBIDDEN_BRACKET = 1;
 const FORBIDDEN_BRACKET_BRACKET = 2;
@@ -3330,7 +3251,7 @@ class SaxesParser {
         }
         let limit = chunk.length;
         const lastCode = chunk.charCodeAt(limit - 1);
-        if (!end && (lastCode === 13 || lastCode >= 55296 && lastCode <= 56319)) {
+        if (!end && (lastCode === 0xD || lastCode >= 0xD800 && lastCode <= 0xDBFF)) {
             this.carriedFromPrevious = chunk[limit - 1];
             limit--;
             chunk = chunk.slice(0, limit);
@@ -3356,18 +3277,18 @@ class SaxesParser {
         }
         const code = chunk.charCodeAt(i);
         this.column++;
-        if (code < 55296) {
-            if (code >= 32 || code === 9) {
+        if (code < 0xD800) {
+            if (code >= 0x20 || code === 9) {
                 return code;
             }
             switch(code){
-                case 10:
+                case 0xA:
                     this.line++;
                     this.column = 0;
                     this.positionAtNewLine = this.position;
-                    return 10;
-                case 13:
-                    if (chunk.charCodeAt(i + 1) === 10) {
+                    return 0xA;
+                case 0xD:
+                    if (chunk.charCodeAt(i + 1) === 0xA) {
                         this.i = i + 2;
                     }
                     this.line++;
@@ -3379,15 +3300,15 @@ class SaxesParser {
                     return code;
             }
         }
-        if (code > 56319) {
-            if (!(code >= 57344 && code <= 65533)) {
+        if (code > 0xDBFF) {
+            if (!(code >= 0xE000 && code <= 0xFFFD)) {
                 this.fail("disallowed character.");
             }
             return code;
         }
-        const __final = 65536 + (code - 55296) * 1024 + (chunk.charCodeAt(i + 1) - 56320);
+        const __final = 0x10000 + (code - 0xD800) * 0x400 + (chunk.charCodeAt(i + 1) - 0xDC00);
         this.i = i + 2;
-        if (__final > 1114111) {
+        if (__final > 0x10FFFF) {
             this.fail("disallowed character.");
         }
         return __final;
@@ -3401,25 +3322,25 @@ class SaxesParser {
         }
         const code = chunk.charCodeAt(i);
         this.column++;
-        if (code < 55296) {
-            if (code > 31 && code < 127 || code > 159 && code !== 8232 || code === 9) {
+        if (code < 0xD800) {
+            if (code > 0x1F && code < 0x7F || code > 0x9F && code !== 0x2028 || code === 9) {
                 return code;
             }
             switch(code){
-                case 10:
+                case 0xA:
                     this.line++;
                     this.column = 0;
                     this.positionAtNewLine = this.position;
-                    return 10;
-                case 13:
+                    return 0xA;
+                case 0xD:
                     {
                         const next = chunk.charCodeAt(i + 1);
-                        if (next === 10 || next === 133) {
+                        if (next === 0xA || next === 0x85) {
                             this.i = i + 2;
                         }
                     }
-                case 133:
-                case 8232:
+                case 0x85:
+                case 0x2028:
                     this.line++;
                     this.column = 0;
                     this.positionAtNewLine = this.position;
@@ -3429,22 +3350,22 @@ class SaxesParser {
                     return code;
             }
         }
-        if (code > 56319) {
-            if (!(code >= 57344 && code <= 65533)) {
+        if (code > 0xDBFF) {
+            if (!(code >= 0xE000 && code <= 0xFFFD)) {
                 this.fail("disallowed character.");
             }
             return code;
         }
-        const __final = 65536 + (code - 55296) * 1024 + (chunk.charCodeAt(i + 1) - 56320);
+        const __final = 0x10000 + (code - 0xD800) * 0x400 + (chunk.charCodeAt(i + 1) - 0xDC00);
         this.i = i + 2;
-        if (__final > 1114111) {
+        if (__final > 0x10FFFF) {
             this.fail("disallowed character.");
         }
         return __final;
     }
     getCodeNorm() {
         const c = this.getCode();
-        return c === NL_LIKE ? 10 : c;
+        return c === NL_LIKE ? 0xA : c;
     }
     unget() {
         this.i = this.prevI;
@@ -3456,7 +3377,7 @@ class SaxesParser {
         while(true){
             const c = this.getCode();
             const isNLLike = c === NL_LIKE;
-            const __final = isNLLike ? 10 : c;
+            const __final = isNLLike ? 0xA : c;
             if (__final === EOC || chars.includes(__final)) {
                 this.text += chunk.slice(start, this.prevI);
                 return __final;
@@ -3499,7 +3420,7 @@ class SaxesParser {
             }
             if (!isNameChar1(c)) {
                 this.name += chunk.slice(start, this.prevI);
-                return c === NL_LIKE ? 10 : c;
+                return c === NL_LIKE ? 0xA : c;
             }
         }
     }
@@ -3522,7 +3443,7 @@ class SaxesParser {
         }
     }
     sBegin() {
-        if (this.chunk.charCodeAt(0) === 65279) {
+        if (this.chunk.charCodeAt(0) === 0xFEFF) {
             this.i++;
             this.column++;
         }
@@ -3535,7 +3456,7 @@ class SaxesParser {
             this.xmlDeclPossible = false;
         }
         switch(c){
-            case 60:
+            case 0x3C:
                 this.state = S_OPEN_WAKA;
                 if (this.text.length !== 0) {
                     throw new Error("no-empty text at start");
@@ -3552,7 +3473,7 @@ class SaxesParser {
     sDoctype() {
         const c = this.captureTo(DOCTYPE_TERMINATOR);
         switch(c){
-            case 62:
+            case 0x3E:
                 {
                     this.doctypeHandler?.(this.text);
                     this.text = "";
@@ -3564,7 +3485,7 @@ class SaxesParser {
                 break;
             default:
                 this.text += String.fromCodePoint(c);
-                if (c === 91) {
+                if (c === 0x5B) {
                     this.state = S_DTD;
                 } else if (isQuote(c)) {
                     this.state = S_DOCTYPE_QUOTE;
@@ -3586,9 +3507,9 @@ class SaxesParser {
             return;
         }
         this.text += String.fromCodePoint(c);
-        if (c === 93) {
+        if (c === 0x5D) {
             this.state = S_DOCTYPE;
-        } else if (c === 60) {
+        } else if (c === 0x3C) {
             this.state = S_DTD_OPEN_WAKA;
         } else if (isQuote(c)) {
             this.state = S_DTD_QUOTED;
@@ -3607,11 +3528,11 @@ class SaxesParser {
         const c = this.getCodeNorm();
         this.text += String.fromCodePoint(c);
         switch(c){
-            case 33:
+            case 0x21:
                 this.state = S_DTD_OPEN_WAKA_BANG;
                 this.openWakaBang = "";
                 break;
-            case 63:
+            case 0x3F:
                 this.state = S_DTD_PI;
                 break;
             default:
@@ -3628,7 +3549,7 @@ class SaxesParser {
         }
     }
     sDTDComment() {
-        if (this.captureToChar(45)) {
+        if (this.captureToChar(0x2D)) {
             this.text += "-";
             this.state = S_DTD_COMMENT_ENDING;
         }
@@ -3641,7 +3562,7 @@ class SaxesParser {
     sDTDCommentEnded() {
         const c = this.getCodeNorm();
         this.text += String.fromCodePoint(c);
-        if (c === 62) {
+        if (c === 0x3E) {
             this.state = S_DTD;
         } else {
             this.fail("malformed comment.");
@@ -3649,7 +3570,7 @@ class SaxesParser {
         }
     }
     sDTDPI() {
-        if (this.captureToChar(63)) {
+        if (this.captureToChar(0x3F)) {
             this.text += "?";
             this.state = S_DTD_PI_ENDING;
         }
@@ -3657,7 +3578,7 @@ class SaxesParser {
     sDTDPIEnding() {
         const c = this.getCodeNorm();
         this.text += String.fromCodePoint(c);
-        if (c === 62) {
+        if (c === 0x3E) {
             this.state = S_DTD;
         }
     }
@@ -3677,7 +3598,7 @@ class SaxesParser {
                     this.entity += `${chunk.slice(start, this.prevI)}\n`;
                     start = this.i;
                     break;
-                case 59:
+                case 0x3B:
                     {
                         const { entityReturnState  } = this;
                         const entity = this.entity + chunk.slice(start, this.prevI);
@@ -3710,16 +3631,16 @@ class SaxesParser {
             this.xmlDeclPossible = false;
         } else {
             switch(c){
-                case 47:
+                case 0x2F:
                     this.state = S_CLOSE_TAG;
                     this.xmlDeclPossible = false;
                     break;
-                case 33:
+                case 0x21:
                     this.state = S_OPEN_WAKA_BANG;
                     this.openWakaBang = "";
                     this.xmlDeclPossible = false;
                     break;
-                case 63:
+                case 0x3F:
                     this.state = S_PI_FIRST_CHAR;
                     break;
                 default:
@@ -3762,13 +3683,13 @@ class SaxesParser {
         }
     }
     sComment() {
-        if (this.captureToChar(45)) {
+        if (this.captureToChar(0x2D)) {
             this.state = S_COMMENT_ENDING;
         }
     }
     sCommentEnding() {
         const c = this.getCodeNorm();
-        if (c === 45) {
+        if (c === 0x2D) {
             this.state = S_COMMENT_ENDED;
             this.commentHandler?.(this.text);
             this.text = "";
@@ -3779,7 +3700,7 @@ class SaxesParser {
     }
     sCommentEnded() {
         const c = this.getCodeNorm();
-        if (c !== 62) {
+        if (c !== 0x3E) {
             this.fail("malformed comment.");
             this.text += `--${String.fromCodePoint(c)}`;
             this.state = S_COMMENT;
@@ -3788,13 +3709,13 @@ class SaxesParser {
         }
     }
     sCData() {
-        if (this.captureToChar(93)) {
+        if (this.captureToChar(0x5D)) {
             this.state = S_CDATA_ENDING;
         }
     }
     sCDataEnding() {
         const c = this.getCodeNorm();
-        if (c === 93) {
+        if (c === 0x5D) {
             this.state = S_CDATA_ENDING_2;
         } else {
             this.text += `]${String.fromCodePoint(c)}`;
@@ -3804,14 +3725,14 @@ class SaxesParser {
     sCDataEnding2() {
         const c = this.getCodeNorm();
         switch(c){
-            case 62:
+            case 0x3E:
                 {
                     this.cdataHandler?.(this.text);
                     this.text = "";
                     this.state = S_TEXT;
                     break;
                 }
-            case 93:
+            case 0x5D:
                 this.text += "]";
                 break;
             default:
@@ -3824,7 +3745,7 @@ class SaxesParser {
         if (this.nameStartCheck(c)) {
             this.piTarget += String.fromCodePoint(c);
             this.state = S_PI_REST;
-        } else if (c === 63 || isS1(c)) {
+        } else if (c === 0x3F || isS1(c)) {
             this.fail("processing instruction without a target.");
             this.state = c === QUESTION ? S_PI_ENDING : S_PI_BODY;
         } else {
@@ -3843,7 +3764,7 @@ class SaxesParser {
             }
             if (!this.nameCheck(c)) {
                 this.piTarget += chunk.slice(start, this.prevI);
-                const isQuestion = c === 63;
+                const isQuestion = c === 0x3F;
                 if (isQuestion || isS1(c)) {
                     if (this.piTarget === "xml") {
                         if (!this.xmlDeclPossible) {
@@ -3864,18 +3785,18 @@ class SaxesParser {
     sPIBody() {
         if (this.text.length === 0) {
             const c = this.getCodeNorm();
-            if (c === 63) {
+            if (c === 0x3F) {
                 this.state = S_PI_ENDING;
             } else if (!isS1(c)) {
                 this.text = String.fromCodePoint(c);
             }
-        } else if (this.captureToChar(63)) {
+        } else if (this.captureToChar(0x3F)) {
             this.state = S_PI_ENDING;
         }
     }
     sPIEnding() {
         const c = this.getCodeNorm();
-        if (c === 62) {
+        if (c === 0x3E) {
             const { piTarget  } = this;
             if (piTarget.toLowerCase() === "xml") {
                 this.fail("the XML declaration must appear at the start of the document.");
@@ -3886,7 +3807,7 @@ class SaxesParser {
             });
             this.piTarget = this.text = "";
             this.state = S_TEXT;
-        } else if (c === 63) {
+        } else if (c === 0x3F) {
             this.text += "?";
         } else {
             this.text += `?${String.fromCodePoint(c)}`;
@@ -3896,7 +3817,7 @@ class SaxesParser {
     }
     sXMLDeclNameStart() {
         const c = this.skipSpaces();
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             return;
         }
@@ -3907,14 +3828,14 @@ class SaxesParser {
     }
     sXMLDeclName() {
         const c = this.captureTo(XML_DECL_NAME_TERMINATOR);
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             this.name += this.text;
             this.text = "";
             this.fail("XML declaration is incomplete.");
             return;
         }
-        if (!(isS1(c) || c === 61)) {
+        if (!(isS1(c) || c === 0x3D)) {
             return;
         }
         this.name += this.text;
@@ -3935,7 +3856,7 @@ class SaxesParser {
     }
     sXMLDeclEq() {
         const c = this.getCodeNorm();
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             this.fail("XML declaration is incomplete.");
             return;
@@ -3943,14 +3864,14 @@ class SaxesParser {
         if (isS1(c)) {
             return;
         }
-        if (c !== 61) {
+        if (c !== 0x3D) {
             this.fail("value required.");
         }
         this.state = S_XML_DECL_VALUE_START;
     }
     sXMLDeclValueStart() {
         const c = this.getCodeNorm();
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             this.fail("XML declaration is incomplete.");
             return;
@@ -3969,9 +3890,9 @@ class SaxesParser {
     sXMLDeclValue() {
         const c = this.captureTo([
             this.q,
-            63
+            0x3F
         ]);
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             this.text = "";
             this.fail("XML declaration is incomplete.");
@@ -4022,7 +3943,7 @@ class SaxesParser {
     }
     sXMLDeclSeparator() {
         const c = this.getCodeNorm();
-        if (c === 63) {
+        if (c === 0x3F) {
             this.state = S_XML_DECL_ENDING;
             return;
         }
@@ -4034,7 +3955,7 @@ class SaxesParser {
     }
     sXMLDeclEnding() {
         const c = this.getCodeNorm();
-        if (c === 62) {
+        if (c === 0x3E) {
             if (this.piTarget !== "xml") {
                 this.fail("processing instructions are not allowed before root.");
             } else if (this.name !== "version" && this.xmlDeclExpects.includes("version")) {
@@ -4068,10 +3989,10 @@ class SaxesParser {
             this.fail("documents may contain only one root.");
         }
         switch(c){
-            case 62:
+            case 0x3E:
                 this.openTag();
                 break;
-            case 47:
+            case 0x2F:
                 this.state = S_OPEN_TAG_SLASH;
                 break;
             default:
@@ -4082,7 +4003,7 @@ class SaxesParser {
         }
     }
     sOpenTagSlash() {
-        if (this.getCode() === 62) {
+        if (this.getCode() === 0x3E) {
             this.openSelfClosingTag();
         } else {
             this.fail("forward-slash in opening tag not followed by >.");
@@ -4097,9 +4018,9 @@ class SaxesParser {
         if (isNameStartChar1(c)) {
             this.unget();
             this.state = S_ATTRIB_NAME;
-        } else if (c === 62) {
+        } else if (c === 0x3E) {
             this.openTag();
-        } else if (c === 47) {
+        } else if (c === 0x2F) {
             this.state = S_OPEN_TAG_SLASH;
         } else {
             this.fail("disallowed character in attribute name.");
@@ -4107,11 +4028,11 @@ class SaxesParser {
     }
     sAttribName() {
         const c = this.captureNameChars();
-        if (c === 61) {
+        if (c === 0x3D) {
             this.state = S_ATTRIB_VALUE;
         } else if (isS1(c)) {
             this.state = S_ATTRIB_NAME_SAW_WHITE;
-        } else if (c === 62) {
+        } else if (c === 0x3E) {
             this.fail("attribute without value.");
             this.pushAttrib(this.name, this.name);
             this.name = this.text = "";
@@ -4125,14 +4046,14 @@ class SaxesParser {
         switch(c){
             case EOC:
                 return;
-            case 61:
+            case 0x3D:
                 this.state = S_ATTRIB_VALUE;
                 break;
             default:
                 this.fail("attribute without value.");
                 this.text = "";
                 this.name = "";
-                if (c === 62) {
+                if (c === 0x3E) {
                     this.openTag();
                 } else if (isNameStartChar1(c)) {
                     this.unget();
@@ -4165,18 +4086,18 @@ class SaxesParser {
                     this.q = null;
                     this.state = S_ATTRIB_VALUE_CLOSED;
                     return;
-                case 38:
+                case 0x26:
                     this.text += chunk.slice(start, this.prevI);
                     this.state = S_ENTITY;
                     this.entityReturnState = S_ATTRIB_VALUE_QUOTED;
                     return;
-                case 10:
+                case 0xA:
                 case NL_LIKE:
                 case 9:
                     this.text += `${chunk.slice(start, this.prevI)} `;
                     start = this.i;
                     break;
-                case 60:
+                case 0x3C:
                     this.text += chunk.slice(start, this.prevI);
                     this.fail("disallowed character.");
                     return;
@@ -4191,9 +4112,9 @@ class SaxesParser {
         const c = this.getCodeNorm();
         if (isS1(c)) {
             this.state = S_ATTRIB;
-        } else if (c === 62) {
+        } else if (c === 0x3E) {
             this.openTag();
-        } else if (c === 47) {
+        } else if (c === 0x2F) {
             this.state = S_OPEN_TAG_SLASH;
         } else if (isNameStartChar1(c)) {
             this.fail("no whitespace between attributes.");
@@ -4206,11 +4127,11 @@ class SaxesParser {
     sAttribValueUnquoted() {
         const c = this.captureTo(ATTRIB_VALUE_UNQUOTED_TERMINATOR);
         switch(c){
-            case 38:
+            case 0x26:
                 this.state = S_ENTITY;
                 this.entityReturnState = S_ATTRIB_VALUE_UNQUOTED;
                 break;
-            case 60:
+            case 0x3C:
                 this.fail("disallowed character.");
                 break;
             case EOC:
@@ -4221,7 +4142,7 @@ class SaxesParser {
                 }
                 this.pushAttrib(this.name, this.text);
                 this.name = this.text = "";
-                if (c === 62) {
+                if (c === 0x3E) {
                     this.openTag();
                 } else {
                     this.state = S_ATTRIB;
@@ -4230,7 +4151,7 @@ class SaxesParser {
     }
     sCloseTag() {
         const c = this.captureNameChars();
-        if (c === 62) {
+        if (c === 0x3E) {
             this.closeTag();
         } else if (isS1(c)) {
             this.state = S_CLOSE_TAG_SAW_WHITE;
@@ -4240,7 +4161,7 @@ class SaxesParser {
     }
     sCloseTagSawWhite() {
         switch(this.skipSpaces()){
-            case 62:
+            case 0x3E:
                 this.closeTag();
                 break;
             case EOC:
@@ -4254,7 +4175,7 @@ class SaxesParser {
         const { chunk , textHandler: handler  } = this;
         scanLoop: while(true){
             switch(this.getCode()){
-                case 60:
+                case 0x3C:
                     {
                         this.state = S_OPEN_WAKA;
                         if (handler !== undefined) {
@@ -4270,7 +4191,7 @@ class SaxesParser {
                         forbiddenState = FORBIDDEN_START;
                         break scanLoop;
                     }
-                case 38:
+                case 0x26:
                     this.state = S_ENTITY;
                     this.entityReturnState = S_TEXT;
                     if (handler !== undefined) {
@@ -4278,7 +4199,7 @@ class SaxesParser {
                     }
                     forbiddenState = FORBIDDEN_START;
                     break scanLoop;
-                case 93:
+                case 0x5D:
                     switch(forbiddenState){
                         case 0:
                             forbiddenState = FORBIDDEN_BRACKET;
@@ -4292,7 +4213,7 @@ class SaxesParser {
                             throw new Error("impossible state");
                     }
                     break;
-                case 62:
+                case 0x3E:
                     if (forbiddenState === 2) {
                         this.fail("the string \"]]>\" is disallowed in char data.");
                     }
@@ -4323,7 +4244,7 @@ class SaxesParser {
         outRootLoop: while(true){
             const code = this.getCode();
             switch(code){
-                case 60:
+                case 0x3C:
                     {
                         this.state = S_OPEN_WAKA;
                         if (handler !== undefined) {
@@ -4338,7 +4259,7 @@ class SaxesParser {
                         }
                         break outRootLoop;
                     }
-                case 38:
+                case 0x26:
                     this.state = S_ENTITY;
                     this.entityReturnState = S_TEXT;
                     if (handler !== undefined) {
@@ -4393,9 +4314,9 @@ class SaxesParser {
             this.topNS[local] = trimmed;
             nsPairCheck(this, local, trimmed);
         } else if (name === "xmlns") {
-            const trimmed = value.trim();
-            this.topNS[""] = trimmed;
-            nsPairCheck(this, "", trimmed);
+            const trimmed1 = value.trim();
+            this.topNS[""] = trimmed1;
+            nsPairCheck(this, "", trimmed1);
         }
     }
     pushAttribPlain(name, value) {
@@ -4488,25 +4409,25 @@ class SaxesParser {
         const { attributes  } = tag;
         const seen = new Set();
         for (const attr of attribList){
-            const { name , prefix , local  } = attr;
-            let uri;
+            const { name , prefix: prefix1 , local: local1  } = attr;
+            let uri1;
             let eqname;
-            if (prefix === "") {
-                uri = name === "xmlns" ? XMLNS_NAMESPACE : "";
+            if (prefix1 === "") {
+                uri1 = name === "xmlns" ? XMLNS_NAMESPACE : "";
                 eqname = name;
             } else {
-                uri = this.resolve(prefix);
-                if (uri === undefined) {
-                    this.fail(`unbound namespace prefix: ${JSON.stringify(prefix)}.`);
-                    uri = prefix;
+                uri1 = this.resolve(prefix1);
+                if (uri1 === undefined) {
+                    this.fail(`unbound namespace prefix: ${JSON.stringify(prefix1)}.`);
+                    uri1 = prefix1;
                 }
-                eqname = `{${uri}}${local}`;
+                eqname = `{${uri1}}${local1}`;
             }
             if (seen.has(eqname)) {
                 this.fail(`duplicate attribute: ${eqname}.`);
             }
             seen.add(eqname);
-            attr.uri = uri;
+            attr.uri = uri1;
             attributes[name] = attr;
         }
         this.attribList = [];
@@ -4596,33 +4517,33 @@ class SaxesParser {
     }
 }
 const __default9 = {
-    copyOptions: function(options1) {
-        const copy1 = {};
-        for(const key in options1){
-            if (Object.prototype.hasOwnProperty.call(options1, key)) {
-                copy1[key] = options1[key];
+    copyOptions: function(options) {
+        const copy = {};
+        for(const key in options){
+            if (Object.prototype.hasOwnProperty.call(options, key)) {
+                copy[key] = options[key];
             }
         }
-        return copy1;
+        return copy;
     },
-    ensureFlagExists: function(item, options2) {
-        if (!(item in options2) || typeof options2[item] !== "boolean") {
-            options2[item] = false;
+    ensureFlagExists: function(item, options) {
+        if (!(item in options) || typeof options[item] !== "boolean") {
+            options[item] = false;
         }
     },
-    ensureSpacesExists: function(options3) {
-        if (!("spaces" in options3) || typeof options3.spaces !== "number" && typeof options3.spaces !== "string") {
-            options3.spaces = 0;
+    ensureSpacesExists: function(options) {
+        if (!("spaces" in options) || typeof options.spaces !== "number" && typeof options.spaces !== "string") {
+            options.spaces = 0;
         }
     },
-    ensureAlwaysArrayExists: function(options4) {
-        if (!("alwaysArray" in options4) || typeof options4.alwaysArray !== "boolean" && !Array.isArray(options4.alwaysArray)) {
-            options4.alwaysArray = false;
+    ensureAlwaysArrayExists: function(options) {
+        if (!("alwaysArray" in options) || typeof options.alwaysArray !== "boolean" && !Array.isArray(options.alwaysArray)) {
+            options.alwaysArray = false;
         }
     },
-    ensureKeyExists: function(key, options5) {
-        if (!(key + "Key" in options5) || typeof options5[key + "Key"] !== "string") {
-            options5[key + "Key"] = options5.compact ? "_" + key : key;
+    ensureKeyExists: function(key, options) {
+        if (!(key + "Key" in options) || typeof options[key + "Key"] !== "string") {
+            options[key + "Key"] = options.compact ? "_" + key : key;
         }
     }
 };
@@ -5073,11 +4994,11 @@ class RssController {
                     path: url,
                     type: "rss"
                 };
-                const hitItems1 = listDataRes.data.headerInfos.filter((item)=>{
+                const hitItems = listDataRes.data.headerInfos.filter((item)=>{
                     return item.path == url;
                 });
-                console.info('hitItems', hitItems1.length);
-                if (hitItems1.length > 0) {
+                console.info('hitItems', hitItems.length);
+                if (hitItems.length > 0) {
                     ipcData.msg = `alread has this rss, try update news`;
                 } else {
                     listDataRes.data.headerInfos && listDataRes.data.headerInfos.push(header);
@@ -5096,8 +5017,7 @@ class RssController {
                             tags: [
                                 rss.channel?.title,
                                 item.category ? item.category : ''
-                            ].filter((i)=>i !== ''
-                            ),
+                            ].filter((i)=>i !== ''),
                             path: item.link,
                             type: "rssItem"
                         };
@@ -5141,6 +5061,72 @@ const __default12 = {
     defaultJsContent,
     injectJsContent
 };
+class LocalHistoryService {
+    basePath = '';
+    MAX_STORAGE_LIMIT = 31457280;
+    appContainerPath = Deno.env.get("HOME") + __default3.Dir.Spelator + 'lowbeelocalhistory';
+    constructor(){}
+    static Get(basePath) {
+        const service = new LocalHistoryService();
+        service.basePath = basePath;
+        return service;
+    }
+    checkLocalHistorylimit() {
+        let fileList = __default4.walkDirSync(this.appContainerPath);
+        const statRes = fileList.filter((fileItem)=>{
+            return fileItem.isFile;
+        }).map((i)=>{
+            const a = Deno.statSync(i.path);
+            return {
+                path: i.path,
+                size: a.size,
+                birthtime: a.birthtime
+            };
+        }).sort((a, b)=>{
+            return a.birthtime - b.birthtime;
+        });
+        let size = 0;
+        statRes.forEach((i)=>{
+            size += i.size;
+        });
+        if (size > this.MAX_STORAGE_LIMIT) {
+            __default4.unlinkFile(statRes[0].path);
+            this.checkLocalHistorylimit();
+        }
+        return Promise.resolve(true);
+    }
+    _getFileKey(originPath) {
+        let fileKey = originPath.replace(this.basePath, '');
+        if (fileKey.startsWith('/')) {
+            fileKey = fileKey.substring(1);
+        }
+        return fileKey;
+    }
+    _getTargetFolderPath(fileKey) {
+        const curretnTargetFolderPath = this.appContainerPath + __default3.Dir.Spelator + fileKey;
+        return curretnTargetFolderPath;
+    }
+    _makeSureDir(fileKey) {
+        __default4.mkdirSync(this._getTargetFolderPath(fileKey), {
+            recursive: true
+        });
+    }
+    onReadLocalHistory(originPath) {
+        let fileKey = this._getFileKey(originPath);
+        this._makeSureDir(fileKey);
+        return __default4.walkDirSync(this._getTargetFolderPath(fileKey)).sort((a, b)=>{
+            return a.path - b.path;
+        });
+    }
+    onWriteFile(originPath, content) {
+        __default1.info('LocalHistoryService', originPath, this.basePath, this.appContainerPath);
+        let fileKey = this._getFileKey(originPath);
+        this._makeSureDir(fileKey);
+        __default4.writeFileSync(this._getTargetFolderPath(fileKey) + __default3.Dir.Spelator + new Date().getTime(), content);
+        this.checkLocalHistorylimit();
+        return Promise.resolve(true);
+    }
+}
 class KfTodoController {
     ipc = null;
     hasFirstConnect = false;
@@ -5240,15 +5226,15 @@ class KfTodoController {
                     value: listDataRes.data
                 });
             } else {
-                const currentConfigContent = __default4.readFileSync(confgPath);
-                this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
+                const currentConfigContent1 = __default4.readFileSync(confgPath);
+                this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent1));
             }
-        } catch (err) {
-            __default1.info(err);
+        } catch (err1) {
+            __default1.info(err1);
             this.send({
                 name: "toast",
                 data: {
-                    error: `${err}`
+                    error: `${err1}`
                 }
             });
         }
@@ -5270,20 +5256,20 @@ class KfTodoController {
         const hitItems = listDataRes.data.headerInfos.filter((item)=>{
             return item.path == filePath;
         });
-        let item1 = {};
+        let item = {};
         if (hitItems.length === 0) {
-            item1 = {
+            item = {
                 "title": content.substring(0, 20),
                 "date": new Date().toDateString(),
                 "dateMs": new Date().getTime(),
                 "path": filePath,
                 "tags": []
             };
-            listDataRes.data.headerInfos && listDataRes.data.headerInfos.push(item1);
+            listDataRes.data.headerInfos && listDataRes.data.headerInfos.push(item);
         } else {
-            item1 = hitItems[0];
+            item = hitItems[0];
         }
-        return item1;
+        return item;
     }
     async getOtherHeaderInfos() {
         const listDataRes = await __default5.get({
@@ -5379,8 +5365,8 @@ class KfTodoController {
             for(let x in ipcData.data.data){
                 cacheConfig[x] = ipcData.data.data[x];
             }
-            const content = __default4.readFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH);
-            const headerContent = BlogTextHelper.GetHeaderInfoFromText(content);
+            const content1 = __default4.readFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH);
+            const headerContent = BlogTextHelper.GetHeaderInfoFromText(content1);
             const newContent = headerContent + JSON.stringify(cacheConfig, null, 2);
             __default4.mkdirSync(__default3.getDirPath(KfTodoController.KFTODO_CONFIG_MD_PATH), {
                 recursive: true
@@ -5391,25 +5377,34 @@ class KfTodoController {
             this.initDefaultJsFile();
             this.initByConfig();
         }
+        if (invokeName === 'readLocalHistory') {
+            const { path: path1  } = invokeData;
+            const res = LocalHistoryService.Get(this.config.basePath).onReadLocalHistory(path1);
+            ipcData.data = {
+                history: res
+            };
+            this.ipc?.response(ipcData);
+        }
         if (invokeName === "writeFile") {
-            const { content , path  } = invokeData;
-            __default4.mkdirSync(__default3.getDirPath(path), {
+            const { content: content2 , path: path2  } = invokeData;
+            __default4.mkdirSync(__default3.getDirPath(path2), {
                 recursive: true
             });
-            __default4.writeFileSync(path, content);
-            __default1.info("handleInvoke writeFile path:", path);
-            if (path.endsWith(__default8.getFileExtByType("script", this.config))) {
+            __default4.writeFileSync(path2, content2);
+            LocalHistoryService.Get(this.config.basePath).onWriteFile(path2, content2).then((res)=>{});
+            __default1.info("handleInvoke writeFile path:", path2);
+            if (path2.endsWith(__default8.getFileExtByType("script", this.config))) {
                 ipcData.msg = `${ipcData.data.invokeName} success`;
                 this.ipc?.response(ipcData);
             } else {
                 const listDataRes = await __default5.get({
                     key: "listData"
                 });
-                let item = await this.getMdHeaderInfoByPath(path, content);
+                let item = await this.getMdHeaderInfoByPath(path2, content2);
                 __default1.info("handleInvoke writeFile path compare to", KfTodoController.KFTODO_CONFIG_MD_PATH);
-                if (path === KfTodoController.KFTODO_CONFIG_MD_PATH || path === "./.denkui/.config.md") {
+                if (path2 === KfTodoController.KFTODO_CONFIG_MD_PATH || path2 === "./.denkui/.config.md") {
                     try {
-                        const configContent = BlogTextHelper.GetContentFromText(content).trim();
+                        const configContent = BlogTextHelper.GetContentFromText(content2).trim();
                         __default1.info("KfTodoController ", configContent);
                         this.config = JSON.parse(configContent);
                         this.initByConfig();
@@ -5424,15 +5419,15 @@ class KfTodoController {
                     }
                 } else {
                     try {
-                        let info = __default6.handleFile(content, path);
+                        let info = __default6.handleFile(content2, path2);
                         item.title = info.title;
                         item.date = info.date;
                         item.path = info.path;
                         item.tags = info.tags;
                         ipcData.msg = `${ipcData.data.invokeName} success`;
-                    } catch (err) {
+                    } catch (err1) {
                         ipcData.data = {
-                            error: "error: " + err
+                            error: "error: " + err1
                         };
                         this.ipc?.response(ipcData);
                         return;
@@ -5446,38 +5441,38 @@ class KfTodoController {
             }
         }
         if (invokeName === "deleteItem") {
-            const { path  } = invokeData;
-            __default1.info("KfTodoController try deleteItem", path);
-            if (!path.startsWith('http')) {
-                await __default4.unlinkFile(path);
+            const { path: path3  } = invokeData;
+            __default1.info("KfTodoController try deleteItem", path3);
+            if (!path3.startsWith('http')) {
+                await __default4.unlinkFile(path3);
             }
-            const listDataRes = await __default5.get({
+            const listDataRes1 = await __default5.get({
                 key: "listData"
             });
-            const hitItems = listDataRes.data.headerInfos.filter((item)=>{
-                if (item.path == path) {
-                    __default1.info("KfTodoController deleteItem", path);
+            const hitItems = listDataRes1.data.headerInfos.filter((item)=>{
+                if (item.path == path3) {
+                    __default1.info("KfTodoController deleteItem", path3);
                 }
-                return item.path != path;
+                return item.path != path3;
             });
-            listDataRes.data.headerInfos = hitItems;
+            listDataRes1.data.headerInfos = hitItems;
             await __default5.set({
                 key: "listData",
-                value: listDataRes.data
+                value: listDataRes1.data
             });
             this.ipc?.response(ipcData);
         }
         if (invokeName === "getNewBlogTemplate") {
-            const content = BlogTextHelper.GenerateEmptyText();
+            const content3 = BlogTextHelper.GenerateEmptyText();
             ipcData.data = {
-                content,
+                content: content3,
                 path: this.config.basePath
             };
             this.ipc?.response(ipcData);
         }
         if (invokeName === "initData") {
-            const { path  } = invokeData;
-            const files = __default4.walkDirSync(path);
+            const { path: path4  } = invokeData;
+            const files = __default4.walkDirSync(path4);
             const denkuiblogFiles = files.filter((value)=>{
                 const ext = __default8.getFileExtByType("denkuiblog", this.config);
                 return value.name.endsWith(ext);
@@ -5545,8 +5540,8 @@ const startHttpServer = async ()=>{
         port: 10825
     });
     console.log("File server running on http://localhost:10825/");
-    for await (const conn1 of server){
-        handleHttp(conn1).catch(console.error);
+    for await (const conn of server){
+        handleHttp(conn).catch(console.error);
     }
     async function handleHttp(conn) {
         const httpConn = Deno.serveHttp(conn);
@@ -5561,7 +5556,6 @@ const startHttpServer = async ()=>{
             }
             let file;
             const targetPath = homePath1 === '' ? __default3.homePath() + __default3.Dir.Spelator + 'editor' : homePath1;
-            console.info('httpserver open ', targetPath + filepath);
             try {
                 file = await Deno.open(targetPath + filepath, {
                     read: true
