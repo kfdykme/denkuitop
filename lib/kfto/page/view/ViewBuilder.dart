@@ -217,12 +217,12 @@ class ViewBuilder {
       ));
     }
     return Container(
-      // color: backgroundColor == null ? null : ColorManager.Get("buttonbackground") ,
+      color: backgroundColor == null ? ColorManager.Get("buttonbackground")  : backgroundColor,
       height: 45,
       child: Row(
         children: [
           Container(
-            color: backgroundColor == null ? null : ColorManager.Get("buttontext"),
+            color: ColorManager.Get("buttontext"),
             width: 5,
           ),
           MaterialButton(

@@ -21,6 +21,7 @@ import 'package:denkuitop/kfto/page/view/GridCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/TreeCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
@@ -246,7 +247,7 @@ class KfToHomeState extends BaseRemotePageState {
 
   void initConfigDirectory(dynamic config, {String title}) {
     print("initConfigDirectory");
-
+  
     DenktuiDialog.initContext(context);
     DenktuiDialog.ShowCommonDialog(
         contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择文件夹") : title,
@@ -259,16 +260,7 @@ class KfToHomeState extends BaseRemotePageState {
 
                 this.ipc().invokeNyName({"invokeName": "getConfig"},
                     callback: (AsyncIpcData data) {
-                  var ktoData = KfToDoIpcData.fromAsync(data);
-                  var basePath = ktoData.data['basePath'];
-                  var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
                   config['basePath'] = newPath;
-                  if (editorInjectJsPath == null) {
-                    config['editorInjectJsPath'] =
-                        newPath + DirSpelator + "inject.js";
-                  } else {
-                    config['editorInjectJsPath'] = editorInjectJsPath;
-                  }
                   config['isDarkmode'] = ColorManager.instance().isDarkmode;
                   this.ipc().invokeNyName(
                       {"invokeName": "saveConfig", "data": config},
@@ -313,6 +305,11 @@ class KfToHomeState extends BaseRemotePageState {
               hasTag = true;
               break;
             }
+
+          }
+
+          if (kReleaseMode && (tagData.name == "_KfTodoConfig" || tagData.name == "_DENKUISCRIPT")) {
+            hasTag = true;
           }
 
           if (!hasTag) {
@@ -850,9 +847,10 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildListView() {
+    bool hasItems = this.data?.data != null || this.searchedTags.length != 0;
     return Column(
       children: [
-        searchTagField.view(),
+        hasItems ? searchTagField.view() : Container(),
         // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
         //   // print("search value:" + value + dataTags.toString());
         //   setState(() {
@@ -1074,7 +1072,8 @@ class KfToHomeState extends BaseRemotePageState {
                                   // _saveFile();
                                   onReadLocalHistory();
                                 },
-                                  color: ColorManager.Get("textdarkr"),
+                                  color:  ColorManager.Get("textdarkr"),
+                                  backgroundColor: isReadingLocalHistory ? ColorManager.Get("cardbackgrounddark") : ColorManager.Get("cardbackground"),
                                   icon: Icon(
                                     Icons.history_sharp,
                                     color: ColorManager.Get("textdarkr"),
