@@ -27,13 +27,20 @@ const convertMarkdownTagDatIntoHTML = (line) => {
     content = content.replace(/[<>&"]/g, function (c) {
         return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
     });
+
+    var regLink = /\[(.*?)\]\((.*?)\)/g
     content = content.replaceAll(regBig, `<strong>\$1</strong>`)
     content = content.replaceAll(regI, `<i>\$1</i>`)
+    content = content.replaceAll(regLink, `<a href="\$2" target="_blank">\$1</a>`)
+    
+    
+    let result = line
     for (let x in converters) {
         // console.info('kfdebug convertMarkdownTagDatIntoHTML key:', x)
         if ((typeof x === "string")) {
             if (x === tag) {
-                return converters[x](content);
+                result = converters[x](content);
+                break;
             } else {
                 // return
                 // return ''
@@ -43,13 +50,16 @@ const convertMarkdownTagDatIntoHTML = (line) => {
         if (x.endsWith("/") && x.startsWith("/")) {
             let res = new RegExp(x.substring(1, x.length - 1)).exec(tag);
             if (res !== null) {
-                return converters[x](content, res);
+                result =  converters[x](content, res);
+                break;
             }
         }
-
+        
         // console.info(tag, x, new RegExp(x).exec(tag), x instanceof RegExp)
     }
-    return line;
+    var regInlineCode = /`(.+?)`/g
+    result = result.replaceAll(regInlineCode, `<code class="inline">\$1</code>`)
+    return result;
 };
 
 registerConverter("headerConfig", (line) => "");
@@ -67,10 +77,11 @@ registerConverter("/code_/", (line) => {
     }
 });
 registerConverter("code_end_", (line) => `</code>`);
+registerConverter("line", (line) => `<hr>`);
 
 registerConverter('note_tag', (line) => {
     console.info('kfdbeug note_tag', line)
-    return `<pre class="note_tag">${line}</pre>`
+    return `<blockquote class="note_tag"><div>${line}</div></blockquote>`
 }
 )
 class TitleHearConvertHelper {
@@ -91,7 +102,7 @@ class TitleHearConvertHelper {
                 const { level, content } = header
                 let prefixString = ''
                 for (let x = 0; x < level; x++) {
-                    prefixString += ` `
+                    prefixString += `  `
                 }
                 return `<p>${prefixString}<a href="#${content.replaceAll(' ', '-')}">${content}</a><\p>`
             }).join('\n')
@@ -103,13 +114,13 @@ class TitleHearConvertHelper {
 
 let titleHeaderConverter = new TitleHearConvertHelper()
 window.denkSetKeyValue('makrdownTitleHeaderConvertHelper', titleHeaderConverter)
-registerConverter('link', (line) => {
+// registerConverter('link', (line) => {
 
-    var regLink = /\[(.*?)\]\((.*?)\)/
-    console.info('kfdebug', line, regLink.exec(line))
-    const [normal, text, link] = regLink.exec(line)
-    return `<a href="${link}" target="_blank">${text}</a>`
-})
+//     var regLink = /\[(.*?)\]\((.*?)\)/
+//     console.info('kfdebug', line, regLink.exec(line))
+//     const [normal, text, link] = regLink.exec(line)
+//     return `<a href="${link}" target="_blank">${text}</a>`
+// })
 
 class ListItemConvertHelper {
 
@@ -195,7 +206,7 @@ class CoastTimer {
 
 const myct = new CoastTimer();
 
-const colorMaps = [['@bgWhite', '#fefefe', '#333333'], ['@linkColor', '#1980e6', '#1980e6'], ['@bgNote', '#33333333', '#efefef'],
+const colorMaps = [['@bgWhite', '#fefefe', '#333333'], ['@linkColor', '#1980e6', '#1980e6'], ['@bgNote', '#33333333', '#efefef33'],
  ['@colorI','#aabcd3', '#ffbcd3'],
  ['@colorH','#B8012D', '#F8BB39'],
  ['@colorPreview', '#2c3f51', '#CCCCCC']];
@@ -213,7 +224,7 @@ const resolveColor = (text) => {
 const handleMarkdown = (content) => {
     myct.delay("start handleMarkdown");
     var stateIsHeader = false;
-    var regHeader = /^---/;
+    var regHeader = /^---$/;
 
     var regTitleHeader = /^(#+) (.*)/;
 
@@ -235,6 +246,8 @@ const handleMarkdown = (content) => {
     var regToc = /^\[TOC\]/
 
     var regNote = /^\> (.*)/
+
+    var regLine = /^----+/;
 
     myct.delay("inited handleMarkdown reg");
     content.split("\n").forEach((line) => {
@@ -311,11 +324,11 @@ const handleMarkdown = (content) => {
             }
         }
         // ------------
-        regRes = regLink.exec(line)
-        if (regRes !== null) {
-            res.push(["link", line])
-            return
-        }
+        // regRes = regLink.exec(line)
+        // if (regRes !== null) {
+        //     res.push(["link", line])
+        //     return
+        // }
 
         // ------------
         regRes = regToc.exec(line)
@@ -331,6 +344,13 @@ const handleMarkdown = (content) => {
             return
         }
         // ------------
+        regRes = regLine.exec(line) 
+        if (regRes !== null) {
+            res.push(['line', line])
+            return
+        }
+
+        // ------------
 
         if (line.trim() != "") {
             res.push(["normal", line]);
@@ -344,6 +364,7 @@ const handleMarkdown = (content) => {
         if (line.trim() == "" && !lastIsEmpty) {
             res.push(["empty", line]);
         }
+        
     });
 
     myct.delay("finish parse line data into markdown tag data");
@@ -385,6 +406,9 @@ const handleMarkdown = (content) => {
         padding:1em;
         background: @bgWhite;
     }
+
+    .preview > text, blockquote{ white-space: normal;}
+    
     h1, h2, h3, h4, h5, h6 {
         font-weight: bold;
         color: @colorH;
@@ -393,6 +417,7 @@ const handleMarkdown = (content) => {
     a {
         color: @linkColor;
         text-decoration: none;
+        font-size: 14.222222222222221px;
     }
 
     .toc > p {
@@ -404,12 +429,44 @@ const handleMarkdown = (content) => {
         background: @bgNote;
         padding: 8px;
         margin-left: 8px;
-        border-radius: 8px;
+        // border-radius: 8px;
+        border-left: 5px solid #33333333;
     }
 
     i {
         font-weight: bold;
         color: @colorI;
+    }
+
+    strong {
+        color: #00aaff
+    }
+
+    .inline {
+        color: #c7254e;
+        background-color: #f9f2f4;
+        border-radius: 4px;
+        padding: 0px 4px;
+        // margin:4px;
+    }
+
+    h1 {
+        font-size:36px; 
+    }
+    h2 {
+        font-size:33px; 
+    }
+    h3 {
+        font-size:30px; 
+    }
+    h4 {
+        font-size:27px; 
+    }
+    h5 {
+        font-size:24px; 
+    }
+    h6 {
+        font-size:18px; 
     }
 
     </style>
@@ -419,7 +476,7 @@ const handleMarkdown = (content) => {
     const cssStyleFile = !darkMode ? 'solarized-light.min.css' : 'railscasts.min.css'
     const header = `<link rel="stylesheet" href="${cssStyleFile}">
      ${resolveColor(style)}`
-    output = `${header}<pre class="preview">${output}</pre> <script>window.hljs.highlightAll();</script>`;
+    output = `${header}<pre class="preview">${output}</pre>`;
     return output
 };
 
@@ -466,6 +523,11 @@ window.denkSetKeyValue('funcMarkdownPreview', () => {
     window.denkGetKey('funcUpdateHeader')()
     titleHeaderConverter.headerList = []
     preview.innerHTML = handleMarkdown(content)
-    window.hljs.highlightAll();
+    // window.hljs.highlightAll();
+    document.querySelectorAll('code').forEach((el) => {
+        if (el.className.indexOf('inline') === -1) {
+            hljs.highlightElement(el);
+        }
+      });
 })
 
