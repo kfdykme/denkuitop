@@ -18,20 +18,28 @@ function HTMLEncode(s) {
                 return r.join("");
             });
 };
+
+const handleInline = (content) => {
+    let regBig = /\*\*(.*?)\*\*/g
+    let regI = /\*(.*?)\*/g
+    var regImg = /!\[(.*?)\]\((.*?)\)/g
+    var regLink = /\[(.*?)\]\((.*?)\)/g
+    
+    content = content.replaceAll(regBig, `<strong>\$1</strong>`)
+    content = content.replaceAll(regI, `<i>\$1</i>`)
+    content = content.replaceAll(regImg, `<img src="\$2" alt="\$1"/>`)
+    content = content.replaceAll(regLink, `<a href="\$2" target="_blank">\$1</a>`)
+    return content
+}
+
 const convertMarkdownTagDatIntoHTML = (line) => {
     let [tag, content] = line;
 
 
-    let regBig = /\*\*(.*?)\*\*/g
-    let regI = /\*(.*?)\*/g
+    // 转义
     content = content.replace(/[<>&"]/g, function (c) {
         return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
     });
-
-    var regLink = /\[(.*?)\]\((.*?)\)/g
-    content = content.replaceAll(regBig, `<strong>\$1</strong>`)
-    content = content.replaceAll(regI, `<i>\$1</i>`)
-    content = content.replaceAll(regLink, `<a href="\$2" target="_blank">\$1</a>`)
     
     
     let result = line
@@ -47,6 +55,7 @@ const convertMarkdownTagDatIntoHTML = (line) => {
                 // console.error(x, tag, content)
             }
         }
+        // register regexp text 
         if (x.endsWith("/") && x.startsWith("/")) {
             let res = new RegExp(x.substring(1, x.length - 1)).exec(tag);
             if (res !== null) {
@@ -58,7 +67,14 @@ const convertMarkdownTagDatIntoHTML = (line) => {
         // console.info(tag, x, new RegExp(x).exec(tag), x instanceof RegExp)
     }
     var regInlineCode = /`(.+?)`/g
+    var regInlineCodeSplit = /`.+?`/g
+    // result = result.replaceAll(regInlineCode, `__CODE_S__\$1__CODE_E__`)
+    const lineSpliteByCode = result.split(regInlineCodeSplit)
     result = result.replaceAll(regInlineCode, `<code class="inline">\$1</code>`)
+    lineSpliteByCode.forEach(i => {
+        result = result.replace(i, handleInline(i))
+    })
+    
     return result;
 };
 
@@ -209,6 +225,7 @@ const myct = new CoastTimer();
 const colorMaps = [['@bgWhite', '#fefefe', '#333333'], ['@linkColor', '#1980e6', '#1980e6'], ['@bgNote', '#33333333', '#efefef33'],
  ['@colorI','#aabcd3', '#ffbcd3'],
  ['@colorH','#B8012D', '#F8BB39'],
+ ['@colorSI','#aa56d3', '#ff56d3'],
  ['@colorPreview', '#2c3f51', '#CCCCCC']];
 
 const resolveColor = (text) => {
@@ -407,8 +424,12 @@ const handleMarkdown = (content) => {
         background: @bgWhite;
     }
 
-    .preview > text, blockquote{ white-space: normal;}
+    .preview > text, blockquote, ul, li{ white-space: normal;}
     
+    .preview > ul {
+        line-height:1.7px;
+    }
+
     h1, h2, h3, h4, h5, h6 {
         font-weight: bold;
         color: @colorH;
@@ -450,23 +471,27 @@ const handleMarkdown = (content) => {
         // margin:4px;
     }
 
+    strong > i {
+        color: @colorSI
+    }
+
     h1 {
         font-size:36px; 
     }
     h2 {
-        font-size:33px; 
+        font-size:32px; 
     }
     h3 {
-        font-size:30px; 
+        font-size:28px; 
     }
     h4 {
-        font-size:27px; 
-    }
-    h5 {
         font-size:24px; 
     }
+    h5 {
+        font-size:20px; 
+    }
     h6 {
-        font-size:18px; 
+        font-size:16px; 
     }
 
     </style>
@@ -488,8 +513,9 @@ const getCurrentShowingEditor = () => {
         x < document.getElementsByClassName("editor_view").length;
         x++
     ) {
-        if (document.getElementsByClassName("editor_view")[x].style.display === '') {
-            editor = document.getElementsByClassName("editor_view")[x]
+        const el = document.getElementsByClassName("editor_view")[x]
+        if (el.style.display === '' & el.className.indexOf('markdown_preview') === -1) {
+            editor = el
         }
     }
     return editor
@@ -506,23 +532,38 @@ window.denkSetKeyValue('funcMarkdownPreview', () => {
     let content = window.denkGetKey('getEditorByFilePath')(fileId).getValue()
     const id = ('editorpreview' + fileId)
     let preview = document.getElementById(id);
+
+    for (
+        let x = 0;
+        x < document.getElementsByClassName("markdown_preview").length;
+        x++
+    ) {
+        const el = document.getElementsByClassName("markdown_preview")[x];
+            el.style.display =
+                "none";
+       
+    }
     if (!preview) {
 
         preview = document.createElement('div')
         preview.id = ('editorpreview' + fileId)
-        preview.style.width = "100%";
+        preview.style.width = "50%";
         preview.style.height = "100%";
         preview.style.overflow = "scroll";
-        preview.className = "editor_view";
+        preview.className = "editor_view markdown_preview";
         const holder = document.getElementById("editor_container_holder");
 
         holder.appendChild(preview);
+    } else {
+        preview.style.display = ''
     }
     console.info('preview', preview)
     window.denkSetKeyValue(id, preview)
     window.denkGetKey('funcUpdateHeader')()
     titleHeaderConverter.headerList = []
+    var oldScrollTop = preview.scrollTop
     preview.innerHTML = handleMarkdown(content)
+    preview.scrollTop = oldScrollTop
     // window.hljs.highlightAll();
     document.querySelectorAll('code').forEach((el) => {
         if (el.className.indexOf('inline') === -1) {

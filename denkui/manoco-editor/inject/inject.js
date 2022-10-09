@@ -93,6 +93,7 @@ const getOption = (filePath = "") => {
         language: "javascript",
         automaticLayout: true,
         lineNumbers: "off",
+        wordWrap: "on",
         ...myOption,
     };
 };
@@ -108,14 +109,26 @@ const getEditor = (filePath = "") => {
         }
         if (!editorView) {
             editorView = document.createElement("div");
-            editorView.style.width = "100%";
+            editorView.style.width = "50%";
             editorView.style.height = "100%";
             editorView.id = id;
             editorView.className = "editor_view";
+            editorView.ondblclick = () => {
+                let func = window.denkGetKey('funcMarkdownPreview')
+                if (func) {
+                    func()
+                }
+            }
             holder.appendChild(editorView);
         }
         const monaco = window.denkGetKey("monaco");
         editor = monaco.editor.create(editorView, getOption(filePath));
+        editor.getModel().onDidChangeContent((event) => {
+            let func = window.denkGetKey('funcMarkdownPreview')
+                if (func) {
+                    func()
+                }
+          });
         window.denkSetKeyValue(id, editor);
 
         const onEditorCreate = window.denkGetKey('onEditorCreate')
@@ -153,10 +166,12 @@ styleNode.innerHTML = `
 
     #editor_header_bar {
         position: fixed;
+        z-index: 2;
     }
 
     #editor_container_holder {
         margin-top: 40px;
+        display:flex;
     }
 
     body {
@@ -165,6 +180,12 @@ styleNode.innerHTML = `
     }
     html {
         overflow-y: hidden;
+    }
+    .markdown_preview {
+        // margin: 0 50%;
+    }
+    .editor_view {
+        display: flex;
     }
 `
 window.denkSetKeyValue('styleNode', styleNode)
@@ -179,6 +200,10 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
     }
 
     window.denkGetKey('funcUpdateHeader')()
+    let func = window.denkGetKey('funcMarkdownPreview')
+    if (func) {
+        func()
+    }
 });
 
 
@@ -390,8 +415,8 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
                 [/^(date) ?: ?(.*)/, "custom-title-bar"],
                 [/^(tags) ?: ?(.*)/, "custom-title-bar"],
                 [/^#{1,6} .*/, "custom-header"],
-                [/- (.| )*$/, "custom-list-item"],
                 [/\*\*.*?\*\*/, "custom-blod"],
+                [/- (.| )*$/, "custom-list-item"],
                 [/\*.*?\*/, "custom-italic"],
                 [/\[error.*/, "custom-error"],
                 [/0x([a-z]|[A-Z]|\d)+/, "custom-number-16"],
@@ -654,7 +679,11 @@ const generateHeaderBar = () => {
 }
 
 const getEditors = () => {
-    return window.denkAllKeys().filter(key => key.startsWith('editor') && key !== 'editornew' && key !== 'editor' && !key.startsWith('editoreditor')).filter(key => window.denkGetKey(key) !== undefined)
+    return window.denkAllKeys().filter(key => key.startsWith('editor') 
+    && key !== 'editornew' 
+    && key !== 'editor' 
+    && !key.startsWith('editoreditor')
+    && !key.startsWith('editorpreview')).filter(key => window.denkGetKey(key) !== undefined)
 }
 
 window.denkSetKeyValue("funcGetEditors", getEditors)
@@ -708,6 +737,7 @@ const updateHeader = () => {
                 window.denkSetKeyValue(id, undefined)
                 //
                 window.denkSetKeyValue('editorpreview' + id, undefined)
+                document.getElementById(id).innerHTML = ''
                 updateHeader()
 
                 for (
@@ -820,8 +850,11 @@ window.denkSetKeyValue('funcShowEditor', (id) => {
         x < document.getElementsByClassName("editor_view").length;
         x++
     ) {
-        document.getElementsByClassName("editor_view")[x].style.display =
-            "none";
+        const el = document.getElementsByClassName("editor_view")[x];
+        // if (el.className.indexOf('markdown_preview') == -1) {
+            el.style.display =
+                "none";
+        // }
     }
 
 
@@ -844,5 +877,9 @@ window.denkSetKeyValue('funcShowEditor', (id) => {
 
 
     window.denkGetKey('funcSwitchDarkMode')(window.denkGetKey('isDarkMode'))
+    let func = window.denkGetKey('funcMarkdownPreview')
+    if (func) {
+        func()
+    }
 })
 
