@@ -475,7 +475,11 @@ class KfToHomeState extends BaseRemotePageState {
         
         var ktoData = KfToDoIpcData.fromAsync(data);
         var historys = ktoData.data['history'] as List<Object>;
-        
+        historys.sort(((a, b) {
+           var datea = (int.parse((a as dynamic)['name']));
+           var dateb = (int.parse((b as dynamic)['name']));
+          return datea - dateb;
+        }));
         setState(() {
           localHistoryDatas = historys;
         });
