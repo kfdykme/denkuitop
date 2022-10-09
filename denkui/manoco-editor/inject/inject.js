@@ -575,7 +575,7 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
             // Method that will be executed when the action is triggered.
             // @param editor The editor instance is passed in as a convenience
             run: function (ed) {
-                let func = window.denkGetKey('funcMarkdownPreview')
+                let func = window.denkGetKey('funcToggleMarkdownPreviewView')
                 if (func) {
                     func()
                 }
@@ -670,8 +670,7 @@ const generateHeaderBar = () => {
 
     header = document.createElement('div')
     header.id = 'editor_header_bar'
-    header.style = 'display:flex;width: 100%; background:#fefefe; overflow-x: scroll;'
-
+    header.style = 'display:flex;width: 100%; background:#fefefe33; overflow-x: scroll;'
 
     holder.parentNode.insertBefore(header, holder)
 
@@ -689,6 +688,17 @@ const getEditors = () => {
 window.denkSetKeyValue("funcGetEditors", getEditors)
 const updateHeader = () => {
     generateHeaderBar().innerHTML = ''
+    let markdownPreviewModeBtn = document.createElement('div')
+    markdownPreviewModeBtn.className = 'header_btn_markdown_preview_mode_btn header_btn_close_btn';
+    markdownPreviewModeBtn.innerHTML = '<img src="markdown_preview_mode.png" height="20"/></div>'
+    markdownPreviewModeBtn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
+    markdownPreviewModeBtn.onclick = () => {
+        let func = window.denkGetKey('funcToggleMarkdownPreviewView')
+        if (func) {
+            func()
+        }
+    }
+    generateHeaderBar().appendChild(markdownPreviewModeBtn)
     getEditors().map(id => {
         let key = id
 
@@ -830,6 +840,10 @@ window.denkSetKeyValue('funcSwitchDarkMode', (isDarkMode) => {
         editor.setTheme('denk')
     }
     window.denkGetKey('funcUpdateHeader')()
+    let func = window.denkGetKey('funcMarkdownPreview')
+    if (func) {
+        func()
+    }
 })
 window.denkSetKeyValue('funcShowEditor', (id) => {
     console.info(id)

@@ -148,7 +148,7 @@ class ListItemConvertHelper {
     }
 
     getLevel(line) {
-        console.info('getLevel', line)
+        // console.info('getLevel', line)
         return /^( *)/.exec(line)[1].length / this.tagBlankSize
     }
     init() {
@@ -158,7 +158,7 @@ class ListItemConvertHelper {
         });
         registerConverter("list", (line) => {
             let lv = this.getLevel(line)
-            console.info('getLevel', lv)
+            // console.info('getLevel', lv)
             if (this.currentLevel < 0) {
                 this.currentLevel = 0
             }
@@ -421,16 +421,17 @@ const handleMarkdown = (content) => {
         color: @colorPreview;
         font-family: ui-monospace;
         padding:1em;
+        width:90%;
         background: @bgWhite;
     }
 
-    .preview > text, blockquote, ul, li{ white-space: normal;}
+    .preview > text, blockquote, ul, li, h1,h2,h3,h4,h5,h6{ white-space: normal; width: 100%;word-break: break-all;}
     
     .preview > ul {
         line-height:1.7px;
     }
 
-    h1, h2, h3, h4, h5, h6 {
+    .preview> h1, h2, h3, h4, h5, h6 {
         font-weight: bold;
         color: @colorH;
         margin: 1.2em 0 .6em 0;
@@ -501,6 +502,7 @@ const handleMarkdown = (content) => {
     const cssStyleFile = !darkMode ? 'solarized-light.min.css' : 'railscasts.min.css'
     const header = `<link rel="stylesheet" href="${cssStyleFile}">
      ${resolveColor(style)}`
+    
     output = `${header}<pre class="preview">${output}</pre>`;
     return output
 };
@@ -523,7 +525,10 @@ const getCurrentShowingEditor = () => {
 
 window.denkSetKeyValue('funcGetCurrentShowingEditor', getCurrentShowingEditor)
 
-window.denkSetKeyValue('funcMarkdownPreview', () => {
+
+let lastMarkdownPreview = 0
+
+const innerMarkdownPreview = () => {
     console.info('funcMarkdownPreview')
     let editor = window.denkGetKey('funcGetCurrentShowingEditor')()
     console.info(editor)
@@ -554,9 +559,16 @@ window.denkSetKeyValue('funcMarkdownPreview', () => {
         const holder = document.getElementById("editor_container_holder");
 
         holder.appendChild(preview);
+        document.querySelectorAll('.editor_view').forEach(i => {
+            refreshWidthByMarkdownPreviewMode(i)
+        })
     } else {
         preview.style.display = ''
     }
+
+
+
+
     console.info('preview', preview)
     window.denkSetKeyValue(id, preview)
     window.denkGetKey('funcUpdateHeader')()
@@ -566,9 +578,56 @@ window.denkSetKeyValue('funcMarkdownPreview', () => {
     preview.scrollTop = oldScrollTop
     // window.hljs.highlightAll();
     document.querySelectorAll('code').forEach((el) => {
-        if (el.className.indexOf('inline') === -1) {
-            hljs.highlightElement(el);
+    if (el.className.indexOf('inline') === -1) {
+        hljs.highlightElement(el);
+    }
+    });
+}
+
+window.denkSetKeyValue('funcMarkdownPreview', () => {
+
+    lastMarkdownPreview = new Date().getTime()
+    setTimeout(() => {
+        const currentMarkdownPreviewTime = new Date().getTime()
+        if (currentMarkdownPreviewTime - lastMarkdownPreview >= 100) {
+            innerMarkdownPreview()
         }
-      });
+    }, 200)   
+})
+
+
+const refreshWidthByMarkdownPreviewMode = (el) => {
+    const markdownPreviewMode = window.denkGetKey('markdownPreviewMode') || 0
+    if (markdownPreviewMode === 0) {
+        el.style.width = "50%"
+    } else if (markdownPreviewMode === 1) {
+        if (el.className.indexOf('markdown_preview') === -1) {
+            el.style.width = "100%"
+        } else {
+            el.style.width = "0%"
+        }
+        
+    } else if (markdownPreviewMode === 2) {
+        
+        if (el.className.indexOf('markdown_preview') === -1) {
+            el.style.width = "0%"
+        } else {
+            el.style.width = "100%"
+        }
+    }
+}
+window.denkSetKeyValue('funcToggleMarkdownPreviewView', () => {
+    let mode = window.denkGetKey('markdownPreviewMode')
+    if (mode === undefined) {
+        mode = 1
+    } else {
+        mode = (mode + 1) % 3
+    }
+    window.denkSetKeyValue('markdownPreviewMode', mode)
+
+    // refresh width
+    document.querySelectorAll('.editor_view').forEach(i => {
+        refreshWidthByMarkdownPreviewMode(i)
+    })
 })
 
