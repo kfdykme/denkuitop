@@ -80,10 +80,10 @@ const convertMarkdownTagDatIntoHTML = (line) => {
 
 registerConverter("headerConfig", (line) => "");
 registerConverter("normal", (line) => `<text>${line.trim(0)}</text>`);
-registerConverter("empty", (line) => `<text>${line.trim(0)}</text>`);
+registerConverter("empty", (line) => `<text>${line.trim(0)}</text><br/>`);
 registerConverter(
     "/code_start_(.*)/",
-    (line, res) => `<code class="language_${res[1]}">`,
+    (line, res) => `<code class="language_${res[1]} markdown_code">`,
 );
 registerConverter("/code_/", (line) => {
     if (line.trim() === "```") {
@@ -147,6 +147,13 @@ class ListItemConvertHelper {
         this.tagBlankSize = tagBlankSize
     }
 
+    convertLineContent(line) {
+        line = line.replace('- ', '').trimLeft()
+        line = line.replace('[DONE]', '<input type="checkbox" checked>')
+        line = line.replace('[TODO]', '<input type="checkbox">')
+        return line
+    }
+
     getLevel(line) {
         // console.info('getLevel', line)
         return /^( *)/.exec(line)[1].length / this.tagBlankSize
@@ -154,7 +161,7 @@ class ListItemConvertHelper {
     init() {
         registerConverter("list_start", (line) => {
             this.currentLevel == 0
-            return `<${this.listTag}>\n<li><p>${line.replace('- ', '').trimLeft()}<p></li>`
+            return `<${this.listTag}>\n<li><p>${this.convertLineContent(line)}<p></li>`
         });
         registerConverter("list", (line) => {
             let lv = this.getLevel(line)
@@ -162,7 +169,9 @@ class ListItemConvertHelper {
             if (this.currentLevel < 0) {
                 this.currentLevel = 0
             }
-            line = line.replace('- ', '').trimLeft()
+            line = this.convertLineContent(line)
+            // if (line.endsWith('[DONE]')) {
+            // }
             if (lv === this.currentLevel) {
                 return `<li><p>${line}</p></li>`
             }
@@ -223,8 +232,10 @@ class CoastTimer {
 const myct = new CoastTimer();
 
 const colorMaps = [['@bgWhite', '#fefefe', '#333333'], ['@linkColor', '#1980e6', '#1980e6'], ['@bgNote', '#33333333', '#efefef33'],
- ['@colorI','#aabcd3', '#ffbcd3'],
- ['@colorH','#B8012D', '#F8BB39'],
+['@colorH','#B8012D', '#F8BB39'],
+['@colorInlineBGCode','#f9f2f4', '#555555'],
+['@colorInlineCode','#f9f2f4', '#f9a0a0'],
+['@colorIt','#aabcd3', '#ffbcd3'],
  ['@colorSI','#aa56d3', '#ff56d3'],
  ['@colorPreview', '#2c3f51', '#CCCCCC']];
 
@@ -423,19 +434,27 @@ const handleMarkdown = (content) => {
         padding:1em;
         width:90%;
         background: @bgWhite;
+        display:inline-flex;
+        flex-direction:column;
     }
 
-    .preview > text, blockquote, ul, li, h1,h2,h3,h4,h5,h6{ white-space: normal; width: 100%;word-break: break-all;}
+    .preview > text, blockquote, ul, li, h1,h2,h3,h4,h5,h6, span{ white-space: normal; width: 100%;word-break: break-all; line-height: 1.5}
     
     .preview > ul {
         line-height:1.7px;
     }
+    
 
     .preview> h1, h2, h3, h4, h5, h6 {
         font-weight: bold;
         color: @colorH;
         margin: 1.2em 0 .6em 0;
     }
+
+    .markdown_code {
+        overflow-x: visible !important;
+    }
+
     a {
         color: @linkColor;
         text-decoration: none;
@@ -448,16 +467,17 @@ const handleMarkdown = (content) => {
     }
 
     .note_tag {
-        background: @bgNote;
-        padding: 8px;
-        margin-left: 8px;
+        // background: @bgNote;
+        padding: 4px;
+        padding-left: 16px;
+        margin: 0px;
         // border-radius: 8px;
-        border-left: 5px solid #33333333;
+        border-left: 4px solid #e27e7dee;
     }
 
     i {
         font-weight: bold;
-        color: @colorI;
+        color: @colorIt;
     }
 
     strong {
@@ -465,8 +485,8 @@ const handleMarkdown = (content) => {
     }
 
     .inline {
-        color: #c7254e;
-        background-color: #f9f2f4;
+        color: @colorInlineCode;
+        background-color: @colorInlineBGCode;
         border-radius: 4px;
         padding: 0px 4px;
         // margin:4px;
@@ -477,22 +497,30 @@ const handleMarkdown = (content) => {
     }
 
     h1 {
-        font-size:36px; 
+        font-size:31px; 
+        border-bottom: 1px solid #aaaaaa;
+        padding-bottom: 8px;
     }
     h2 {
-        font-size:32px; 
+        font-size:28px; 
+        border-bottom: 1px solid #aaaaaa;
+        padding-bottom: 8px;
     }
     h3 {
-        font-size:28px; 
+        font-size:25px; 
     }
     h4 {
-        font-size:24px; 
+        font-size:22px; 
     }
     h5 {
-        font-size:20px; 
+        font-size:19px; 
     }
     h6 {
         font-size:16px; 
+    }
+
+    .preview a:hover{
+        border-bottom: 1px solid;
     }
 
     </style>
