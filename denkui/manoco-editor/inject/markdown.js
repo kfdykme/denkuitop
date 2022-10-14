@@ -459,6 +459,7 @@ const handleMarkdown = (content) => {
 
     .markdown_code {
         overflow-x: visible !important;
+        border-radius:8px;
     }
 
     a {
@@ -470,6 +471,12 @@ const handleMarkdown = (content) => {
     .toc > p {
         margin-block:0;
         margin-inline: 0;
+    }
+
+    .toc {
+        background: @bgNote;
+        border-radius: 8px;
+        padding: 8px;
     }
 
     .note_tag {
