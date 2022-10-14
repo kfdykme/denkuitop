@@ -247,7 +247,20 @@ class KfToHomeState extends BaseRemotePageState {
 
     web.registerFunction("openLink", (dynamic data) {
       var url = data["url"] as String;
-      ChildProcess(ChildProcessArg.from("open ${url}")).run();
+      if (url.startsWith("#")) {
+        var target = url.substring(1);
+        // find
+         ListItemData listItemData = this
+          .data
+          ?.data
+          ?.where((element) => element.path == target)
+          ?.first;
+        if (listItemData != null) {
+          this.onPressSingleItemFunc(listItemData);
+        }
+      } else {
+        ChildProcess(ChildProcessArg.from("open ${url}")).run();
+      }
     });
   }
 
@@ -859,7 +872,10 @@ class KfToHomeState extends BaseRemotePageState {
 
   Widget buildListView() {
     bool hasItems = this.data?.data != null || this.searchedTags.length != 0;
-    return Column(
+    return 
+    Container(
+      margin: EdgeInsets.fromLTRB(0, 24, 0, 0),
+      child: Column(
       children: [
         hasItems ? searchTagField.view() : Container(),
         // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
@@ -893,6 +909,7 @@ class KfToHomeState extends BaseRemotePageState {
                   this.data?.data != null ? this.searchedTags.length : 1),
         )
       ],
+    ),
     );
   }
 

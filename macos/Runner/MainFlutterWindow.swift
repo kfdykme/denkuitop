@@ -5,8 +5,9 @@ import flutter_desktop_cef_web
 class MainFlutterWindow: NSWindow, NSWindowDelegate {
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController.init()
-    let windowFrame = self.frame
+    var windowFrame = self.frame
     self.contentViewController = flutterViewController
+      windowFrame.size = NSMakeSize(1200, 800);
     self.setFrame(windowFrame, display: true)
 
     FlutterDesktopCefWebPlugin.window = self
