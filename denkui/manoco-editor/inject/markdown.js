@@ -120,6 +120,7 @@ class TitleHearConvertHelper {
                 for (let x = 0; x < level; x++) {
                     prefixString += `  `
                 }
+                prefixString += `+ `
                 return `<p>${prefixString}<a href="#${content.replaceAll(' ', '-')}">${content}</a><\p>`
             }).join('\n')
             return `<div class="toc">${content}</div>`
@@ -231,8 +232,9 @@ class CoastTimer {
 
 const myct = new CoastTimer();
 
-const colorMaps = [['@bgWhite', '#fefefe', '#333333'], ['@linkColor', '#1980e6', '#1980e6'], ['@bgNote', '#33333333', '#efefef33'],
-['@colorH','#B8012D', '#F8BB39'],
+const colorMaps = [['@bgWhite', '#fefefe', '#333333'], 
+['@linkColor', '#fac03d', '#fac03d'], ['@bgNote', '#33333333', '#efefef33'],
+['@colorH','#333333', '#aed0ee'],
 ['@colorInlineBGCode','#f9f2f4', '#555555'],
 ['@colorInlineCode','#f9f2f4', '#f9a0a0'],
 ['@colorIt','#aabcd3', '#ffbcd3'],

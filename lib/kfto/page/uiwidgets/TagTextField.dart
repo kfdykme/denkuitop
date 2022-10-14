@@ -136,7 +136,7 @@ class KfTodoTextField {
                       controller: tec,
                       cursorHeight: 26,
                       // focusNode: fn,R
-                      style: TextStyle(color: ColorManager.Get("font")),
+                      style: TextStyle(color: ColorManager.Get("fontmiddle")),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: tagsFieldController.hasTags ? '' : TextK.Get("Enter tag..."),

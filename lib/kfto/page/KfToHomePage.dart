@@ -185,7 +185,7 @@ class KfToHomeState extends BaseRemotePageState {
       cefContainer = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
       web.loadCefContainer();
       web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
-          DenkuiRunJsPathHelper.GetResourcePaht());
+          DenkuiRunJsPathHelper.GetResourcePath());
     }
   }
 
@@ -262,6 +262,7 @@ class KfToHomeState extends BaseRemotePageState {
                     callback: (AsyncIpcData data) {
                   config['basePath'] = newPath;
                   config['isDarkmode'] = ColorManager.instance().isDarkmode;
+                  config["resourcePath"] = DenkuiRunJsPathHelper.GetResourcePath();
                   this.ipc().invokeNyName(
                       {"invokeName": "saveConfig", "data": config},
                       callback: ((data) {
@@ -542,7 +543,7 @@ class KfToHomeState extends BaseRemotePageState {
         itemData.path.startsWith('https://')) {
       web.executeJs('location.href = "${itemData.path}"');
     } else {
-      var homePath = DenkuiRunJsPathHelper.GetResourcePaht();
+      var homePath = DenkuiRunJsPathHelper.GetResourcePath();
       var url =
           "http://localhost:10825/manoco-editor/index.html?home=${homePath}";
 

@@ -5282,12 +5282,8 @@ class KfTodoController {
             return header.type != undefined;
         }) : [];
     }
-    generateInjectJsFile() {
-        const binPath = Deno.env.get('_');
-        if (!binPath) {
-            return [];
-        }
-        const editorInjectJsPath = binPath.substring(0, binPath.lastIndexOf('/') + 1) + '..' + __default3.Dir.Spelator + 'Resources' + __default3.Dir.Spelator + 'manoco-editor' + __default3.Dir.Spelator + 'inject';
+    generateInjectJsFile(resourcePath) {
+        const editorInjectJsPath = resourcePath + __default3.Dir.Spelator + 'manoco-editor' + __default3.Dir.Spelator + 'inject';
         const res = __default4.walkDirSync(editorInjectJsPath).map((i)=>{
             return i.path;
         });
@@ -5384,7 +5380,7 @@ class KfTodoController {
             if (headerContent === null) {
                 headerContent = '';
             }
-            this.config["editorInjectJsPath"] = this.generateInjectJsFile();
+            this.config["editorInjectJsPath"] = this.generateInjectJsFile(cacheConfig['resourcePath']);
             const newContent = headerContent + JSON.stringify(cacheConfig, null, 2);
             __default4.mkdirSync(__default3.getDirPath(KfTodoController.KFTODO_CONFIG_MD_PATH), {
                 recursive: true
