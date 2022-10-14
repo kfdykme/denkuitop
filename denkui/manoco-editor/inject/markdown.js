@@ -28,7 +28,7 @@ const handleInline = (content) => {
     content = content.replaceAll(regBig, `<strong>\$1</strong>`)
     content = content.replaceAll(regI, `<i>\$1</i>`)
     content = content.replaceAll(regImg, `<img src="\$2" alt="\$1"/>`)
-    content = content.replaceAll(regLink, `<a href="\$2" target="_blank">\$1</a>`)
+    content = content.replaceAll(regLink, `<span href="\$2" target="_blank" class="markdown_link">\$1</span>`)
     return content
 }
 
@@ -102,14 +102,30 @@ registerConverter('note_tag', (line) => {
 )
 class TitleHearConvertHelper {
     constructor() {
-        this.headerList = []
         this.init()
+    }
+    
+    reset() {
+        this.convertedCount = 0;
+        this.headerList = []
     }
 
     init() {
 
         registerConverter("/titleHeader_(.)/", (line, res) => {
-            return `<h${res[1]} id="${line.replaceAll(' ', '-')}">${line}</h${res[1]}>`;
+            let head = ``
+            let tile = ``
+            const id  = line.replaceAll(' ', '-')
+            // if (this.convertedCount == 0) {
+            //     head = `<div id="header-container-${id}" class="header-container-item">`
+            // } else if (this.convertedCount == this.headerList.length) {
+            //     tile = `</div>`
+            // } else {
+            //     tile = `</div>`
+            //     head = `<div id="header-container-${id}" class="header-container-item">`
+            // } 
+            this.convertedCount++
+            return `${tile}<h${res[1]} id="${id}">${line}</h${res[1]}>${head}`;
         });
 
         registerConverter('toc', (line) => {
@@ -235,10 +251,10 @@ class CoastTimer {
 const myct = new CoastTimer();
 
 const colorMaps = [['@bgWhite', '#fefefe', '#333333'], 
-['@linkColor', '#fac03d', '#fac03d'], ['@bgNote', '#33333333', '#efefef33'],
+['@linkColor', '#fac03d', '#fac03d'], ['@bgNote', '#efefef33', '#fefefe33'],
 ['@colorH','#333333', '#aed0ee'],
 ['@colorInlineBGCode','#f9f2f4', '#555555'],
-['@colorInlineCode','#f9f2f4', '#f9a0a0'],
+['@colorInlineCode','#ffbcd4', '#f9a0a0'],
 ['@colorIt','#aabcd3', '#ffbcd3'],
  ['@colorSI','#aa56d3', '#ff56d3'],
  ['@colorPreview', '#2c3f51', '#CCCCCC']];
@@ -450,6 +466,9 @@ const handleMarkdown = (content) => {
         line-height:1.7px;
     }
     
+    .preview  img {
+        width: 100%;
+    }
 
     .preview> h1, h2, h3, h4, h5, h6 {
         font-weight: bold;
@@ -462,7 +481,7 @@ const handleMarkdown = (content) => {
         border-radius:8px;
     }
 
-    a {
+    a,.markdown_link {
         color: @linkColor;
         text-decoration: none;
         font-size: 14.222222222222221px;
@@ -505,6 +524,13 @@ const handleMarkdown = (content) => {
         // margin:4px;
     }
 
+    .header-container-item {
+        // background-color: @ffbcd433;
+        // border: 0.1px solid #00bcd4;
+        // border-radius: 12px;
+        padding: 8px;
+    }
+
     strong > i {
         color: @colorSI
     }
@@ -532,8 +558,9 @@ const handleMarkdown = (content) => {
         font-size:16px; 
     }
 
-    .preview a:hover{
+    .preview .markdown_link:hover, a:hover{
         border-bottom: 1px solid;
+        cursor:pointer;
     }
 
     </style>
@@ -613,16 +640,29 @@ const innerMarkdownPreview = () => {
     console.info('preview', preview)
     window.denkSetKeyValue(id, preview)
     window.denkGetKey('funcUpdateHeader')()
-    titleHeaderConverter.headerList = []
+    // titleHeaderConverter.headerList = []
+    titleHeaderConverter.reset()
     var oldScrollTop = preview.scrollTop
     preview.innerHTML = handleMarkdown(content)
     preview.scrollTop = oldScrollTop
     // window.hljs.highlightAll();
     document.querySelectorAll('code').forEach((el) => {
-    if (el.className.indexOf('inline') === -1) {
-        hljs.highlightElement(el);
-    }
+        if (el.className.indexOf('inline') === -1) {
+            hljs.highlightElement(el);
+        }
     });
+    document.querySelectorAll('.markdown_link').forEach((el)=> {
+        console.info(el.attributes.href.value)
+        el.onclick = () => {
+
+            window.denkGetKey('sendIpcMessage')({
+                name: 'openLink',
+                data: {
+                    url: el.attributes.href.value
+                }
+            })
+        }
+    })
 }
 
 window.denkSetKeyValue('funcMarkdownPreview', () => {

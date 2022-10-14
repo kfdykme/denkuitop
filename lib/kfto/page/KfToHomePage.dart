@@ -10,6 +10,7 @@ import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Os.dart';
 import 'package:denkuitop/common/Path.dart';
 import 'package:denkuitop/common/TextK.dart';
+import 'package:denkuitop/denkui/child_process/ChildProcess.dart';
 import 'package:denkuitop/denkui/data/View.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcData.dart';
@@ -242,6 +243,11 @@ class KfToHomeState extends BaseRemotePageState {
       var id = data["id"] as String;
       currentFilePath = id;
       _refreshFilePathTextField();
+    });
+
+    web.registerFunction("openLink", (dynamic data) {
+      var url = data["url"] as String;
+      ChildProcess(ChildProcessArg.from("open ${url}")).run();
     });
   }
 
