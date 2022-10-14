@@ -218,6 +218,7 @@ class ListItemConvertHelper {
 new ListItemConvertHelper()
 
 class CoastTimer {
+    allCoastTime = 0
     constructor() {
         this.time = new Date().getTime();
     }
@@ -227,6 +228,7 @@ class CoastTimer {
         const coast = n - this.time;
         this.time = n;
         console.info(`${tag} coast ${coast} ms`);
+        this.allCoastTime += coast
     }
 }
 
@@ -261,7 +263,7 @@ const handleMarkdown = (content) => {
     var stateIsCode = false;
     var currentCodeTag = "";
     var regCodeStart = /^``` (.*)/;
-    var regCodeEnd = /^``` *$/;
+    var regCodeEnd = /^```( *)$/;
 
     var stateIsList = false;
     var regListStart = /^- .*/;
@@ -306,18 +308,20 @@ const handleMarkdown = (content) => {
 
         // ------------
 
-        regRes = regCodeStart.exec(line);
-        if (regRes !== null) {
-            currentCodeTag = regRes[1].trim();
-            stateIsCode = true;
-            res.push([`code_start_${currentCodeTag}`, line]);
-            return;
+        if (!stateIsCode) {
+            regRes = regCodeStart.exec(line);
+            if (regRes !== null) {
+                currentCodeTag = regRes[1].trim();
+                stateIsCode = true;
+                res.push([`code_start_${currentCodeTag}`, line]);
+                return;
+            }
         }
 
         if (stateIsCode) {
             regRes = regCodeEnd.exec(line);
+            // console.info('has regCodeEnd', line, regRes)
             if (regRes !== null) {
-                // console.info('has regCodeEnd', line)
                 currentCodeTag = regRes[1];
                 stateIsCode = false;
                 res.push([`code_end_${currentCodeTag}`, line]);
@@ -617,6 +621,7 @@ const innerMarkdownPreview = () => {
 window.denkSetKeyValue('funcMarkdownPreview', () => {
 
     lastMarkdownPreview = new Date().getTime()
+    
     setTimeout(() => {
         const currentMarkdownPreviewTime = new Date().getTime()
         if (currentMarkdownPreviewTime - lastMarkdownPreview >= 100) {
