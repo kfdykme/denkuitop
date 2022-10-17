@@ -1,6 +1,7 @@
 import 'dart:isolate';
 
 // import 'package:denkuitop/denkui/submodule/SubModuleManager.dart';
+import 'package:denkuitop/docbee/DocBeeHomePage.dart';
 import 'package:denkuitop/kfto/page/KfToHomePage.dart';
 import 'package:denkuitop/kfto/page/KfToNavigator.dart';
 import 'package:denkuitop/native/DenoManager.dart';
@@ -15,7 +16,7 @@ void doWork(SendPort sendPort) {
 
 void main() {
   runApp(MyApp());
-  new DenoManager().startDeno();
+  // new DenoManager().startDeno();
 }
 
 class MyApp extends StatelessWidget {
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
           // closer together (more dense) than on mobile platforms.
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        navigatorObservers: [KffToNavigator()],
-        home: KfToHomePage());
+        // navigatorObservers: [KffToNavigator()],
+        home: DocBeeHomePage());
   }
 }
