@@ -51,7 +51,7 @@ class ColorManager  {
     colors['tagtextfieldlight'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
   }
 
-  bool isDarkmode = false;
+  bool isDarkmode = true;
 
 
   static Color highLightColor =  Color(0xFF6200EE);

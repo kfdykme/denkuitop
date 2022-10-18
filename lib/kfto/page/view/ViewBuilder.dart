@@ -176,6 +176,30 @@ class ViewBuilder {
     ;
   }
 
+  static Widget BuildLineTextView(String text) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+      child: Row(
+        children: [
+          Container(
+            color: ColorManager.Get("buttontext"),
+            width: 5,
+            height: 50,
+          ),
+         Expanded(child:  Column(mainAxisAlignment: MainAxisAlignment.start,children: [Text(text, style: TextStyle(color: ColorManager.Get('font')),)],))
+        ]),
+    );
+  }
+
+  static Widget BuildInLineCard(Widget child) {
+    return Card(
+      shape:  RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(1.0),
+  ),
+      color: ColorManager.Get('cardbackground'),
+    child: child);
+  }
+
   static Widget BuildInLineMaterialButton(String text,
       {Function onPressFunc, Color color, Icon icon, bool withText = true}) {
     List<Widget> buttonChildrenItems = [];
@@ -186,7 +210,7 @@ class ViewBuilder {
 
       buttonChildrenItems.add(Container(
         padding: EdgeInsets.only(left: size(1)),
-        child: Text(text),
+        child: Column(children: [Text(text)],),
       ));
     }
     return MaterialButton(
@@ -204,7 +228,7 @@ class ViewBuilder {
   }
 
   static Widget BuildMaterialButton(String text,
-      {Function onPressFunc, Color color, Icon icon, Color backgroundColor = const Color(0xffffff), bool withText = true}) {
+      {Function onPressFunc, Color color, Icon icon, Color backgroundColor = const Color(0xffffff), bool withText = true, List<Widget> otherChilds = const []}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
@@ -225,8 +249,11 @@ class ViewBuilder {
             color: backgroundColor == null ? null : ColorManager.Get("buttontext"),
             width: 5,
           ),
-          MaterialButton(
-            
+          Container(
+            color: ColorManager.Get("buttonbackground"),
+
+            child:  MaterialButton(
+            height: 45,
             textColor: ColorManager.Get("buttontext"),
             onPressed: () {
               print("BuildMaterialButton Press ${text} ${onPressFunc}");
@@ -238,6 +265,8 @@ class ViewBuilder {
               children: buttonChildrenItems,
             ),
           ),
+          )
+          ,...otherChilds
         ],
       ),
       margin:  EdgeInsets.all(size(1))
