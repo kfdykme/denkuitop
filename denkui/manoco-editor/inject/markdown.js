@@ -139,7 +139,7 @@ class TitleHearConvertHelper {
                 prefixString += `+ `
                 return `<p>${prefixString}<a href="#${content.replaceAll(' ', '-')}">${content}</a><\p>`
             }).join('\n')
-            return `<div class="toc">${content}</div>`
+            return `<div class="toc" style="overflow-x:scroll; min-height: ${this.headerList.length * 36}px ;">${content}</div>`
         })
 
     }

@@ -1168,7 +1168,10 @@ class KfToHomeState extends BaseRemotePageState {
                                       borderSide:
                                           BorderSide(color: Color(0x00000000)),
                                     )),
-                                onChanged: _onFilePathInputChange),
+                                onChanged: _onFilePathInputChange,
+                                onTap: () {
+                                  ChildProcess(ChildProcessArg.from("open ${filePathLabelText}")).run();
+                                },),
                           ))
                         ],
                       ),
