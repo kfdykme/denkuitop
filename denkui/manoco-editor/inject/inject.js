@@ -836,12 +836,12 @@ window.denkSetKeyValue('funcUpdateSuggestions', () => {
     const dataJson = JSON.parse(window.denkGetKey('dataList'))
     const monaco = window.denkGetKey('monaco')
     const createCompletion = (info, range) => {
-        const { title } = info
+        const { title, path } = info
         return {
             label: '@' + title,
             kind: monaco.languages.CompletionItemKind.Text,
             documentation: JSON.stringify(info, null, 2),
-            insertText: `[${title}](#${title.replace(' ', '_')})`,
+            insertText: `[${title}](#${path})`,
             range: range
         }
     }
