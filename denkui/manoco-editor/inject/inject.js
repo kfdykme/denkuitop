@@ -77,6 +77,10 @@ const getOption = (filePath = "") => {
         unicodeHighlight: {
             ambiguousCharacters: false,
         },
+        scrollbar: { 
+            vertical: 'hidden', 
+            horizontal: 'hidden', 
+        }
     };
     if (filePath.endsWith(".js")) {
         myOption.language = "javascript";
@@ -123,11 +127,73 @@ const getEditor = (filePath = "") => {
         }
         const monaco = window.denkGetKey("monaco");
         editor = monaco.editor.create(editorView, getOption(filePath));
-        editor.getModel().onDidChangeContent((event) => {
+        editor.getModel().onDidChangeContent((e) => {
             let func = window.denkGetKey('funcMarkdownPreview')
-                if (func) {
-                    func()
+            if (func) {
+                func()
+            }
+            const value = e.changes[0].text
+            console.info('kfdebug onDidChangeContent ' + value)
+            if (value === e.eol) {
+                const content = editor.getModel().getLineContent(e.changes[0].range.startLineNumber)
+                // console.info(content)
+                if (/^> .+/.exec(content)) {
+                    var selection = editor.getSelection();
+                    var range = new monaco.Range(selection.startLineNumber, selection.startColumn, selection.endLineNumber, selection.endColumn);
+                    var id = { major: 1, minor: 1 };             
+                    var text = "\n> ";
+                    var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
+                    
+                    editor.executeEdits("my-source->", [op], [selection]);
+
+                    var pos = new monaco.Position(range.startLineNumber +1, text.length)
+                    setTimeout(() => {
+                        editor.setPosition(pos)
+                    },0)
                 }
+                if (/^> $/.exec(content)) {
+                    var selection = editor.getSelection();
+                    var range = new monaco.Range(selection.startLineNumber, 0, selection.endLineNumber, selection.endColumn);
+                    var id = { major: 1, minor: 1 };             
+                    var text = "";
+                    var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
+                    
+                    editor.executeEdits("my-source->-emp", [op], [selection]);
+        
+                    var pos = new monaco.Position(range.startLineNumber ,0)
+                    setTimeout(() => {
+                        editor.setPosition(pos)
+                    },0)
+                }
+                if (/^- $/.exec(content)) {
+                    var selection = editor.getSelection();
+                    var range = new monaco.Range(selection.startLineNumber, 0, selection.endLineNumber, selection.endColumn);
+                    var id = { major: 1, minor: 1 };             
+                    var text = "";
+                    var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
+                    
+                    editor.executeEdits("my-source---emp", [op], [selection]);
+        
+                    var pos = new monaco.Position(range.startLineNumber ,0)
+                    setTimeout(() => {
+                        editor.setPosition(pos)
+                    },0)
+                }
+                if (/^- .+/.exec(content)) {
+                    var selection = editor.getSelection();
+                    var range = new monaco.Range(selection.startLineNumber, selection.startColumn, selection.endLineNumber, selection.endColumn);
+                    var id = { major: 1, minor: 1 };             
+                    var text = "\n- ";
+                    var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
+                    
+                    editor.executeEdits("my-source--", [op], [selection]);
+
+                    var pos = new monaco.Position(range.startLineNumber +1, text.length)
+                    setTimeout(() => {
+                        editor.setPosition(pos)
+                    },0)
+                }
+            }     
           });
         window.denkSetKeyValue(id, editor);
 
