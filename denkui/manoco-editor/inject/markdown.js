@@ -174,11 +174,12 @@ class ListItemConvertHelper {
 
     convertLineContent(line,lineNumber) {
         line = line.replace('- ', '').trimLeft()
-        line = line.replace('[DONE]', `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox" checked>`)
-        line = line.replace('[TODO]', `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox">`)
+        line = line.replace('[DONE]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
+        line = line.replace('[TODO]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
         if (line.indexOf('checkbox') === -1) {
-            line += `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox">`
+            line += `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`
         }
+        // line += `<div class="react-list-item-checkbox" />"`
         return line
     }
 
@@ -190,7 +191,7 @@ class ListItemConvertHelper {
         registerConverter("list_start", (i) => {
             var [line, lineNumber] = i
             this.currentLevel == 0
-            return `<${this.listTag}>\n<li><p>${this.convertLineContent(line, lineNumber)}<p></li>`
+            return `<${this.listTag}>\n<li><div style="display:flex" ><p>${this.convertLineContent(line, lineNumber)}<p></div></li>`
         });
         registerConverter("list", (i) => {
             var [line, lineNumber] = i
@@ -203,7 +204,7 @@ class ListItemConvertHelper {
             // if (line.endsWith('[DONE]')) {
             // }
             if (lv === this.currentLevel) {
-                return `<li><p>${line}</p></li>`
+                return `<li><div style="display:flex" ><p>${line}</div></p></li>`
             }
             if (lv > this.currentLevel) {
                 let buf = ''
@@ -211,7 +212,7 @@ class ListItemConvertHelper {
                     buf += `<${this.listTag}>\n`
                     this.currentLevel++
                 }
-                buf += `<li><p>${line}</p></li>`
+                buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`
                 return buf
             }
             if (lv < this.currentLevel) {
@@ -223,7 +224,7 @@ class ListItemConvertHelper {
                 if (this.currentLevel < 0) {
                     this.currentLevel = 0
                 }
-                buf += `<li><p>${line}</p></li>`
+                buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`
                 return buf
             }
             return line;
@@ -474,6 +475,13 @@ const handleMarkdown = (content) => {
         flex-direction:column;
     }
 
+    .preview .checkbox-container {
+        margin: auto;
+    }
+    .preview .react-list-item-checkbox {
+        margin: auto 0;
+    }
+
     .preview > text, blockquote, ul, li, h1,h2,h3,h4,h5,h6, span{ white-space: normal; width: 100%;word-break: break-all; line-height: 1.5}
     
     .preview > ul {
@@ -680,8 +688,8 @@ const innerMarkdownPreview = () => {
             })
         }
     })
-    document.querySelectorAll('.list-item-checkbox').forEach((el) => {
-        el.onchange = (e) => {
+    document.querySelectorAll('.react-list-item-checkbox').forEach((el) => {
+        const onchange = (e) => {
             var lineNumber = /item-(\d*)/.exec(el.id)[1]
             lineNumber = Number.parseInt(lineNumber)
             lineNumber += 1
@@ -704,7 +712,17 @@ const innerMarkdownPreview = () => {
             currentShowingEditor.executeEdits("my-source-checkbox", [op]);
             // currentShowingEditor.ex
         }
+
+        window.reactRenderSwitch(el, el.attributes.checked, onchange)
     })
+
+    // handle react material
+    // {
+    
+    //     document.querySelectorAll('.react-list-item-checkbox').forEach((el) => {
+            
+    //     })
+    // }
 }
 
 window.denkSetKeyValue('funcMarkdownPreview', () => {
