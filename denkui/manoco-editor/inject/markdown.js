@@ -170,14 +170,19 @@ class ListItemConvertHelper {
         this.currentLevel = 0
         this.listTag = listTag
         this.tagBlankSize = tagBlankSize
+        this.isCheckList = false
     }
+
+
 
     convertLineContent(line, lineNumber) {
         line = line.replace('- ', '').trimLeft()
-        line = line.replace('[DONE]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
-        line = line.replace('[TODO]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
-        if (line.indexOf('checkbox') === -1) {
-            line += `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`
+        if (this.isCheckList) {
+            line = line.replace('[DONE]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
+            line = line.replace('[TODO]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
+            if (line.indexOf('checkbox') === -1) {
+                line += `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`
+            }
         }
         // line += `<div class="react-list-item-checkbox" />"`
         return line
@@ -191,6 +196,11 @@ class ListItemConvertHelper {
         registerConverter("list_start", (i) => {
             var [line, lineNumber] = i
             this.currentLevel == 0
+            if (line.indexOf('[DONE]') > 0 || line.indexOf('[TODO]') > 0) {
+                this.isCheckList = true
+            } else {
+                this.isCheckList = false
+            }
             return `<${this.listTag}>\n<li><div style="display:flex" ><p>${this.convertLineContent(line, lineNumber)}<p></div></li>`
         });
         registerConverter("list", (i) => {
