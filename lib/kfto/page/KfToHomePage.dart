@@ -461,7 +461,9 @@ class KfToHomeState extends BaseRemotePageState {
         }
       });
     } else {
-      this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+      this.ipc().send(KfToDoIpcData.from('onFirstConnect', {
+        'resourcePath': DenkuiRunJsPathHelper.GetResourcePath()
+      }).json());
     }
   }
 

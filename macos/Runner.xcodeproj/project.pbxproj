@@ -28,6 +28,7 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571889F827FEB2C90061FE27 /* denkui.bundle.js */; };
 		571E81AD2890125E00230257 /* manoco-editor in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571E81AC2890125E00230257 /* manoco-editor */; };
+		5721B91629007F76004C5664 /* readme.md in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5721B91529007F76004C5664 /* readme.md */; };
 		57AF345328F847FA005D5B43 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 57AF345528F847FA005D5B43 /* InfoPlist.strings */; };
 		D6DD3DCE38541B6B68C593A0 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AADCFC783D7E5F416249980 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
@@ -68,6 +69,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				5721B91629007F76004C5664 /* readme.md in CopyFiles */,
 				571E81AD2890125E00230257 /* manoco-editor in CopyFiles */,
 				571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */,
 			);
@@ -102,6 +104,7 @@
 		426E22464B7A40F4420531AE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		571889F827FEB2C90061FE27 /* denkui.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = denkui.bundle.js; path = ../denkui/denkui.bundle.js; sourceTree = "<group>"; };
 		571E81AC2890125E00230257 /* manoco-editor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "manoco-editor"; path = "../denkui/manoco-editor"; sourceTree = "<group>"; };
+		5721B91529007F76004C5664 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = readme.md; path = ../denkui/readme.md; sourceTree = "<group>"; };
 		57AF345028F847B6005D5B43 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/MainMenu.strings"; sourceTree = "<group>"; };
 		57AF345428F847FA005D5B43 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		57AF345628F84809005D5B43 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -138,6 +141,7 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
+				5721B91529007F76004C5664 /* readme.md */,
 				57AF345528F847FA005D5B43 /* InfoPlist.strings */,
 				571E81AC2890125E00230257 /* manoco-editor */,
 				571889F827FEB2C90061FE27 /* denkui.bundle.js */,

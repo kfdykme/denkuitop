@@ -5181,7 +5181,9 @@ class KfTodoController {
             key: "listData"
         });
         __default1.info("KfTodoController initData getlistdata");
+        __default1.info("KfTodoController initData getlistdata", this.config['resourcePath']);
         const confgPath = KfTodoController.KFTODO_CONFIG_MD_PATH;
+        const resourcePath = this.config['resourcePath'];
         try {
             if (!listDataRes.data || !__default4.statSync(confgPath).isExist) {
                 __default1.info("KfTodoController initData getlistdata", listDataRes.data?.length);
@@ -5240,6 +5242,7 @@ class KfTodoController {
                 }
             });
         }
+        this.config['resourcePath'] = resourcePath;
         this.initByConfig();
         const lastReadPathRes = await __default5.get({
             key: "lastReadPath"
@@ -5306,6 +5309,8 @@ class KfTodoController {
         }
     }
     async initByConfig() {
+        const readmeContent = __default4.readFileSync(this.config['resourcePath'] + __default3.Dir.Spelator + 'readme.md');
+        __default4.writeFileSync(this.config["basePath"] + __default3.Dir.Spelator + "readme.md", readmeContent);
         const files = __default4.walkDirSync(this.config.basePath);
         const denkuiblogFiles = files.filter((value)=>{
             const ext = __default8.getFileExtByType("denkuiblog", this.config);
@@ -5380,7 +5385,7 @@ class KfTodoController {
             if (headerContent === null) {
                 headerContent = '';
             }
-            this.config["editorInjectJsPath"] = this.generateInjectJsFile(cacheConfig['resourcePath']);
+            this.config["editorInjectJsPath"] = this.generateInjectJsFile(this.config['resourcePath']);
             const newContent = headerContent + JSON.stringify(cacheConfig, null, 2);
             __default4.mkdirSync(__default3.getDirPath(KfTodoController.KFTODO_CONFIG_MD_PATH), {
                 recursive: true
@@ -5526,6 +5531,8 @@ class KfTodoController {
             const event = JSON.parse(message);
             __default1.info("KfTodoController onMessage event", event);
             if (event.name === "onFirstConnect") {
+                const { resourcePath  } = event.data;
+                this.config['resourcePath'] = resourcePath;
                 this.initData().catch((reason)=>{
                     event.data = {
                         error: reason + ""

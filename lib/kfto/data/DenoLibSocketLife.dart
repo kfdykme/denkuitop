@@ -1,5 +1,6 @@
 
 
+import 'package:denkuitop/common/Path.dart';
 import 'package:denkuitop/denkui/ipc/IpcClient.dart';
 import 'package:denkuitop/denkui/ipc/async/AsyncIpcClient.dart';
 import 'package:denkuitop/kfto/data/KftodoListData.dart';
@@ -51,7 +52,9 @@ class DenoLibSocketLife {
   }
 
   void onConnected() {
-      this.ipc().send(KfToDoIpcData.from('onFirstConnect', null).json());
+      this.ipc().send(KfToDoIpcData.from('onFirstConnect', {
+        'resourcePath': DenkuiRunJsPathHelper.GetResourcePath()
+      }).json());
       isFirstConnect = true;
       if (onConnectedCallback != null) {
         onConnectedCallback();
