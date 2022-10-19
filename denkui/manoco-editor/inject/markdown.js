@@ -33,13 +33,21 @@ const handleInline = (content) => {
 }
 
 const convertMarkdownTagDatIntoHTML = (line) => {
-    let [tag, content] = line;
+    var [tag, content] = line;
 
+    if (typeof content === 'object' && content instanceof Array) {
+        // console.error(content)
+        content[0] = content[0].replace(/[<>&"]/g, function (c) {
+            return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+        });
+    } else {
 
-    // 转义
-    content = content.replace(/[<>&"]/g, function (c) {
-        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
-    });
+        // 转义
+        content = content.replace(/[<>&"]/g, function (c) {
+            return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+        });
+    }
+
     
     
     let result = line
@@ -164,10 +172,13 @@ class ListItemConvertHelper {
         this.tagBlankSize = tagBlankSize
     }
 
-    convertLineContent(line) {
+    convertLineContent(line,lineNumber) {
         line = line.replace('- ', '').trimLeft()
-        line = line.replace('[DONE]', '<input type="checkbox" checked>')
-        line = line.replace('[TODO]', '<input type="checkbox">')
+        line = line.replace('[DONE]', `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox" checked>`)
+        line = line.replace('[TODO]', `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox">`)
+        if (line.indexOf('checkbox') === -1) {
+            line += `<input id="list-item-${lineNumber}" class="list-item-checkbox" type="checkbox">`
+        }
         return line
     }
 
@@ -176,17 +187,19 @@ class ListItemConvertHelper {
         return /^( *)/.exec(line)[1].length / this.tagBlankSize
     }
     init() {
-        registerConverter("list_start", (line) => {
+        registerConverter("list_start", (i) => {
+            var [line, lineNumber] = i
             this.currentLevel == 0
-            return `<${this.listTag}>\n<li><p>${this.convertLineContent(line)}<p></li>`
+            return `<${this.listTag}>\n<li><p>${this.convertLineContent(line, lineNumber)}<p></li>`
         });
-        registerConverter("list", (line) => {
+        registerConverter("list", (i) => {
+            var [line, lineNumber] = i
             let lv = this.getLevel(line)
             // console.info('getLevel', lv)
             if (this.currentLevel < 0) {
                 this.currentLevel = 0
             }
-            line = this.convertLineContent(line)
+            line = this.convertLineContent(line, lineNumber)
             // if (line.endsWith('[DONE]')) {
             // }
             if (lv === this.currentLevel) {
@@ -215,7 +228,8 @@ class ListItemConvertHelper {
             }
             return line;
         });
-        registerConverter("list_end", (line) => {
+        registerConverter("list_end", (i) => {
+            const [line, lineNumber] = i
             let buf = ''
 
             if (this.currentLevel < 0) {
@@ -298,7 +312,7 @@ const handleMarkdown = (content) => {
     var regLine = /^----+/;
 
     myct.delay("inited handleMarkdown reg");
-    content.split("\n").forEach((line) => {
+    content.split("\n").forEach((line, lineNumber) => {
         // header Condfig start&end
         if (regHeader.exec(line) !== null) {
             stateIsHeader = !stateIsHeader;
@@ -355,7 +369,7 @@ const handleMarkdown = (content) => {
             regRes = regListStart.exec(line);
             if (regRes !== null) {
                 stateIsList = true;
-                res.push([`list_start`, line]);
+                res.push([`list_start`, [line, lineNumber]]);
                 return;
             }
         }
@@ -364,11 +378,11 @@ const handleMarkdown = (content) => {
             regRes = regListContinue.exec(line);
             if (regRes !== null) {
                 // console.info('regListContinue')
-                res.push(["list", line]);
+                res.push(["list", [line, lineNumber]]);
                 return;
             } else {
                 // console.info('list_end')
-                res.push(["list_end", line]);
+                res.push(["list_end", [line, lineNumber]]);
                 stateIsList = false;
                 return;
             }
@@ -597,12 +611,15 @@ window.denkSetKeyValue('funcGetCurrentShowingEditor', getCurrentShowingEditor)
 let lastMarkdownPreview = 0
 
 const innerMarkdownPreview = () => {
+
+    const monaco = window.denkGetKey("monaco");
     console.info('funcMarkdownPreview')
     let editor = window.denkGetKey('funcGetCurrentShowingEditor')()
     console.info(editor)
     let fileId = editor.id.replace('editor_', '')
     console.info('fileId', fileId)
-    let content = window.denkGetKey('getEditorByFilePath')(fileId).getValue()
+    let currentShowingEditor = window.denkGetKey('getEditorByFilePath')(fileId)
+    let content = currentShowingEditor.getValue()
     const id = ('editorpreview' + fileId)
     let preview = document.getElementById(id);
 
@@ -661,6 +678,31 @@ const innerMarkdownPreview = () => {
                     url: el.attributes.href.value
                 }
             })
+        }
+    })
+    document.querySelectorAll('.list-item-checkbox').forEach((el) => {
+        el.onchange = (e) => {
+            var lineNumber = /item-(\d*)/.exec(el.id)[1]
+            lineNumber = Number.parseInt(lineNumber)
+            lineNumber += 1
+            console.info('onchange', lineNumber)
+            const lineContent = currentShowingEditor.getModel().getLineContent(lineNumber)
+            
+            let newContent = ''
+            if (/\[DONE\]/.exec(lineContent)) {
+                newContent = lineContent.replace(/\[DONE\]/g, '[TODO]')
+            } else if (/\[TODO\]/.exec(lineContent)) {
+                newContent = lineContent.replace(/\[TODO\]/g, '[DONE]')
+            } else {
+                newContent = lineContent + ' [DONE]'
+            }
+            console.info('onchange', lineNumber, lineContent, newContent)
+            var range = new monaco.Range(lineNumber, 0, lineNumber, lineContent.length +1);
+            var id = { major: 1, minor: 1 };             
+            var op = {identifier: id, range: range, text: newContent, forceMoveMarkers: true};
+            
+            currentShowingEditor.executeEdits("my-source-checkbox", [op]);
+            // currentShowingEditor.ex
         }
     })
 }

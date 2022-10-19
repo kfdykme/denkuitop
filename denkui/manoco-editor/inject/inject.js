@@ -139,14 +139,14 @@ const getEditor = (filePath = "") => {
                 // console.info(content)
                 if (/^> .+/.exec(content)) {
                     var selection = editor.getSelection();
-                    var range = new monaco.Range(selection.startLineNumber, selection.startColumn, selection.endLineNumber, selection.endColumn);
+                    var range = new monaco.Range(selection.startLineNumber+1, selection.startColumn, selection.endLineNumber+1, selection.endColumn);
                     var id = { major: 1, minor: 1 };             
-                    var text = "\n> ";
+                    var text = "> ";
                     var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
                     
                     editor.executeEdits("my-source->", [op], [selection]);
 
-                    var pos = new monaco.Position(range.startLineNumber +1, text.length)
+                    var pos = new monaco.Position(range.startLineNumber , text.length +1)
                     setTimeout(() => {
                         editor.setPosition(pos)
                     },0)
@@ -181,14 +181,14 @@ const getEditor = (filePath = "") => {
                 }
                 if (/^- .+/.exec(content)) {
                     var selection = editor.getSelection();
-                    var range = new monaco.Range(selection.startLineNumber, selection.startColumn, selection.endLineNumber, selection.endColumn);
+                    var range = new monaco.Range(selection.startLineNumber + 1, selection.startColumn, selection.endLineNumber + 1, selection.endColumn);
                     var id = { major: 1, minor: 1 };             
-                    var text = "\n- ";
+                    var text = "- ";
                     var op = {identifier: id, range: range, text: text, forceMoveMarkers: true};
                     
                     editor.executeEdits("my-source--", [op], [selection]);
 
-                    var pos = new monaco.Position(range.startLineNumber +1, text.length)
+                    var pos = new monaco.Position(range.startLineNumber, text.length + 1)
                     setTimeout(() => {
                         editor.setPosition(pos)
                     },0)
