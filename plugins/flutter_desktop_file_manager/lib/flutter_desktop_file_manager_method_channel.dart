@@ -21,4 +21,15 @@ class MethodChannelFlutterDesktopFileManager extends FlutterDesktopFileManagerPl
     print("onSelectFile ${path}");
     return path;
   }
+
+  @override
+  Future<void> onUpdateDarkMode(bool darkMode) async {
+     await methodChannel.invokeMethod<String>('updateDarkMode', <String, Object>{'darkMode': darkMode});
+  }
+
+  @override
+  Future<bool> onGetDarkMode() async {
+     final darkMode = await methodChannel.invokeMethod<bool>('getDarkMode');
+     return darkMode??false;
+  }
 }

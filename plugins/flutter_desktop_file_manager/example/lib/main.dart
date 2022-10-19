@@ -19,10 +19,13 @@ class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   final _flutterDesktopFileManagerPlugin = FlutterDesktopFileManager();
 
+  dynamic isDarkMode = false;
   @override
   void initState() {
     super.initState();
     initPlatformState();
+
+    updateIsDarkMode();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -47,6 +50,17 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void updateIsDarkMode() {
+
+      _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value) {
+        print("onGetDarkMode ${value}");
+      setState(() {
+        isDarkMode = value;
+      });
+        
+      },);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,12 +69,24 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: MaterialButton(onPressed: () {
+          child: Column(
+            children: [
+              MaterialButton(onPressed: () {
             print("on click select file");
               _flutterDesktopFileManagerPlugin.OnSelectFile();
-          }, child: const Text("select file"),)
+          }, child: const Text("select file"),),
+              MaterialButton(onPressed: () {
+              _flutterDesktopFileManagerPlugin.onUpdateDarkMode(false);
+              updateIsDarkMode();
+          }, child: const Text("onSetDarkMode is false"),),
+              MaterialButton(onPressed: () {
+              _flutterDesktopFileManagerPlugin.onUpdateDarkMode(true);
+              updateIsDarkMode();
+          }, child: const Text("onSetDarkMode is true"),),
+            Text(isDarkMode.toString())
+            ],
+          ),)
         ),
-      ),
-    );
+      );
   }
 }

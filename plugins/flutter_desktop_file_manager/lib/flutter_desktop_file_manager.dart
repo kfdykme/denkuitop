@@ -10,4 +10,12 @@ class FlutterDesktopFileManager {
   Future<String?> OnSelectFile() {
     return FlutterDesktopFileManagerPlatform.instance.onSelectFile();
   }
+
+  Future<void> onUpdateDarkMode(bool darkMode) {
+    return FlutterDesktopFileManagerPlatform.instance.onUpdateDarkMode(darkMode);
+  }
+
+  Future<bool> onGetDarkMode() {
+    return FlutterDesktopFileManagerPlatform.instance.onGetDarkMode();
+  }
 }
