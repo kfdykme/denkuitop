@@ -24,7 +24,7 @@ const handleInline = (content) => {
     let regI = /\*(.*?)\*/g
     var regImg = /!\[(.*?)\]\((.*?)\)/g
     var regLink = /\[(.*?)\]\((.*?)\)/g
-    
+
     content = content.replaceAll(regBig, `<strong>\$1</strong>`)
     content = content.replaceAll(regI, `<i>\$1</i>`)
     content = content.replaceAll(regImg, `<img src="\$2" alt="\$1"/>`)
@@ -48,8 +48,8 @@ const convertMarkdownTagDatIntoHTML = (line) => {
         });
     }
 
-    
-    
+
+
     let result = line
     for (let x in converters) {
         // console.info('kfdebug convertMarkdownTagDatIntoHTML key:', x)
@@ -67,11 +67,11 @@ const convertMarkdownTagDatIntoHTML = (line) => {
         if (x.endsWith("/") && x.startsWith("/")) {
             let res = new RegExp(x.substring(1, x.length - 1)).exec(tag);
             if (res !== null) {
-                result =  converters[x](content, res);
+                result = converters[x](content, res);
                 break;
             }
         }
-        
+
         // console.info(tag, x, new RegExp(x).exec(tag), x instanceof RegExp)
     }
     var regInlineCode = /`(.+?)`/g
@@ -82,7 +82,7 @@ const convertMarkdownTagDatIntoHTML = (line) => {
     lineSpliteByCode.forEach(i => {
         result = result.replace(i, handleInline(i))
     })
-    
+
     return result;
 };
 
@@ -112,7 +112,7 @@ class TitleHearConvertHelper {
     constructor() {
         this.init()
     }
-    
+
     reset() {
         this.convertedCount = 0;
         this.headerList = []
@@ -123,7 +123,7 @@ class TitleHearConvertHelper {
         registerConverter("/titleHeader_(.)/", (line, res) => {
             let head = ``
             let tile = ``
-            const id  = line.replaceAll(' ', '-')
+            const id = line.replaceAll(' ', '-')
             // if (this.convertedCount == 0) {
             //     head = `<div id="header-container-${id}" class="header-container-item">`
             // } else if (this.convertedCount == this.headerList.length) {
@@ -172,7 +172,7 @@ class ListItemConvertHelper {
         this.tagBlankSize = tagBlankSize
     }
 
-    convertLineContent(line,lineNumber) {
+    convertLineContent(line, lineNumber) {
         line = line.replace('- ', '').trimLeft()
         line = line.replace('[DONE]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
         line = line.replace('[TODO]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
@@ -265,23 +265,26 @@ class CoastTimer {
 
 const myct = new CoastTimer();
 
-const colorMaps = [['@bgWhite', '#fefefe', '#333333'], 
+const colorMaps = [['@bgWhite', '#fefefe', '#333333'],
 ['@linkColor', '#fac03d', '#fac03d'], ['@bgNote', '#efefef33', '#fefefe33'],
-['@colorH','#333333', '#aed0ee'],
-['@colorInlineBGCode','#f9f2f4', '#555555'],
-['@colorInlineCode','#ffbcd4', '#f9a0a0'],
-['@colorIt','#aabcd3', '#ffbcd3'],
- ['@colorSI','#aa56d3', '#ff56d3'],
- ['@colorPreview', '#2c3f51', '#CCCCCC']];
+['@colorH', '#333333', '#aed0ee'],
+['@colorInlineBGCode', '#f9f2f4', '#555555'],
+['@colorInlineCode', '#ffbcd4', '#f9a0a0'],
+['@colorIt', '#aabcd3', '#ffbcd3'],
+['@colorSI', '#aa56d3', '#ff56d3'],
+['@colorPreview', '#2c3f51', '#CCCCCC']];
 
-const resolveColor = (text) => {
+const resolveColor = () => {
+    const colors = {}
     colorMaps.forEach(colorItem => {
         const [key, light, dark] = colorItem
         const darkMode = localStorage.getItem('isDarkMode') === 'true'
         const color = darkMode ? dark : light
-        text = text.replaceAll(key, color)
+        // text = text.replaceAll(key, color)
+        colors[key] = color
     })
-    return text
+
+    less.modifyVars(colors)
 }
 
 const handleMarkdown = (content) => {
@@ -409,7 +412,7 @@ const handleMarkdown = (content) => {
             return
         }
         // ------------
-        regRes = regLine.exec(line) 
+        regRes = regLine.exec(line)
         if (regRes !== null) {
             res.push(['line', line])
             return
@@ -429,7 +432,7 @@ const handleMarkdown = (content) => {
         if (line.trim() == "" && !lastIsEmpty) {
             res.push(["empty", line]);
         }
-        
+
     });
 
     myct.delay("finish parse line data into markdown tag data");
@@ -438,162 +441,15 @@ const handleMarkdown = (content) => {
     let output = res.map(convertMarkdownTagDatIntoHTML).filter((line) =>
         line !== ""
     ).join("\n");
-    style = `
-    <style>
-    ul ul, ol ul, ul ol, ol ol {
-        margin-bottom: .55em;
-        line-height: 0.1em;
-    }
-    ui {
-        display: block;
-        list-style-type: disc;
-        // padding: 0;
-    }
-    li {
-        line-height: 1.6;
-        // margin:0;
-    }
-    li>p {
-        margin:0px;
-    }
-    li:hover {
-        list-style-type: none;
-    }
-    ul, ol {
-        // background: #efefef;
 
-        font-size: 16.11111111111111px;
-    }
-    .preview {
-        font-size: 15.11111111111111px;
-        color: @colorPreview;
-        font-family: ui-monospace;
-        padding:1em;
-        width:90%;
-        background: @bgWhite;
-        display:inline-flex;
-        flex-direction:column;
-    }
-
-    .preview .checkbox-container {
-        margin: auto;
-    }
-    .preview .react-list-item-checkbox {
-        margin: auto 0;
-    }
-
-    .preview > text, blockquote, ul, li, h1,h2,h3,h4,h5,h6, span{ white-space: normal; width: 100%;word-break: break-all; line-height: 1.5}
-    
-    .preview > ul {
-        line-height:1.7px;
-    }
-    
-    .preview  img {
-        width: 100%;
-    }
-
-    .preview> h1, h2, h3, h4, h5, h6 {
-        font-weight: bold;
-        color: @colorH;
-        margin: 1.2em 0 .6em 0;
-    }
-
-    .markdown_code {
-        overflow-x: visible !important;
-        border-radius:8px;
-    }
-
-    a,.markdown_link {
-        color: @linkColor;
-        text-decoration: none;
-        font-size: 14.222222222222221px;
-    }
-
-    .toc > p {
-        margin-block:0;
-        margin-inline: 0;
-    }
-
-    .toc {
-        background: @bgNote;
-        border-radius: 8px;
-        padding: 8px;
-    }
-
-    .note_tag {
-        // background: @bgNote;
-        padding: 4px;
-        padding-left: 16px;
-        margin: 0px;
-        // border-radius: 8px;
-        border-left: 4px solid #e27e7dee;
-    }
-
-    i {
-        font-weight: bold;
-        color: @colorIt;
-    }
-
-    strong {
-        color: #00aaff
-    }
-
-    .inline {
-        color: @colorInlineCode;
-        background-color: @colorInlineBGCode;
-        border-radius: 4px;
-        padding: 0px 4px;
-        // margin:4px;
-    }
-
-    .header-container-item {
-        // background-color: @ffbcd433;
-        // border: 0.1px solid #00bcd4;
-        // border-radius: 12px;
-        padding: 8px;
-    }
-
-    strong > i {
-        color: @colorSI
-    }
-
-    h1 {
-        font-size:31px; 
-        border-bottom: 1px solid #aaaaaa;
-        padding-bottom: 8px;
-    }
-    h2 {
-        font-size:28px; 
-        border-bottom: 1px solid #aaaaaa;
-        padding-bottom: 8px;
-    }
-    h3 {
-        font-size:25px; 
-    }
-    h4 {
-        font-size:22px; 
-    }
-    h5 {
-        font-size:19px; 
-    }
-    h6 {
-        font-size:16px; 
-    }
-
-    .preview .markdown_link:hover, a:hover{
-        border-bottom: 1px solid;
-        cursor:pointer;
-    }
-
-    </style>
-    `
     myct.delay("finish convertMarkdownTagDatIntoHTML");
     const darkMode = localStorage.getItem('isDarkMode') == 'true'
     const cssStyleFile = !darkMode ? 'solarized-light.min.css' : 'railscasts.min.css'
-    const header = `<link rel="stylesheet" href="${cssStyleFile}">
-     ${resolveColor(style)}`
-    
-    output = `${header}<pre class="preview">${output}</pre>`;
+    const header = `<link rel="stylesheet" href="${cssStyleFile}">`
+
+    resolveColor();
+
+    output = `${header}<pre class="lowbee-markdown-preview">${output}</pre>`;
     return output
 };
 
@@ -637,9 +493,9 @@ const innerMarkdownPreview = () => {
         x++
     ) {
         const el = document.getElementsByClassName("markdown_preview")[x];
-            el.style.display =
-                "none";
-       
+        el.style.display =
+            "none";
+
     }
     if (!preview) {
 
@@ -676,7 +532,7 @@ const innerMarkdownPreview = () => {
             hljs.highlightElement(el);
         }
     });
-    document.querySelectorAll('.markdown_link').forEach((el)=> {
+    document.querySelectorAll('.markdown_link').forEach((el) => {
         console.info(el.attributes.href.value)
         el.onclick = () => {
 
@@ -695,7 +551,7 @@ const innerMarkdownPreview = () => {
             lineNumber += 1
             console.info('onchange', lineNumber)
             const lineContent = currentShowingEditor.getModel().getLineContent(lineNumber)
-            
+
             let newContent = ''
             if (/\[DONE\]/.exec(lineContent)) {
                 newContent = lineContent.replace(/\[DONE\]/g, '[TODO]')
@@ -705,10 +561,10 @@ const innerMarkdownPreview = () => {
                 newContent = lineContent + ' [DONE]'
             }
             console.info('onchange', lineNumber, lineContent, newContent)
-            var range = new monaco.Range(lineNumber, 0, lineNumber, lineContent.length +1);
-            var id = { major: 1, minor: 1 };             
-            var op = {identifier: id, range: range, text: newContent, forceMoveMarkers: true};
-            
+            var range = new monaco.Range(lineNumber, 0, lineNumber, lineContent.length + 1);
+            var id = { major: 1, minor: 1 };
+            var op = { identifier: id, range: range, text: newContent, forceMoveMarkers: true };
+
             currentShowingEditor.executeEdits("my-source-checkbox", [op]);
             // currentShowingEditor.ex
         }
@@ -718,9 +574,9 @@ const innerMarkdownPreview = () => {
 
     // handle react material
     // {
-    
+
     //     document.querySelectorAll('.react-list-item-checkbox').forEach((el) => {
-            
+
     //     })
     // }
 }
@@ -728,13 +584,13 @@ const innerMarkdownPreview = () => {
 window.denkSetKeyValue('funcMarkdownPreview', () => {
 
     lastMarkdownPreview = new Date().getTime()
-    
+
     setTimeout(() => {
         const currentMarkdownPreviewTime = new Date().getTime()
         if (currentMarkdownPreviewTime - lastMarkdownPreview >= 100) {
             innerMarkdownPreview()
         }
-    }, 200)   
+    }, 200)
 })
 
 
@@ -748,9 +604,9 @@ const refreshWidthByMarkdownPreviewMode = (el) => {
         } else {
             el.style.width = "0%"
         }
-        
+
     } else if (markdownPreviewMode === 2) {
-        
+
         if (el.className.indexOf('markdown_preview') === -1) {
             el.style.width = "0%"
         } else {
