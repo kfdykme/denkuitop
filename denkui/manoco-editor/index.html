@@ -38,9 +38,15 @@
 			Checkbox
 		} = MaterialUI;
 
+
+		window.reactDom = {}
 		window.reactRenderSwitch = (el, checked, handleChange, label) => {
 
-			const root = ReactDOM.createRoot(el);
+			let root = window.reactDom[el]
+			if (!root) {
+				root = ReactDOM.createRoot(el);
+			}
+
 			root.render(
 				<div className="checkbox-container">
 					<Checkbox checked={checked}  onChange={handleChange}/>

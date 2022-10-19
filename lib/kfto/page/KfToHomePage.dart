@@ -150,8 +150,15 @@ class KfToHomeState extends BaseRemotePageState {
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
+    _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value){
+      setState(() {
+        ColorManager.instance().isDarkmode = value;
+      });
+    });
     this.initWeb();
     initDenoLibSocket();
+
+
   }
 
   void initDenoLibSocket() {
@@ -171,12 +178,12 @@ class KfToHomeState extends BaseRemotePageState {
         if (basePath == null || basePath == ".") {
           initConfigDirectory(ktoData.data);
         }
-        var isDarkmode = ktoData.data['isDarkmode'];
-        if (isDarkmode != null) {
-          setState(() {
-            ColorManager.instance().isDarkmode = isDarkmode;
-          });
-        }
+        // var isDarkmode = ktoData.data['isDarkmode'];
+        // if (isDarkmode != null) {
+        //   setState(() {
+        //     ColorManager.instance().isDarkmode = isDarkmode;
+        //   });
+        // }
       });
     };
   }
@@ -1207,7 +1214,7 @@ class KfToHomeState extends BaseRemotePageState {
               ),
             ),
             Container(
-              height: 50,
+              height: 28,
               width: double.infinity,
               color: Colors.white12,
               child: Row(
@@ -1235,6 +1242,7 @@ class KfToHomeState extends BaseRemotePageState {
                       ColorManager.instance().isDarkmode =
                           !ColorManager.instance().isDarkmode;
                     });
+                    _flutterDesktopFileManagerPlugin.onUpdateDarkMode(ColorManager.instance().isDarkmode);
                     web.executeJs(
                         'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
 
