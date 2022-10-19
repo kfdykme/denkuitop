@@ -394,18 +394,6 @@ class KfToHomeState extends BaseRemotePageState {
     });
   }
 
-  void _onFilePathInputChange(String value) {
-    if (!value.endsWith(DirSpelator) && value.contains(DirSpelator)) {
-      currentFilePath = GetDirFromPath(currentFilePath) + DirSpelator + value;
-      _refreshFilePathTextField();
-    }
-    if (value == '') {
-      currentFilePath = currentFilePath.substring(
-          0, currentFilePath.lastIndexOf(DirSpelator));
-      _refreshFilePathTextField();
-    }
-  }
-
   void showCommonSnack({String msg, String error}) {
     Color bkGC = null;
     bkGC = ColorManager.Get("snackbackground");
@@ -1137,48 +1125,67 @@ class KfToHomeState extends BaseRemotePageState {
                             // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
-                            child: TextField(
-                                controller: _currentPathcontroller,
-                                style:
-                                    TextStyle(color: ColorManager.Get("font")),
-                                decoration: InputDecoration(
-                                    fillColor: null,
-                                    border: OutlineInputBorder(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(8))),
-                                    focusColor: Colors.white,
-                                    // labelText: filePathLabelText,
-                                    label: Container(
-                                      margin: EdgeInsets.fromLTRB(
-                                          0, ViewBuilder.size(3.5), 0, 0),
-                                      // color: Colors.black,
-                                      child: Text(
-                                        filePathLabelText,
-                                        style: TextStyle(
-                                            color:
-                                                ColorManager.Get("textdarkr")),
-                                      ),
-                                    ),
-                                    // labelStyle: TextStyle(
-                                    //   color: ViewBuilder.RandomDarkColor()r
-                                    // ),
-                                    enabled: false,
-                                    disabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Color(0x00000000)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Color(0x00000000)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Color(0x00000000)),
-                                    )),
-                                onChanged: _onFilePathInputChange,
-                                onTap: () {
-                                  ChildProcess(ChildProcessArg.from("open ${filePathLabelText}")).run();
-                                },),
+                                child: Column(
+                                  children: [
+                                    MaterialButton(
+                                  // textColor: color,
+                                  onPressed: () {
+                                    ChildProcess(ChildProcessArg.from("open ${filePathLabelText}")).run();
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.only(left: ViewBuilder.size(1)),
+                                    child: Row(
+                                    children: [Text(filePathLabelText, style: TextStyle(color: ColorManager.Get('textr')))],
+                                  ),
+                                  )),
+                                  Container(
+                                    padding: EdgeInsets.only(left: ViewBuilder.size(2)),
+                                    child: 
+                                    Row(children: [Text(GetFileNameFromPath(currentFilePath), style: TextStyle())]),
+                                  )],
+                                ),
+                            // child: TextField(
+                            //     controller: _currentPathcontroller,
+                            //     style:
+                            //         TextStyle(color: ColorManager.Get("font")),
+                            //     decoration: InputDecoration(
+                            //         fillColor: null,
+                            //         border: OutlineInputBorder(
+                            //             borderRadius: const BorderRadius.all(
+                            //                 Radius.circular(8))),
+                            //         focusColor: Colors.white,
+                            //         // labelText: filePathLabelText,
+                            //         label: Container(
+                            //           margin: EdgeInsets.fromLTRB(
+                            //               0, ViewBuilder.size(3.5), 0, 0),
+                            //           // color: Colors.black,
+                            //           child: Text(
+                            //             filePathLabelText,
+                            //             style: TextStyle(
+                            //                 color:
+                            //                     ColorManager.Get("textdarkr")),
+                            //           ),
+                            //         ),
+                            //         // labelStyle: TextStyle(
+                            //         //   color: ViewBuilder.RandomDarkColor()r
+                            //         // ),
+                            //         enabled: false,
+                            //         disabledBorder: OutlineInputBorder(
+                            //           borderSide:
+                            //               BorderSide(color: Color(0x00000000)),
+                            //         ),
+                            //         focusedBorder: OutlineInputBorder(
+                            //           borderSide:
+                            //               BorderSide(color: Color(0x00000000)),
+                            //         ),
+                            //         enabledBorder: OutlineInputBorder(
+                            //           borderSide:
+                            //               BorderSide(color: Color(0x00000000)),
+                            //         )),
+                            //     onTap: () {
+                            //       print("onTap ${filePathLabelText}");
+                            //       ChildProcess(ChildProcessArg.from("open ${filePathLabelText}")).run();
+                            //     },),
                           ))
                         ],
                       ),
