@@ -561,7 +561,7 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
             id: 'save',
 
             // A label of the action that will be presented to the user.
-            label: 'save!!!',
+            label: 'Save',
 
             // An optional array of keybindings for the action.
             keybindings: [
@@ -587,66 +587,66 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
             }
         });
 
-        editor.addAction({
-            // An unique identifier of the contributed action.
-            id: 'refresh',
+        // editor.addAction({
+        //     // An unique identifier of the contributed action.
+        //     id: 'refresh',
 
-            // A label of the action that will be presented to the user.
-            label: 'refresh',
+        //     // A label of the action that will be presented to the user.
+        //     label: 'refresh',
 
-            // An optional array of keybindings for the action.
-            keybindings: [
-                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR
-            ],
+        //     // An optional array of keybindings for the action.
+        //     keybindings: [
+        //         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR
+        //     ],
 
-            // A precondition for this action.
-            precondition: null,
+        //     // A precondition for this action.
+        //     precondition: null,
 
-            // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-            keybindingContext: null,
+        //     // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+        //     keybindingContext: null,
 
-            contextMenuGroupId: 'navigation',
+        //     contextMenuGroupId: 'navigation',
 
-            contextMenuOrder: 1.5,
+        //     contextMenuOrder: 1.5,
 
-            // Method that will be executed when the action is triggered.
-            // @param editor The editor instance is passed in as a convenience
-            run: function (ed) {
-                location.reload(false)
-            }
-        });
+        //     // Method that will be executed when the action is triggered.
+        //     // @param editor The editor instance is passed in as a convenience
+        //     run: function (ed) {
+        //         location.reload(false)
+        //     }
+        // });
 
-        editor.addAction({
-            // An unique identifier of the contributed action.
-            id: 'kfmarkdown preview',
+        // editor.addAction({
+        //     // An unique identifier of the contributed action.
+        //     id: 'kfmarkdown preview',
 
-            // A label of the action that will be presented to the user.
-            label: 'kfmarkdown preview',
+        //     // A label of the action that will be presented to the user.
+        //     label: 'kfmarkdown preview',
 
-            // An optional array of keybindings for the action.
-            keybindings: [
-                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM
-            ],
+        //     // An optional array of keybindings for the action.
+        //     keybindings: [
+        //         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM
+        //     ],
 
-            // A precondition for this action.
-            precondition: null,
+        //     // A precondition for this action.
+        //     precondition: null,
 
-            // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-            keybindingContext: null,
+        //     // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+        //     keybindingContext: null,
 
-            contextMenuGroupId: 'navigation',
+        //     contextMenuGroupId: 'navigation',
 
-            contextMenuOrder: 1.5,
+        //     contextMenuOrder: 1.5,
 
-            // Method that will be executed when the action is triggered.
-            // @param editor The editor instance is passed in as a convenience
-            run: function (ed) {
-                let func = window.denkGetKey('funcToggleMarkdownPreviewView')
-                if (func) {
-                    func()
-                }
-            }
-        });
+        //     // Method that will be executed when the action is triggered.
+        //     // @param editor The editor instance is passed in as a convenience
+        //     run: function (ed) {
+        //         let func = window.denkGetKey('funcToggleMarkdownPreviewView')
+        //         if (func) {
+        //             func()
+        //         }
+        //     }
+        // });
     }
 
     window.denkSetKeyValue('onEditorCreate', (editor) => {
@@ -889,8 +889,8 @@ window.denkSetKeyValue('funcUpdateSuggestions', () => {
 })
 
 
-window.denkSetKeyValue('funcSwitchDarkMode', (isDarkMode) => {
-    console.info('kfdebug funcSwitchDarkMode', isDarkMode)
+window.denkSetKeyValue('funcSwitchDarkMode', (isDarkMode, from) => {
+    console.info('kfdebug funcSwitchDarkMode', isDarkMode, from)
     window.denkSetKeyValue('isDarkMode', isDarkMode)
     if (isDarkMode !== undefined) {
 

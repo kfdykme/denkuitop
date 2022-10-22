@@ -421,7 +421,7 @@ class KfToHomeState extends BaseRemotePageState {
     });
     Future.delayed(Duration(seconds: 1),() {
       setState(() {
-        snackColor = ColorManager.Get('font');
+        snackColor = ColorManager.Get('cardbackground');
       });
     });
   }
@@ -569,8 +569,11 @@ class KfToHomeState extends BaseRemotePageState {
       web.executeJs('location.href = "${itemData.path}"');
     } else {
       var homePath = DenkuiRunJsPathHelper.GetResourcePath();
+      /**
+       * home= 必须要是最
+       */
       var url =
-          "http://localhost:10825/manoco-editor/index.html?home=${homePath}";
+          "http://localhost:10825/manoco-editor/index.html?isDarkMode=${ColorManager.instance().isDarkmode}&home=${homePath}";
 
       ensureWebViewShow();
       web.executeJs(
@@ -583,7 +586,7 @@ class KfToHomeState extends BaseRemotePageState {
         content = content.replaceAll('\t', '    ');
         _refreshFilePathTextField();
         web.executeJs(
-            'window.denkGetKey("funcSwitchDarkMode",${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+            'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'},"onPressSingleItemFunc")');
         _insertIntoEditor(content);
 
         print("switch to darkmode ${ColorManager.instance().isDarkmode}");

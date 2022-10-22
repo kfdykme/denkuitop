@@ -14,7 +14,7 @@
 	<link rel="stylesheet" href="material-fonts.css" />
 	<!-- Icons to support Material Design -->
 	<link rel="stylesheet" href="material-icons.css" />
-	<link rel="stylesheet/less" type="text/css" href="lowbee.markdown.less" />
+	<link rel="stylesheet/less" type="text/css" href="denklib/lowbee.markdown.less" />
 	<!-- <link
   rel="stylesheet"
   href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
@@ -27,6 +27,7 @@
 	<script src="material-ui.min.js"></script>
 	<script src="less.min.js"></script>
 	<script>hljs.highlightAll(); window.hljs = hljs</script>
+	
 </head>
 
 <body style="height: 100%;">
@@ -69,5 +70,17 @@
 		}
 	</script>
 </body>
+<script>
+	/**
+	 * 
+	 */
+	 
 
+	const isDarkMode = /isDarkMode=(.*?)&/.exec(location.href)[1] === 'true'
+	if (isDarkMode) {
+		document.body.style.backgroundColor = '#333333'//';''#fefefe', 
+	} else {
+
+	}
+</script>
 </html>
