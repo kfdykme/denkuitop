@@ -25,8 +25,6 @@ dependencies:
     sdk: flutter
   web_socket_channel: ^1.1.0
   quill_delta: ^2.0.0
-  native_hotkey:
-      path: ./plugins/flutter_native_hotkey
   flutter_desktop_cef_web:
       path: ./plugins/flutter_desktop_cef_web
   libdeno_plugin:
