@@ -43,6 +43,7 @@ class TextK {
     add("请输入有效的文件名称", "Please enter a valid file name");
     add("请检查是否已存在同名文件", "Please check if a file with the same name already exists");
     add("文件名称", "text file name");
+    add("保存成功", "writeFile success");
   }
 
   add(String ch, String en) {

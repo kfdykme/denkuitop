@@ -147,18 +147,20 @@ class KfToHomeState extends BaseRemotePageState {
 
   // Feature 101 文件本地历史记录 END
 
+  // Snack Text
+  String snackText = '';
+  Color snackColor = Colors.amber;
+
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
-    _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value){
+    _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value) {
       setState(() {
         ColorManager.instance().isDarkmode = value;
       });
     });
     this.initWeb();
     initDenoLibSocket();
-
-
   }
 
   void initDenoLibSocket() {
@@ -257,11 +259,8 @@ class KfToHomeState extends BaseRemotePageState {
       if (url.startsWith("#")) {
         var target = url.substring(1);
         // find
-         ListItemData listItemData = this
-          .data
-          ?.data
-          ?.where((element) => element.path == target)
-          ?.first;
+        ListItemData listItemData =
+            this.data?.data?.where((element) => element.path == target)?.first;
         if (listItemData != null) {
           this.onPressSingleItemFunc(listItemData);
         }
@@ -273,7 +272,7 @@ class KfToHomeState extends BaseRemotePageState {
 
   void initConfigDirectory(dynamic config, {String title}) {
     print("initConfigDirectory");
-  
+
     DenktuiDialog.initContext(context);
     DenktuiDialog.ShowCommonDialog(
         contentTitle: title == null ? TextK.Get("没有找到文件保存目录，是否选择文件夹") : title,
@@ -288,7 +287,8 @@ class KfToHomeState extends BaseRemotePageState {
                     callback: (AsyncIpcData data) {
                   config['basePath'] = newPath;
                   config['isDarkmode'] = ColorManager.instance().isDarkmode;
-                  config["resourcePath"] = DenkuiRunJsPathHelper.GetResourcePath();
+                  config["resourcePath"] =
+                      DenkuiRunJsPathHelper.GetResourcePath();
                   this.ipc().invokeNyName(
                       {"invokeName": "saveConfig", "data": config},
                       callback: ((data) {
@@ -332,10 +332,11 @@ class KfToHomeState extends BaseRemotePageState {
               hasTag = true;
               break;
             }
-
           }
 
-          if (kReleaseMode && (tagData.name == "_KfTodoConfig" || tagData.name == "_DENKUISCRIPT")) {
+          if (kReleaseMode &&
+              (tagData.name == "_KfTodoConfig" ||
+                  tagData.name == "_DENKUISCRIPT")) {
             hasTag = true;
           }
 
@@ -362,7 +363,8 @@ class KfToHomeState extends BaseRemotePageState {
     return denoLibSocketLife.ipc();
   }
 
-  void _insertIntoEditor(String content, {String editorId, String force = 'false'}) {
+  void _insertIntoEditor(String content,
+      {String editorId, String force = 'false'}) {
     print("_insertIntoEditor ${content} ${editorId}");
     if (cefContainer == null) {
       ensureWebViewShow();
@@ -406,13 +408,22 @@ class KfToHomeState extends BaseRemotePageState {
       msg = TextK.Get("ERRRRRRRRRRRRRRR");
     }
 
-    final snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: bkGC,
-      content: Text(msg),
-    );
+    // final snackBar = SnackBar(
+    //   behavior: SnackBarBehavior.floating,
+    //   backgroundColor: bkGC,
+    //   content: Text(msg),
+    // );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    // ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    setState(() {
+      snackColor = bkGC;
+      snackText = ':   ' + TextK.Get(msg);
+    });
+    Future.delayed(Duration(seconds: 1),() {
+      setState(() {
+        snackColor = ColorManager.Get('font');
+      });
+    });
   }
 
   void showSnack(AsyncIpcData data) {
@@ -461,9 +472,8 @@ class KfToHomeState extends BaseRemotePageState {
         }
       });
     } else {
-      this.ipc().send(KfToDoIpcData.from('onFirstConnect', {
-        'resourcePath': DenkuiRunJsPathHelper.GetResourcePath()
-      }).json());
+      this.ipc().send(KfToDoIpcData.from('onFirstConnect',
+          {'resourcePath': DenkuiRunJsPathHelper.GetResourcePath()}).json());
     }
   }
 
@@ -489,12 +499,11 @@ class KfToHomeState extends BaseRemotePageState {
       omap['data'] = map;
       omap['invokeName'] = 'readLocalHistory';
       this.ipc().invoke(KfToDoIpcData.from("invoke", omap), callback: ((data) {
-        
         var ktoData = KfToDoIpcData.fromAsync(data);
         var historys = ktoData.data['history'] as List<Object>;
         historys.sort(((a, b) {
-           var datea = (int.parse((a as dynamic)['name']));
-           var dateb = (int.parse((b as dynamic)['name']));
+          var datea = (int.parse((a as dynamic)['name']));
+          var dateb = (int.parse((b as dynamic)['name']));
           return datea - dateb;
         }));
         setState(() {
@@ -852,61 +861,64 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   Widget buildLocalHistoryView() {
-    return ListView.builder(itemBuilder: (BuildContext context, int index) {
-      if (this.localHistoryDatas.length == 0) {
-        return buildLoadingItem();
-      } else {
-        var date = new DateTime.fromMillisecondsSinceEpoch(int.parse((localHistoryDatas[index] as dynamic)['name']));
-        var path = (localHistoryDatas[index] as dynamic)['path'];
-        return ViewBuilder.BuildMaterialButton(date.toString(), onPressFunc: () {
-          CommonReadFile(path, func: ({content, path, suc}) {
-             _insertIntoEditor(content, force: 'true');
-          });
-        });
-      }
-    }, itemCount:  this.localHistoryDatas.length);
+    return ListView.builder(
+        itemBuilder: (BuildContext context, int index) {
+          if (this.localHistoryDatas.length == 0) {
+            return buildLoadingItem();
+          } else {
+            var date = new DateTime.fromMillisecondsSinceEpoch(
+                int.parse((localHistoryDatas[index] as dynamic)['name']));
+            var path = (localHistoryDatas[index] as dynamic)['path'];
+            return ViewBuilder.BuildMaterialButton(date.toString(),
+                onPressFunc: () {
+              CommonReadFile(path, func: ({content, path, suc}) {
+                _insertIntoEditor(content, force: 'true');
+              });
+            });
+          }
+        },
+        itemCount: this.localHistoryDatas.length);
   }
 
   Widget buildListView() {
     bool hasItems = this.data?.data != null || this.searchedTags.length != 0;
-    return 
-    Container(
+    return Container(
       margin: EdgeInsets.fromLTRB(0, 24, 0, 0),
       child: Column(
-      children: [
-        hasItems ? searchTagField.view() : Container(),
-        // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
-        //   // print("search value:" + value + dataTags.toString());
-        //   setState(() {
-        //     searchKey = value;
-        //   });
-        // }, currentSearchKey:  searchKey),
-        Expanded(
-          child: ListView.builder(
-              shrinkWrap: true,
-              itemBuilder: (BuildContext context, int index) {
-                if (this.searchedTags.length == 0) {
-                  return buildLoadingItem();
-                } else {
-                  var element = this.searchedTags[index];
-                  var childViewList = this.buildListItemView(element.name);
-                  if (childViewList.length > 0 || true) {
-                    return ViewBuilder.BuildSingleTagContainor(element.name,
-                        tagData: element, onPressFunc: (String tag) {
-                      setState(() {
-                        element.isOpen = !element.isOpen;
-                      });
-                    }, childListItems: childViewList);
+        children: [
+          hasItems ? searchTagField.view() : Container(),
+          // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
+          //   // print("search value:" + value + dataTags.toString());
+          //   setState(() {
+          //     searchKey = value;
+          //   });
+          // }, currentSearchKey:  searchKey),
+          Expanded(
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (BuildContext context, int index) {
+                  if (this.searchedTags.length == 0) {
+                    return buildLoadingItem();
                   } else {
-                    return null;
+                    var element = this.searchedTags[index];
+                    var childViewList = this.buildListItemView(element.name);
+                    if (childViewList.length > 0 || true) {
+                      return ViewBuilder.BuildSingleTagContainor(element.name,
+                          tagData: element, onPressFunc: (String tag) {
+                        setState(() {
+                          element.isOpen = !element.isOpen;
+                        });
+                      }, childListItems: childViewList);
+                    } else {
+                      return null;
+                    }
                   }
-                }
-              },
-              itemCount:
-                  this.data?.data != null ? this.searchedTags.length : 1),
-        )
-      ],
-    ),
+                },
+                itemCount:
+                    this.data?.data != null ? this.searchedTags.length : 1),
+          )
+        ],
+      ),
     );
   }
 
@@ -972,7 +984,13 @@ class KfToHomeState extends BaseRemotePageState {
           margin: EdgeInsets.zero,
           child: Row(
             children: [
-              Expanded(child: isReadingLocalHistory ? Container(width: left_width_real, child: buildLocalHistoryView(),) : buildListView()),
+              Expanded(
+                  child: isReadingLocalHistory
+                      ? Container(
+                          width: left_width_real,
+                          child: buildLocalHistoryView(),
+                        )
+                      : buildListView()),
               Listener(
                   onPointerDown: (event) => {onDragLineStart(event)},
                   onPointerUp: ((event) => {onDragLineEnd()}),
@@ -1097,8 +1115,10 @@ class KfToHomeState extends BaseRemotePageState {
                                   // _saveFile();
                                   onReadLocalHistory();
                                 },
-                                  color:  ColorManager.Get("textdarkr"),
-                                  backgroundColor: isReadingLocalHistory ? ColorManager.Get("cardbackgrounddark") : ColorManager.Get("cardbackground"),
+                                  color: ColorManager.Get("textdarkr"),
+                                  backgroundColor: isReadingLocalHistory
+                                      ? ColorManager.Get("cardbackgrounddark")
+                                      : ColorManager.Get("cardbackground"),
                                   icon: Icon(
                                     Icons.history_sharp,
                                     color: ColorManager.Get("textdarkr"),
@@ -1127,25 +1147,37 @@ class KfToHomeState extends BaseRemotePageState {
                             // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
-                                child: Column(
-                                  children: [
-                                    MaterialButton(
-                                  // textColor: color,
-                                  onPressed: () {
-                                    ChildProcess(ChildProcessArg.from("open ${filePathLabelText}")).run();
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.only(left: ViewBuilder.size(1)),
-                                    child: Row(
-                                    children: [Text(filePathLabelText, style: TextStyle(color: ColorManager.Get('textr')))],
-                                  ),
-                                  )),
-                                  Container(
-                                    padding: EdgeInsets.only(left: ViewBuilder.size(2)),
-                                    child: 
-                                    Row(children: [Text(GetFileNameFromPath(currentFilePath), style: TextStyle())]),
-                                  )],
-                                ),
+                            child: Column(
+                              children: [
+                                MaterialButton(
+                                    // textColor: color,
+                                    onPressed: () {
+                                      ChildProcess(ChildProcessArg.from(
+                                              "open ${filePathLabelText}"))
+                                          .run();
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.only(
+                                          left: ViewBuilder.size(1)),
+                                      child: Row(
+                                        children: [
+                                          Text(filePathLabelText,
+                                              style: TextStyle(
+                                                  color: ColorManager.Get(
+                                                      'textr')))
+                                        ],
+                                      ),
+                                    )),
+                                Container(
+                                  padding: EdgeInsets.only(
+                                      left: ViewBuilder.size(2)),
+                                  child: Row(children: [
+                                    Text(GetFileNameFromPath(currentFilePath),
+                                        style: TextStyle())
+                                  ]),
+                                )
+                              ],
+                            ),
                             // child: TextField(
                             //     controller: _currentPathcontroller,
                             //     style:
@@ -1223,111 +1255,123 @@ class KfToHomeState extends BaseRemotePageState {
               ),
             ),
             Container(
-              height: 28,
-              width: double.infinity,
-              color: Colors.white12,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
-                  //     onPressFunc: () {
-                  //   setState(() {
-                  //     isTreeCardMode = !isTreeCardMode;
-                  //     web.toggle();
-                  //     web.executeJs(
-                  //         'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-                  //   });
-                  // },
-                  //     color: ColorManager.Get("textdarkr"),
-                  //     withText: false,
-                  //     icon: Icon(
-                  //       Icons.trending_down,
-                  //       color: ColorManager.Get("textdarkr"),
-                  //       size: ViewBuilder.size(false ? 2 : 3),
-                  //     )),
-                  ViewBuilder.BuildInLineMaterialButton(TextK.Get("DarkMode"),
-                      onPressFunc: () {
-                    setState(() {
-                      ColorManager.instance().isDarkmode =
-                          !ColorManager.instance().isDarkmode;
-                    });
-                    _flutterDesktopFileManagerPlugin.onUpdateDarkMode(ColorManager.instance().isDarkmode);
-                    web.executeJs(
-                        'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+                height: 28,
+                width: double.infinity,
+                color: Colors.white12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        ViewBuilder.BuildInLineMaterialButton(snackText,
+                            color: snackColor)
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
+                        //     onPressFunc: () {
+                        //   setState(() {
+                        //     isTreeCardMode = !isTreeCardMode;
+                        //     web.toggle();
+                        //     web.executeJs(
+                        //         'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
+                        //   });
+                        // },
+                        //     color: ColorManager.Get("textdarkr"),
+                        //     withText: false,
+                        //     icon: Icon(
+                        //       Icons.trending_down,
+                        //       color: ColorManager.Get("textdarkr"),
+                        //       size: ViewBuilder.size(false ? 2 : 2),
+                        //     )),
+                        ViewBuilder.BuildInLineMaterialButton(
+                            TextK.Get("DarkMode"), onPressFunc: () {
+                          setState(() {
+                            ColorManager.instance().isDarkmode =
+                                !ColorManager.instance().isDarkmode;
+                          });
+                          _flutterDesktopFileManagerPlugin.onUpdateDarkMode(
+                              ColorManager.instance().isDarkmode);
+                          web.executeJs(
+                              'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
 
-                    var config = {};
-                    config['isDarkmode'] = ColorManager.instance().isDarkmode;
-                    // this.ipc()
-                    //     .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
-                    //     }));
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        !ColorManager.instance().isDarkmode
-                            ? Icons.dark_mode
-                            : Icons.dark_mode_outlined,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
-                  ViewBuilder.BuildInLineMaterialButton(
-                      TextK.Get("Re-Random Color"), onPressFunc: () {
-                    setState(() {
-                      ColorManager.rerandom();
-                      _refresh(justUi: true);
-                    });
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        Icons.color_lens,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
-                  ViewBuilder.BuildInLineMaterialButton(
-                      TextK.Get("Switch Language"), onPressFunc: () {
-                    setState(() {
-                      TextK.toggle();
-                    });
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        Icons.language,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
-                  ViewBuilder.BuildInLineMaterialButton(
-                      TextK.Get("Reload Editor"), onPressFunc: () {
-                    web.executeJs("location.reload(false)");
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        Icons.refresh,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
-                  ViewBuilder.BuildInLineMaterialButton(
-                      TextK.Get("Reset WorkSpace"), onPressFunc: () {
-                    this.ipc().invokeNyName({"invokeName": "getConfig"},
-                        callback: (AsyncIpcData data) {
-                      var ktoData = KfToDoIpcData.fromAsync(data);
+                          var config = {};
+                          config['isDarkmode'] =
+                              ColorManager.instance().isDarkmode;
+                          // this.ipc()
+                          //     .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
+                          //     }));
+                        },
+                            color: ColorManager.Get("textdarkr"),
+                            withText: false,
+                            icon: Icon(
+                              !ColorManager.instance().isDarkmode
+                                  ? Icons.dark_mode
+                                  : Icons.dark_mode_outlined,
+                              color: ColorManager.Get("textdarkr"),
+                              size: ViewBuilder.size(false ? 2 : 2),
+                            )),
+                        ViewBuilder.BuildInLineMaterialButton(
+                            TextK.Get("Re-Random Color"), onPressFunc: () {
+                          setState(() {
+                            ColorManager.rerandom();
+                            _refresh(justUi: true);
+                          });
+                        },
+                            color: ColorManager.Get("textdarkr"),
+                            withText: false,
+                            icon: Icon(
+                              Icons.color_lens,
+                              color: ColorManager.Get("textdarkr"),
+                              size: ViewBuilder.size(false ? 2 : 2),
+                            )),
+                        ViewBuilder.BuildInLineMaterialButton(
+                            TextK.Get("Switch Language"), onPressFunc: () {
+                          setState(() {
+                            TextK.toggle();
+                          });
+                        },
+                            color: ColorManager.Get("textdarkr"),
+                            withText: false,
+                            icon: Icon(
+                              Icons.language,
+                              color: ColorManager.Get("textdarkr"),
+                              size: ViewBuilder.size(false ? 2 : 2),
+                            )),
+                        ViewBuilder.BuildInLineMaterialButton(
+                            TextK.Get("Reload Editor"), onPressFunc: () {
+                          web.executeJs("location.reload(false)");
+                        },
+                            color: ColorManager.Get("textdarkr"),
+                            withText: false,
+                            icon: Icon(
+                              Icons.refresh,
+                              color: ColorManager.Get("textdarkr"),
+                              size: ViewBuilder.size(false ? 2 : 2),
+                            )),
+                        ViewBuilder.BuildInLineMaterialButton(
+                            TextK.Get("Reset WorkSpace"), onPressFunc: () {
+                          this.ipc().invokeNyName({"invokeName": "getConfig"},
+                              callback: (AsyncIpcData data) {
+                            var ktoData = KfToDoIpcData.fromAsync(data);
 
-                      initConfigDirectory(ktoData.data,
-                          title: TextK.Get('是否重新选择文件目录'));
-                    });
-                  },
-                      color: ColorManager.Get("textdarkr"),
-                      withText: false,
-                      icon: Icon(
-                        Icons.settings,
-                        color: ColorManager.Get("textdarkr"),
-                        size: ViewBuilder.size(false ? 2 : 3),
-                      )),
-                ],
-              ),
-            )
+                            initConfigDirectory(ktoData.data,
+                                title: TextK.Get('是否重新选择文件目录'));
+                          });
+                        },
+                            color: ColorManager.Get("textdarkr"),
+                            withText: false,
+                            icon: Icon(
+                              Icons.settings,
+                              color: ColorManager.Get("textdarkr"),
+                              size: ViewBuilder.size(false ? 2 : 2),
+                            )),
+                      ],
+                    ),
+                  ],
+                ))
           ],
         ),
       ),
