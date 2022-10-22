@@ -78,7 +78,7 @@ const convertMarkdownTagDatIntoHTML = (line) => {
     var regInlineCodeSplit = /`.+?`/g
     // result = result.replaceAll(regInlineCode, `__CODE_S__\$1__CODE_E__`)
     const lineSpliteByCode = result.split(regInlineCodeSplit)
-    result = result.replaceAll(regInlineCode, `<code class="inline">\$1</code>`)
+    result = result.replaceAll(regInlineCode, `<span class="inline">\$1</span>`)
     lineSpliteByCode.forEach(i => {
         result = result.replace(i, handleInline(i))
     })
