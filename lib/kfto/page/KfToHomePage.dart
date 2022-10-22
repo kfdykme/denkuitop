@@ -1150,8 +1150,11 @@ class KfToHomeState extends BaseRemotePageState {
                             child: Column(
                               children: [
                                 MaterialButton(
+                                  height: ViewBuilder.size(1.5),
                                     // textColor: color,
                                     onPressed: () {
+
+                                      // TODO: 这里需要兼容Windows
                                       ChildProcess(ChildProcessArg.from(
                                               "open ${filePathLabelText}"))
                                           .run();
@@ -1169,11 +1172,12 @@ class KfToHomeState extends BaseRemotePageState {
                                       ),
                                     )),
                                 Container(
+                                  
                                   padding: EdgeInsets.only(
-                                      left: ViewBuilder.size(2)),
+                                      left: ViewBuilder.size(2), top: ViewBuilder.size(1)),
                                   child: Row(children: [
                                     Text(GetFileNameFromPath(currentFilePath),
-                                        style: TextStyle())
+                                        style: TextStyle(color: ColorManager.Get("font")))
                                   ]),
                                 )
                               ],
