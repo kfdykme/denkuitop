@@ -171,15 +171,20 @@ class ListItemConvertHelper {
         this.listTag = listTag
         this.tagBlankSize = tagBlankSize
         this.isCheckList = false
+        // this.tagTODO = '[TODO]'
+        // this.tagDONE = '[DONE]'
+        this.tagTODO = '[-]'
+        this.tagDONE = '[x]'
     }
 
+    
 
 
     convertLineContent(line, lineNumber) {
         line = line.replace('- ', '').trimLeft()
         if (this.isCheckList) {
-            line = line.replace('[DONE]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
-            line = line.replace('[TODO]', `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
+            line = line.replace(this.tagDONE, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
+            line = line.replace(this.tagTODO, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
             if (line.indexOf('checkbox') === -1) {
                 line += `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`
             }
@@ -196,7 +201,7 @@ class ListItemConvertHelper {
         registerConverter("list_start", (i) => {
             var [line, lineNumber] = i
             this.currentLevel == 0
-            if (line.indexOf('[DONE]') > 0 || line.indexOf('[TODO]') > 0) {
+            if (line.indexOf(this.tagDONE) > 0 || line.indexOf(this.tagTODO) > 0) {
                 this.isCheckList = true
             } else {
                 this.isCheckList = false
@@ -256,7 +261,7 @@ class ListItemConvertHelper {
     }
 }
 
-new ListItemConvertHelper()
+const listItemConvertHepler = new ListItemConvertHelper()
 
 class CoastTimer {
     allCoastTime = 0
@@ -563,12 +568,12 @@ const innerMarkdownPreview = () => {
             const lineContent = currentShowingEditor.getModel().getLineContent(lineNumber)
 
             let newContent = ''
-            if (/\[DONE\]/.exec(lineContent)) {
-                newContent = lineContent.replace(/\[DONE\]/g, '[TODO]')
-            } else if (/\[TODO\]/.exec(lineContent)) {
-                newContent = lineContent.replace(/\[TODO\]/g, '[DONE]')
+            if (/\[x\]/.exec(lineContent)) {
+                newContent = lineContent.replace(/\[x\]/g, listItemConvertHepler.tagTODO)
+            } else if (/\[-\]/.exec(lineContent)) {
+                newContent = lineContent.replace(/\[-\]/g, listItemConvertHepler.tagDONE)
             } else {
-                newContent = lineContent + ' [DONE]'
+                newContent = lineContent + ' ' + listItemConvertHepler.tagDONE
             }
             console.info('onchange', lineNumber, lineContent, newContent)
             var range = new monaco.Range(lineNumber, 0, lineNumber, lineContent.length + 1);
