@@ -7,6 +7,7 @@
 @colorSI: #aa56d3;
 @colorPreview: #2c3f51;
 @bgNote: #00bcd4;
+@colorPrimary: #ffffff;
 
 .lowbee-markdown-preview {
     font-size: 15.11111111111111px;
@@ -45,9 +46,31 @@
     li:hover {
         list-style-type: none;
     }
+    .list-todo {
+        padding-inline-start: 0;
+        margin-block-start: 0;
+        * {
+            list-style-type: none;
+        }
+    }
 
     .checkbox-container {
         margin: auto;
+    }
+    .ms-Checkbox-text {
+        color: @colorPreview;
+    }
+    .ms-Checkbox-text:hover {
+        color: @colorPreview;
+    }
+
+    .ms-Checkbox-checkbox {
+        border-color: @colorInlineCode;
+        background-color: @colorInlineCode;
+    }
+    
+    .ms-Checkbox-checkmark {
+        color: @bgWhite;
     }
 
     .react-list-item-checkbox {

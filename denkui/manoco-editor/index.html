@@ -4,15 +4,16 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
-	<script src="https://unpkg.com/react@latest/umd/react.development.js" crossorigin="anonymous"></script>
-	<script src="https://unpkg.com/react-dom@latest/umd/react-dom.development.js"></script>
+	<script src="denklib/react.development.js" crossorigin="anonymous"></script>
+	<script src="denklib/react-dom.development.js"></script>
 
-	<script src="https://unpkg.com/babel-standalone@latest/babel.min.js" crossorigin="anonymous"></script>
+	<script src="denklib/babel.min.js" crossorigin="anonymous"></script>
+	<script src="denklib/fluentui-react.min.js" crossorigin="anonymous"></script>
 
 	<!-- Fonts to support Material Design -->
 	<link rel="stylesheet" href="material-fonts.css" />
 	<!-- Icons to support Material Design -->
-	<link rel="stylesheet" href="material-icons.css" /> 
+	<link rel="stylesheet" href="material-icons.css" />
 	<link rel="stylesheet/less" type="text/css" href="lowbee.markdown.less" />
 	<!-- <link
   rel="stylesheet"
@@ -24,7 +25,7 @@
 /> -->
 	<script src="highlight.min.js"></script>
 	<script src="material-ui.min.js"></script>
-	<script src="less.min.js" ></script>
+	<script src="less.min.js"></script>
 	<script>hljs.highlightAll(); window.hljs = hljs</script>
 </head>
 
@@ -35,11 +36,14 @@
 	<script src="./app.bundle.js"></script>
 	<script type="text/babel">
 
-		const {
-			Switch,
-			Checkbox
-		} = MaterialUI;
+		// const {
+		// 	Switch,
+		// 	Checkbox,
+		// 	FormControlLabel
+		// } = MaterialUI;
+		const { Checkbox, Stack } = FluentUIReact;
 
+			console.info('kf react ui', Checkbox, Stack)
 
 		window.reactDom = {}
 		window.reactRenderSwitch = (el, checked, handleChange, label) => {
@@ -48,12 +52,20 @@
 			if (!root) {
 				root = ReactDOM.createRoot(el);
 			}
-
-			root.render(
-				<div className="checkbox-container">
-					<Checkbox checked={checked}  onChange={handleChange}/>
-				</div>
-			);
+			if (typeof label === 'object') {
+				label = label.value
+				label = decodeURIComponent(label)
+				console.info('reactRenderSwitch', label)
+				if (checked) {
+					root.render(
+						<Checkbox className="list-item-checkbox" label={label} defaultChecked  onChange={handleChange}/>
+					);
+				} else {
+					root.render(
+						<Checkbox className="list-item-checkbox" label={label}  onChange={handleChange}/>
+					);
+				}
+			}
 		}
 	</script>
 </body>

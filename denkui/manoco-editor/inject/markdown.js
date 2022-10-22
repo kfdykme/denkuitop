@@ -183,11 +183,18 @@ class ListItemConvertHelper {
     convertLineContent(line, lineNumber) {
         line = line.replace('- ', '').trimLeft()
         if (this.isCheckList) {
-            line = line.replace(this.tagDONE, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
-            line = line.replace(this.tagTODO, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
-            if (line.indexOf('checkbox') === -1) {
-                line += `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`
+            // line = line.replace(this.tagDONE, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" checked="true"/>`)
+            // line = line.replace(this.tagTODO, `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox"/>`)
+            // if (line.indexOf('checkbox') === -1) {
+                //     line = `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" content=${encodeURIComponent(line)} />` + line 
+                // }
+            let checked = false
+            if (line.indexOf(this.tagDONE) > 0) {
+                checked = true
             }
+            line = line.replace(this.tagDONE, ``)
+            line = line.replace(this.tagTODO, ``)
+            line = `<div id="list-item-${lineNumber}" class="list-item-checkbox react-list-item-checkbox" type="checkbox" ${checked ? 'checked=\"true\"' : ''} content=${encodeURIComponent(line)} />`
         }
         // line += `<div class="react-list-item-checkbox" />"`
         return line
@@ -199,14 +206,17 @@ class ListItemConvertHelper {
     }
     init() {
         registerConverter("list_start", (i) => {
-            var [line, lineNumber] = i
+            let [line, lineNumber] = i
             this.currentLevel == 0
+            let className = ''
             if (line.indexOf(this.tagDONE) > 0 || line.indexOf(this.tagTODO) > 0) {
                 this.isCheckList = true
+                className = 'list-todo'
             } else {
                 this.isCheckList = false
             }
-            return `<${this.listTag}>\n<li><div style="display:flex" ><p>${this.convertLineContent(line, lineNumber)}<p></div></li>`
+            
+            return `<${this.listTag} class=${className}>\n<li><div style="display:flex" ><p>${this.convertLineContent(line, lineNumber)}<p></div></li>`
         });
         registerConverter("list", (i) => {
             var [line, lineNumber] = i
@@ -287,6 +297,7 @@ const colorMaps = [['@bgWhite', '#fefefe', '#333333'],
 ['@colorInlineCode', '#ffbcd4', '#f9a0a0'],
 ['@colorIt', '#aabcd3', '#ffbcd3'],
 ['@colorSI', '#aa56d3', '#ff56d3'],
+['@colorPrimary', '#ffffff', '#333333'],
 ['@colorPreview', '#2c3f51', '#CCCCCC']];
 
 const resolveColor = () => {
@@ -584,7 +595,7 @@ const innerMarkdownPreview = () => {
             // currentShowingEditor.ex
         }
 
-        window.reactRenderSwitch(el, el.attributes.checked, onchange)
+        window.reactRenderSwitch(el, el.attributes.checked, onchange, el.attributes.content)
     })
 
     // handle react material
