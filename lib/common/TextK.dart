@@ -26,8 +26,8 @@ class TextK {
     add("rss 地址", "RSS url");
     add("输入一个rss地址", "Input a rss url");
     add("添加到列表", "Add to List");
-    add("文本", "Text");
-    add("添加一个文本", "Add a text");
+    add("Markdown", "Markdown");
+    add("添加一个Markdown", "Add a markdown file");
     add("删除该项", "Delete this item");
     add("删除", "Delete");
     add("取消", "Cancel");
@@ -42,7 +42,7 @@ class TextK {
     add("请输入你的标题", "Please enter your title");
     add("请输入有效的文件名称", "Please enter a valid file name");
     add("请检查是否已存在同名文件", "Please check if a file with the same name already exists");
-    add("文件名称", "text file name");
+    add("文件名称", "markdown file name");
     add("保存成功", "writeFile success");
     add("保存", "Save");
     add("新建...", "New...");

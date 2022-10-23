@@ -154,6 +154,9 @@ class KfToHomeState extends BaseRemotePageState {
   // dialog
   String dialogCurrentFocus = 'markdown';
 
+  // injectJsFinished
+  bool injectJsFinished = false;
+
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
@@ -233,6 +236,9 @@ class KfToHomeState extends BaseRemotePageState {
               web.show();
             }));
           }
+
+          // MARK: injectJs finish
+          injectJsFinished = true;
         }
       });
     });
@@ -371,6 +377,13 @@ class KfToHomeState extends BaseRemotePageState {
       {String editorId, String force = 'false'}) {
     print("_insertIntoEditor isShowing ${web.isShowing} ${editorId}");
     
+    if (!injectJsFinished) {
+      Future.delayed(Duration(milliseconds: 200), () {
+        _insertIntoEditor(content, editorId: editorId, force: force);
+      });
+      return ;
+    }
+
     if (cefContainer == null) {
       ensureWebViewShow();
       web.toggleInsertFirst();
@@ -635,11 +648,11 @@ class KfToHomeState extends BaseRemotePageState {
                 color: ColorManager.Get("textdarkr"),
               ),
               title: Text(
-                TextK.Get('Text'),
+                TextK.Get('Markdown'),
                 style: TextStyle(color: ColorManager.Get("textdarkr")),
               ),
               subtitle: Text(
-                TextK.Get('Add a text '),
+                TextK.Get('Add a markdown file '),
                 style: TextStyle(color: ColorManager.Get("textdarkr")),
               ),
             ),
@@ -652,7 +665,7 @@ class KfToHomeState extends BaseRemotePageState {
                   this.dialog_editor_blog_file_name = value;
                 },
                 decoration: InputDecoration(
-                  labelText: TextK.Get('text file name'),
+                  labelText: TextK.Get('markdown file name'),
                   labelStyle: TextStyle(color: ColorManager.Get("textdarkr")),
                   fillColor: ColorManager.Get("textr"),
                   helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
@@ -660,6 +673,14 @@ class KfToHomeState extends BaseRemotePageState {
                     borderSide:
                         BorderSide(color: ColorManager.Get("textdarkr")),
                   ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: ColorManager.Get("textdarkr")),
+                  ),
+                  suffix: MaterialButton(
+                    color: ColorManager.Get("textdarkr"),
+                    textColor: ColorManager.Get("font"),
+                    child: Text(".md", ),),
                 ),
               ),
             ),
@@ -737,6 +758,7 @@ class KfToHomeState extends BaseRemotePageState {
               onChanged: (String value) {
                 this.dialog_editor_rss_url = value;
               },
+              
               decoration: InputDecoration(
                 labelText: TextK.Get('RSS url'),
                 labelStyle: TextStyle(color: ColorManager.Get("textdarkr")),
@@ -745,7 +767,7 @@ class KfToHomeState extends BaseRemotePageState {
                 helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: ColorManager.Get("textdarkr")),
-                ),
+                ), 
               ),
             ),
           ),
