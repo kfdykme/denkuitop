@@ -195,7 +195,7 @@ class ViewBuilder {
   }
 
   static Widget BuildInLineMaterialButton(String text,
-      {Function onPressFunc, Color color, Icon icon, bool withText = true}) {
+      {Function onPressFunc, Color color, Icon icon, bool withText = true, Color backgroundColor = null}) {
     List<Widget> buttonChildrenItems = [];
     if (icon != null) {
       buttonChildrenItems.add(icon);
@@ -217,6 +217,7 @@ class ViewBuilder {
         },
         child: MaterialButton(
           textColor: color,
+          color: backgroundColor,
           onPressed: () {
             print("BuildMaterialButton Press ${text} ${onPressFunc}");
             if (onPressFunc != null) {

@@ -224,12 +224,13 @@ class KfToHomeState extends BaseRemotePageState {
 
           for (var x = 0; x < injectJsList.length; x++) {
             CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
-              print("CommonReadFile ${content} ${path}");
+              print("CommonReadFile path: ${path}");
               web.executeJs(content);
               if (!web.needInsertFirst) {
                 web.toggleInsertFirst();
                 web.tryInsertFirst();
               }
+              web.show();
             }));
           }
         }
@@ -368,7 +369,8 @@ class KfToHomeState extends BaseRemotePageState {
 
   void _insertIntoEditor(String content,
       {String editorId, String force = 'false'}) {
-    print("_insertIntoEditor ${content} ${editorId}");
+    print("_insertIntoEditor isShowing ${web.isShowing} ${editorId}");
+    
     if (cefContainer == null) {
       ensureWebViewShow();
       web.toggleInsertFirst();
@@ -1321,11 +1323,14 @@ class KfToHomeState extends BaseRemotePageState {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
+                    Container(
+                      width: left_width_real,
+                      child: Row(
                       children: [
                         ViewBuilder.BuildInLineMaterialButton(snackText,
-                            color: snackColor)
+                            color: snackColor,backgroundColor: ViewBuilder.RandomColor())
                       ],
+                    ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
