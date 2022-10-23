@@ -151,6 +151,9 @@ class KfToHomeState extends BaseRemotePageState {
   String snackText = '';
   Color snackColor = Colors.amber;
 
+  // dialog
+  String dialogCurrentFocus = 'markdown';
+
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
@@ -419,7 +422,7 @@ class KfToHomeState extends BaseRemotePageState {
       snackColor = bkGC;
       snackText = ':   ' + TextK.Get(msg);
     });
-    Future.delayed(Duration(seconds: 1),() {
+    Future.delayed(Duration(seconds: 1), () {
       setState(() {
         snackColor = ColorManager.Get('cardbackground');
       });
@@ -617,156 +620,202 @@ class KfToHomeState extends BaseRemotePageState {
 
   void onPressAddNewFunc() {
     DenktuiDialog.initContext(context);
+
+    var content = Container();
+
+    if (dialogCurrentFocus == "markdown") {
+      content = Container(
+        child: Column(
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.text_format,
+                color: ColorManager.Get("textdarkr"),
+              ),
+              title: Text(
+                TextK.Get('Text'),
+                style: TextStyle(color: ColorManager.Get("textdarkr")),
+              ),
+              subtitle: Text(
+                TextK.Get('Add a text '),
+                style: TextStyle(color: ColorManager.Get("textdarkr")),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+              child: TextFormField(
+                initialValue: '',
+                style: TextStyle(color: ColorManager.Get("font")),
+                onChanged: (String value) {
+                  this.dialog_editor_blog_file_name = value;
+                },
+                decoration: InputDecoration(
+                  labelText: TextK.Get('text file name'),
+                  labelStyle: TextStyle(color: ColorManager.Get("textdarkr")),
+                  fillColor: ColorManager.Get("textr"),
+                  helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: ColorManager.Get("textdarkr")),
+                  ),
+                ),
+              ),
+            ),
+            Container(height: 45),
+            ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
+                color: ColorManager.Get("textdarkr"),
+                isRevert: true,
+                icon: Icon(
+                  Icons.newspaper,
+                  color: ColorManager.Get("textdarkr"),
+                  size: ViewBuilder.size(2),
+                ), onPressFunc: () {
+              Navigator.pop(context);
+              var map = new Map();
+              map['invokeName'] = "getNewBlogTemplate";
+              this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
+                  callback: (AsyncIpcData data) {
+                var ktoData = KfToDoIpcData.fromAsync(data);
+                String initContent = ktoData.data['content'] as String;
+                String path = ktoData.data['path'] as String;
+                String name = DateTime.now().microsecond.toString();
+                if (this.dialog_editor_blog_file_name != "") {
+                  name = this.dialog_editor_blog_file_name;
+                } else {
+                  showCommonSnack(error: TextK.Get("请输入有效的文件名称"));
+                  return;
+                }
+                String newFilePath = path + DirSpelator + name + ".md";
+
+                // check is already has this file
+                CommonReadFile(newFilePath,
+                    showError: false,
+                    callbackOnError: true, func: (({content, path, suc}) {
+                  if (!suc) {
+                    currentFilePath = newFilePath;
+
+                    _refreshFilePathTextField();
+                    initContent = initContent.replaceFirst(
+                        "\$\{title\}", TextK.Get("请输入你的标题"));
+                    initContent = initContent.replaceFirst(
+                        "\$\{tag\}", TextK.Get("第一个标签"));
+                    _insertIntoEditor(initContent, editorId: currentFilePath);
+                    isWriteWithoutRead = true;
+                  } else {
+                    showCommonSnack(error: TextK.Get("请检查是否已存在同名文件"));
+                  }
+                }));
+              });
+            })
+          ],
+        ),
+      );
+    } else {
+      content = Container(
+        child: Column(children: [
+          ListTile(
+            leading: Icon(
+              Icons.rss_feed,
+              color: ColorManager.Get("textdarkr"),
+            ),
+            title: Text(
+              'RSS',
+              style: TextStyle(color: ColorManager.Get("textdarkr")),
+            ),
+            subtitle: Text(
+              TextK.Get('Add a rss '),
+              style: TextStyle(color: ColorManager.Get("textdarkr")),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
+            child: TextFormField(
+              initialValue: 'http://',
+              style: TextStyle(color: ColorManager.Get("font")),
+              onChanged: (String value) {
+                this.dialog_editor_rss_url = value;
+              },
+              decoration: InputDecoration(
+                labelText: TextK.Get('RSS url'),
+                labelStyle: TextStyle(color: ColorManager.Get("textdarkr")),
+                helperText: TextK.Get('Input a rss url '),
+                fillColor: ColorManager.Get("textr"),
+                helperStyle: TextStyle(color: ColorManager.Get("textdarkr")),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: ColorManager.Get("textdarkr")),
+                ),
+              ),
+            ),
+          ),
+            Container(height: 45),
+          ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
+
+                icon: Icon(
+                  Icons.newspaper,
+                  color: ColorManager.Get("textdarkr"),
+                  size: ViewBuilder.size(2),
+                ),
+          isRevert: true,
+              color: ColorManager.Get("textdarkr"), onPressFunc: () {
+            Navigator.pop(context);
+            this.ipc().invokeNyName({
+              "invokeName": "addRss",
+              "data": {"url": this.dialog_editor_rss_url}
+            }, callback: (AsyncIpcData data) {
+              showSnack(data);
+              refreshByData(KfToDoIpcData.fromAsync(data));
+            });
+          })
+        ]),
+      );
+    }
+
     DenktuiDialog.ShowDialog(
         content: Container(
           width: 500,
-          height: 412,
+          height: 307,
           alignment: Alignment.center,
           color: ColorManager.Get("cardbackground"),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Container(
-                height: 204,
-                child: Column(
+                child: Row(
                   children: [
-                    ListTile(
-                      leading: Icon(
-                        Icons.text_format,
-                        color: ColorManager.Get("textdarkr"),
-                      ),
-                      title: Text(
-                        TextK.Get('Text'),
-                        style: TextStyle(color: ColorManager.Get("textdarkr")),
-                      ),
-                      subtitle: Text(
-                        TextK.Get('Add a text '),
-                        style: TextStyle(color: ColorManager.Get("textdarkr")),
-                      ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                      child: TextFormField(
-                        initialValue: '',
-                        style: TextStyle(color: ColorManager.Get("font")),
-                        onChanged: (String value) {
-                          this.dialog_editor_blog_file_name = value;
+                    MaterialButton(
+                        onPressed: () {
+                          dialogCurrentFocus = "markdown";
+
+                          Navigator.pop(context);
+                          onPressAddNewFunc();
                         },
-                        decoration: InputDecoration(
-                          labelText: TextK.Get('text file name'),
-                          labelStyle:
-                              TextStyle(color: ColorManager.Get("textdarkr")),
-                          fillColor: ColorManager.Get("textr"),
-                          helperStyle:
-                              TextStyle(color: ColorManager.Get("textdarkr")),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                                color: ColorManager.Get("textdarkr")),
-                          ),
-                        ),
-                      ),
-                    ),
-                    ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
-                        color: ColorManager.Get("textdarkr"),
-                        icon: Icon(
-                          Icons.newspaper,
-                          color: ColorManager.Get("textdarkr"),
-                          size: ViewBuilder.size(2),
-                        ), onPressFunc: () {
-                      Navigator.pop(context);
-                      var map = new Map();
-                      map['invokeName'] = "getNewBlogTemplate";
-                      this.ipc()?.invoke(KfToDoIpcData.from("invoke", map),
-                          callback: (AsyncIpcData data) {
-                        var ktoData = KfToDoIpcData.fromAsync(data);
-                        String initContent = ktoData.data['content'] as String;
-                        String path = ktoData.data['path'] as String;
-                        String name = DateTime.now().microsecond.toString();
-                        if (this.dialog_editor_blog_file_name != "") {
-                          name = this.dialog_editor_blog_file_name;
-                        } else {
-                          showCommonSnack(error: TextK.Get("请输入有效的文件名称"));
-                          return;
-                        }
-                        String newFilePath = path + DirSpelator + name + ".md";
-
-                        // check is already has this file
-                        CommonReadFile(newFilePath,
-                            showError: false, callbackOnError: true,
-                            func: (({content, path, suc}) {
-                          if (!suc) {
-                            currentFilePath = newFilePath;
-
-                            _refreshFilePathTextField();
-                            initContent = initContent.replaceFirst(
-                                "\$\{title\}", TextK.Get("请输入你的标题"));
-                            initContent = initContent.replaceFirst(
-                                "\$\{tag\}", TextK.Get("第一个标签"));
-                            _insertIntoEditor(initContent,
-                                editorId: currentFilePath);
-                            isWriteWithoutRead = true;
-                          } else {
-                            showCommonSnack(error: TextK.Get("请检查是否已存在同名文件"));
-                          }
-                        }));
-                      });
-                    })
+                        color: dialogCurrentFocus == "markdown"
+                                  ? ColorManager.Get("textr") : null,
+                        hoverColor: ColorManager.Get("textr"),
+                        textColor: dialogCurrentFocus == "markdown"
+                                  ? ColorManager.Get("font")
+                                  : ColorManager.Get("textr"),
+                        child: Text(
+                          "makrdown",
+                        )),
+                    Container(width: 20,),
+                    MaterialButton(
+                        onPressed: () {
+                          dialogCurrentFocus = "rss";
+                          Navigator.pop(context);
+                          onPressAddNewFunc();
+                        },
+                        color: dialogCurrentFocus == "rss" ? ColorManager.Get("textr") : null,
+                        textColor: dialogCurrentFocus == "rss"
+                                  ? ColorManager.Get("font")
+                                  : ColorManager.Get("textr"),
+                        hoverColor: ColorManager.Get("textr"),
+                        child: Text("rss"))
                   ],
                 ),
               ),
-              Container(
-                height: 204,
-                child: Column(children: [
-                  ListTile(
-                    leading: Icon(
-                      Icons.rss_feed,
-                      color: ColorManager.Get("textdarkr"),
-                    ),
-                    title: Text(
-                      'RSS',
-                      style: TextStyle(color: ColorManager.Get("textdarkr")),
-                    ),
-                    subtitle: Text(
-                      TextK.Get('Add a rss '),
-                      style: TextStyle(color: ColorManager.Get("textdarkr")),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: TextFormField(
-                      initialValue: 'http://',
-                      style: TextStyle(color: ColorManager.Get("font")),
-                      onChanged: (String value) {
-                        this.dialog_editor_rss_url = value;
-                      },
-                      decoration: InputDecoration(
-                        labelText: TextK.Get('RSS url'),
-                        labelStyle:
-                            TextStyle(color: ColorManager.Get("textdarkr")),
-                        helperText: TextK.Get('Input a rss url '),
-                        fillColor: ColorManager.Get("textr"),
-                        helperStyle:
-                            TextStyle(color: ColorManager.Get("textdarkr")),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: ColorManager.Get("textdarkr")),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ViewBuilder.BuildMaterialButton(TextK.Get("Add to List"),
-                      color: ColorManager.Get("textdarkr"), onPressFunc: () {
-                    Navigator.pop(context);
-                    this.ipc().invokeNyName({
-                      "invokeName": "addRss",
-                      "data": {"url": this.dialog_editor_rss_url}
-                    }, callback: (AsyncIpcData data) {
-                      showSnack(data);
-                      refreshByData(KfToDoIpcData.fromAsync(data));
-                    });
-                  })
-                ]),
-              ),
+              content
             ],
           ),
         ),
@@ -840,11 +889,12 @@ class KfToHomeState extends BaseRemotePageState {
     isDragingLine = false;
   }
 
-  List<Widget> buildListItemView(String tag) {
+  List<Widget> buildListItemView(String tag, KfToDoTagData tagData) {
     List<Widget> res = [];
     this.data.data.where((element) => element.tags.contains(tag)).forEach((e) {
       res.add(
         ViewBuilder.BuildSingleTagListItemContainor(e,
+            tagData: tagData,
             rssRefreshFunc: () {
               this.ipc().invokeNyName({
                 "invokeName": "addRss",
@@ -904,7 +954,7 @@ class KfToHomeState extends BaseRemotePageState {
                     return buildLoadingItem();
                   } else {
                     var element = this.searchedTags[index];
-                    var childViewList = this.buildListItemView(element.name);
+                    var childViewList = this.buildListItemView(element.name, element);
                     if (childViewList.length > 0 || true) {
                       return ViewBuilder.BuildSingleTagContainor(element.name,
                           tagData: element, onPressFunc: (String tag) {
@@ -1101,20 +1151,22 @@ class KfToHomeState extends BaseRemotePageState {
                         children: [
                           filePathLabelText.isEmpty
                               ? Container()
-                              : ViewBuilder.BuildMaterialButton("",
+                              : ViewBuilder.BuildMaterialButton(
+                                  TextK.Get("保存"),
                                   onPressFunc: () {
-                                  _saveFile();
-                                },
+                                    _saveFile();
+                                  },
                                   color: ColorManager.Get("textdarkr"),
                                   icon: Icon(
                                     Icons.save_as_sharp,
                                     color: ColorManager.Get("textdarkr"),
                                     size: ViewBuilder.size(2),
-                                  )),
+                                  ),
+                                ),
                           filePathLabelText.isEmpty
                               ? Container()
-                              : ViewBuilder.BuildMaterialButton("",
-                                  onPressFunc: () {
+                              : ViewBuilder.BuildMaterialButton(
+                                  TextK.Get("历史记录"), onPressFunc: () {
                                   // _saveFile();
                                   onReadLocalHistory();
                                 },
@@ -1129,7 +1181,8 @@ class KfToHomeState extends BaseRemotePageState {
                                   )),
                           this.searchedTags.length == 0
                               ? Container()
-                              : ViewBuilder.BuildMaterialButton("",
+                              : ViewBuilder.BuildMaterialButton(
+                                  TextK.Get("新建..."),
                                   onPressFunc: () => this.onPressAddNewFunc(),
                                   color: ColorManager.Get("textdarkr"),
                                   icon: Icon(
@@ -1153,10 +1206,9 @@ class KfToHomeState extends BaseRemotePageState {
                             child: Column(
                               children: [
                                 MaterialButton(
-                                  height: ViewBuilder.size(1.5),
+                                    height: ViewBuilder.size(1.5),
                                     // textColor: color,
                                     onPressed: () {
-
                                       // TODO: 这里需要兼容Windows
                                       ChildProcess(ChildProcessArg.from(
                                               "open ${filePathLabelText}"))
@@ -1175,12 +1227,13 @@ class KfToHomeState extends BaseRemotePageState {
                                       ),
                                     )),
                                 Container(
-                                  
                                   padding: EdgeInsets.only(
-                                      left: ViewBuilder.size(2), top: ViewBuilder.size(1)),
+                                      left: ViewBuilder.size(2),
+                                      top: ViewBuilder.size(1)),
                                   child: Row(children: [
                                     Text(GetFileNameFromPath(currentFilePath),
-                                        style: TextStyle(color: ColorManager.Get("font")))
+                                        style: TextStyle(
+                                            color: ColorManager.Get("font")))
                                   ]),
                                 )
                               ],

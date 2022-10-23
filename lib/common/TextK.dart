@@ -44,6 +44,9 @@ class TextK {
     add("请检查是否已存在同名文件", "Please check if a file with the same name already exists");
     add("文件名称", "text file name");
     add("保存成功", "writeFile success");
+    add("保存", "Save");
+    add("新建...", "New...");
+    add("历史记录", "History");
   }
 
   add(String ch, String en) {

@@ -28,6 +28,7 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571889F827FEB2C90061FE27 /* denkui.bundle.js */; };
 		571E81AD2890125E00230257 /* manoco-editor in CopyFiles */ = {isa = PBXBuildFile; fileRef = 571E81AC2890125E00230257 /* manoco-editor */; };
+		575DFB312905146700282517 /* readme.md in CopyFiles */ = {isa = PBXBuildFile; fileRef = 575DFB302905146700282517 /* readme.md */; };
 		D6DD3DCE38541B6B68C593A0 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AADCFC783D7E5F416249980 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +68,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				575DFB312905146700282517 /* readme.md in CopyFiles */,
 				571E81AD2890125E00230257 /* manoco-editor in CopyFiles */,
 				571889F927FEB2CA0061FE27 /* denkui.bundle.js in CopyFiles */,
 			);
@@ -101,6 +103,7 @@
 		426E22464B7A40F4420531AE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		571889F827FEB2C90061FE27 /* denkui.bundle.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = denkui.bundle.js; path = ../denkui/denkui.bundle.js; sourceTree = "<group>"; };
 		571E81AC2890125E00230257 /* manoco-editor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "manoco-editor"; path = "../denkui/manoco-editor"; sourceTree = "<group>"; };
+		575DFB302905146700282517 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = readme.md; path = ../denkui/readme.md; sourceTree = "<group>"; };
 		6AADCFC783D7E5F416249980 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -134,6 +137,7 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
+				575DFB302905146700282517 /* readme.md */,
 				571E81AC2890125E00230257 /* manoco-editor */,
 				571889F827FEB2C90061FE27 /* denkui.bundle.js */,
 				33FAB671232836740065AC1E /* Runner */,
