@@ -298,17 +298,18 @@ const colorMaps = [['@bgWhite', '#fefefe', '#333333'],
 ['@colorIt', '#aabcd3', '#ffbcd3'],
 ['@colorSI', '#aa56d3', '#ff56d3'],
 ['@colorPrimary', '#ffffff', '#333333'],
-['@colorPreview', '#2c3f51', '#CCCCCC']];
+['@colorPreview', '#2c3f51', '#eeeeee']];
 
 const resolveColor = () => {
     const colors = {}
+    const darkMode = localStorage.getItem('isDarkMode') === 'true'
     colorMaps.forEach(colorItem => {
         const [key, light, dark] = colorItem
-        const darkMode = localStorage.getItem('isDarkMode') === 'true'
         const color = darkMode ? dark : light
         // text = text.replaceAll(key, color)
         colors[key] = color
     })
+    colors[ '@isDarkMode'] = darkMode
 
     less.modifyVars(colors)
 }
@@ -474,6 +475,7 @@ const handleMarkdown = (content) => {
     const header = `<link rel="stylesheet" href="${cssStyleFile}">`
 
     resolveColor();
+
 
     output = `${header}<pre class="lowbee-markdown-preview">${output}</pre>`;
     return output

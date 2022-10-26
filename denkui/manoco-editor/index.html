@@ -59,7 +59,7 @@
 				console.info('reactRenderSwitch', label)
 				if (checked) {
 					root.render(
-						<Checkbox className="list-item-checkbox" label={label} defaultChecked  onChange={handleChange}/>
+						<Checkbox className="list-item-checkbox list-item-checkbox-checked" label={label} defaultChecked  onChange={handleChange}/>
 					);
 				} else {
 					root.render(
@@ -75,12 +75,15 @@
 	 * 
 	 */
 	 
-
-	const isDarkMode = /isDarkMode=(.*?)&/.exec(location.href)[1] === 'true'
+	
+	let isDarkMode = /isDarkMode=(.*?)&/.exec(location.href)
 	if (isDarkMode) {
-		document.body.style.backgroundColor = '#333333'//';''#fefefe', 
-	} else {
-
+		isDarkMode = isDarkMode[1] === 'true'
+		if (isDarkMode) {
+			document.body.style.backgroundColor = '#333333'//';''#fefefe', 
+		} else {
+	
+		}
 	}
 </script>
 </html>

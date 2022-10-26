@@ -8,6 +8,8 @@
 @colorPreview: #2c3f51;
 @bgNote: #00bcd4;
 @colorPrimary: #ffffff;
+@isDarkMode: true;
+@colorListChecked: if((@isDarkMode), #444444, #eeeeee);
 
 .lowbee-markdown-preview {
     font-size: 15.11111111111111px;
@@ -51,6 +53,13 @@
         margin-block-start: 0;
         * {
             list-style-type: none;
+        }
+    }
+
+
+    .list-item-checkbox-checked {
+        .ms-Checkbox-text {
+            color: @colorListChecked;
         }
     }
 
