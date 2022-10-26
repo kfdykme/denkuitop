@@ -405,7 +405,7 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
         }
     }
     const myTokensRegs = [
-        [/- .*?\[DONE\]/, "custom-done"],
+        [/- .*?\[x\]/, "custom-done"],
         [/\---/, "custom-title-bar"],
         [/^(title) ?: ?(.*)/, "custom-title-bar"],
         [/^(date) ?: ?(.*)/, "custom-title-bar"],
@@ -475,7 +475,7 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
     monaco.languages.setMonarchTokensProvider("kfmarkdown", {
         tokenizer: {
             root: [
-                [/- .*?\[DONE\]/, "custom-done"],
+                [/- .*?\[x\]/, "custom-done"],
                 [/\---/, "custom-title-bar"],
                 [/^(title) ?: ?(.*)/, "custom-title-bar"],
                 [/^(date) ?: ?(.*)/, "custom-title-bar"],
