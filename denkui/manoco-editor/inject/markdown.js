@@ -267,7 +267,9 @@ class ListItemConvertHelper {
                 this.currentLevel--
             }
 
-            buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`
+            if (this.isCheckList){
+                buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`
+            }
             return buf
         });
     }
