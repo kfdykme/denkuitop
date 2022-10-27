@@ -121,6 +121,7 @@ class ViewBuilder {
         height: tagData.isOpen ? null : size(4),
         width: double.infinity,
         margin: EdgeInsets.symmetric(vertical: 2, horizontal: size(1)),
+        padding: EdgeInsets.fromLTRB(0,0, ViewBuilder.size(1), ViewBuilder.size(1)),
         child: Column(children: tagContainorChilds),
         color: Color(
             0x11aaaaaa) //!ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
