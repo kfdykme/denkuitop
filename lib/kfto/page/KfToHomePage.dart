@@ -1115,7 +1115,7 @@ class KfToHomeState extends BaseRemotePageState {
                       child: Container(
                         width: 2,
                         height: 20,
-                        color: Colors.blueGrey,
+                        color: dragLineColor,
                       ))),
             ],
           ),
