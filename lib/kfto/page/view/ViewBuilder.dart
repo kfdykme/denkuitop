@@ -123,7 +123,7 @@ class ViewBuilder {
         margin: EdgeInsets.symmetric(vertical: 2, horizontal: size(1)),
         child: Column(children: tagContainorChilds),
         color: Color(
-            0x11111111) //!ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
+            0x11aaaaaa) //!ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
         );
   }
 
