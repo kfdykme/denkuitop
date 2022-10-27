@@ -956,7 +956,8 @@ class KfToHomeState extends BaseRemotePageState {
           return Container(
             margin: EdgeInsets.fromLTRB(ViewBuilder.size(3),ViewBuilder.size(0.5),ViewBuilder.size(3),0),
           
-            child: ViewBuilder.BuildInLineMaterialButton(e, color: ColorManager.Get('font'), backgroundColor: ColorManager.Get("snackbackground"))
+            child: Card(color: ColorManager.Get('cardbackground'),
+            child: ViewBuilder.BuildInLineMaterialButton(e,color: ColorManager.Get('snackbackground') ,icon: Icon(Icons.info, color: ColorManager.Get('snackbackground'), size: ViewBuilder.size(2),)))
           );
         }).toList(),
       ),
