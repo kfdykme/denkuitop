@@ -266,6 +266,8 @@ class ListItemConvertHelper {
                 buf += `\n</${this.listTag}>`
                 this.currentLevel--
             }
+
+            buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`
             return buf
         });
     }
@@ -598,6 +600,21 @@ const innerMarkdownPreview = () => {
         }
 
         window.reactRenderSwitch(el, el.attributes.checked, onchange, el.attributes.content)
+    })
+
+
+    document.querySelectorAll('.list-item-add-button').forEach((el) => {
+        window.reactRenderAddBar(el, (content, lineNumber) => {
+            lineNumber = Number.parseInt(lineNumber)
+            // const lineContent = currentShowingEditor.getModel().getLineContent(lineNumber)
+            content = '- '+ content + '\n'
+            var range = new monaco.Range(lineNumber +1 , 0, lineNumber+1, 0);
+            var id = { major: 1, minor: 1 };
+            var op = { identifier: id, range: range, text: content, forceMoveMarkers: true };
+
+            currentShowingEditor.executeEdits("my-source-add", [op]);
+            console.info(content, line)
+        }, 'AddTo')
     })
 
     // handle react material

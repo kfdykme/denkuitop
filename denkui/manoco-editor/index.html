@@ -27,7 +27,7 @@
 	<script src="material-ui.min.js"></script>
 	<script src="less.min.js"></script>
 	<script>hljs.highlightAll(); window.hljs = hljs</script>
-	
+
 </head>
 
 <body style="height: 100%;">
@@ -42,31 +42,75 @@
 		// 	Checkbox,
 		// 	FormControlLabel
 		// } = MaterialUI;
-		const { Checkbox, Stack } = FluentUIReact;
+		const { Checkbox, Stack, ActionButton, TextField,SearchBox } = FluentUIReact;
 
-			console.info('kf react ui', Checkbox, Stack)
+		console.info('kf react ui', Checkbox, Stack)
 
 		window.reactDom = {}
-		window.reactRenderSwitch = (el, checked, handleChange, label) => {
+		window.getReactDom = (el) => {
 
 			let root = window.reactDom[el]
 			if (!root) {
 				root = ReactDOM.createRoot(el);
+				window.reactDom[el]
 			}
+			return root
+		}
+		window.reactRenderSwitch = (el, checked, handleChange, label) => {
+			let root = window.getReactDom(el)
+
 			if (typeof label === 'object') {
 				label = label.value
 				label = decodeURIComponent(label)
 				console.info('reactRenderSwitch', label)
 				if (checked) {
 					root.render(
-						<Checkbox className="list-item-checkbox list-item-checkbox-checked" label={label} defaultChecked  onChange={handleChange}/>
+						<Checkbox className="list-item-checkbox list-item-checkbox-checked" label={label} defaultChecked onChange={handleChange} />
 					);
 				} else {
 					root.render(
-						<Checkbox className="list-item-checkbox" label={label}  onChange={handleChange}/>
+						<Checkbox className="list-item-checkbox" label={label} onChange={handleChange} />
 					);
 				}
 			}
+		}
+
+		window.reactRenderButton = (el, onClick, iconName) => {
+			let root = window.getReactDom(el)
+
+			root.render(
+				<IconButton iconProps={{
+					iconName: iconName
+				}} title="Emoji" ariaLabel="Emoji" />
+			)
+		}
+		window.reactRenderAddBar = (el, onClick, iconName) => {
+			let root = window.getReactDom(el)
+			let value = ''
+			const onChange = (ev, newText) => {
+				value = newText
+			};
+			root.render(
+				<TextField
+					suffix=""
+					onChange={onChange}
+					onRenderSuffix={() => 
+						{
+							if (value === '') {
+
+								return null
+							} else {
+
+								return <ActionButton iconProps={{
+									iconName: iconName
+								}} title={iconName} ariaLabel={iconName} onClick={() => {
+									onClick(value, el.attributes.line.value)
+								}} />
+							}
+						}
+					}
+				/>
+			)
 		}
 	</script>
 </body>
@@ -74,16 +118,17 @@
 	/**
 	 * 
 	 */
-	 
-	
+
+
 	let isDarkMode = /isDarkMode=(.*?)&/.exec(location.href)
 	if (isDarkMode) {
 		isDarkMode = isDarkMode[1] === 'true'
 		if (isDarkMode) {
 			document.body.style.backgroundColor = '#333333'//';''#fefefe', 
 		} else {
-	
+
 		}
 	}
 </script>
+
 </html>
