@@ -121,7 +121,7 @@ class ViewBuilder {
         height: tagData.isOpen ? null : size(4),
         width: double.infinity,
         margin: EdgeInsets.symmetric(vertical: 2, horizontal: size(1)),
-        padding: EdgeInsets.fromLTRB(0,0, ViewBuilder.size(1), ViewBuilder.size(1)),
+        padding: tagData.isOpen ? EdgeInsets.fromLTRB(0,0, ViewBuilder.size(1), ViewBuilder.size(1)) : null,
         child: Column(children: tagContainorChilds),
         color: Color(
             0x11aaaaaa) //!ColorManager.instance().isDarkmode ? tagData.lightColor : tagData.darkColor,
@@ -135,16 +135,20 @@ class ViewBuilder {
       Function rssRefreshFunc}) {
     Widget listItemEndView = null;
     if (e.type == 'rss') {
-      listItemEndView = BuildInLineMaterialButton("",
+      listItemEndView = BuildInLineMaterialButton("update rss",
           icon: Icon(
             Icons.refresh,
             color: ColorManager.Get("font"),
-            size: size(3),
+            size: size(2),
           ), onPressFunc: () {
         if (rssRefreshFunc != null) {
           rssRefreshFunc();
         }
-      });
+      },
+      color:  ColorManager.Get("font"),
+      backgroundColor: !ColorManager.instance().isDarkmode
+                    ? tagData.darkColor2
+                    : tagData.lightColor);
     } else {
       listItemEndView = Text(
         '@${e.date}',

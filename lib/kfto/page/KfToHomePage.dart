@@ -589,7 +589,11 @@ class KfToHomeState extends BaseRemotePageState {
     });
     if (itemData.path.startsWith('http://') ||
         itemData.path.startsWith('https://')) {
-      web.executeJs('location.href = "${itemData.path}"');
+      setState(() {
+        currentFilePath = '';
+        filePathLabelText = '';
+      });
+      web.executeJs('window.open("${itemData.path}","_self")');
     } else {
       var homePath = DenkuiRunJsPathHelper.GetResourcePath();
       /**
