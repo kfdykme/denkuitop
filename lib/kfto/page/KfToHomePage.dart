@@ -150,6 +150,9 @@ class KfToHomeState extends BaseRemotePageState {
   // Snack Text
   String snackText = '';
   Color snackColor = Colors.amber;
+  List<String> snackTextList = [];
+  int snackIndex = 0;
+
 
   // dialog
   String dialogCurrentFocus = 'markdown';
@@ -435,11 +438,13 @@ class KfToHomeState extends BaseRemotePageState {
     // ScaffoldMessenger.of(context).showSnackBar(snackBar);
     setState(() {
       snackColor = bkGC;
-      snackText = ':   ' + TextK.Get(msg);
+      snackText =  TextK.Get(msg);
+      snackTextList.add(snackText);
     });
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(Duration(seconds: 3), () {
       setState(() {
         snackColor = ColorManager.Get('cardbackground');
+        snackTextList.removeAt(0);
       });
     });
   }
@@ -937,6 +942,24 @@ class KfToHomeState extends BaseRemotePageState {
     return res;
   }
 
+  Widget buildSnackListView() {
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [ Container(
+      child: Column(
+        children: this.snackTextList.map((e) {
+          return Container(
+            margin: EdgeInsets.fromLTRB(ViewBuilder.size(3),ViewBuilder.size(0.5),ViewBuilder.size(3),0),
+          
+            child: ViewBuilder.BuildInLineMaterialButton(e, color: ColorManager.Get('font'), backgroundColor: ColorManager.Get("snackbackground"))
+          );
+        }).toList(),
+      ),
+    )],
+    );
+  }
+
   Widget buildLocalHistoryView() {
     return ListView.builder(
         itemBuilder: (BuildContext context, int index) {
@@ -956,6 +979,7 @@ class KfToHomeState extends BaseRemotePageState {
         },
         itemCount: this.localHistoryDatas.length);
   }
+  
 
   Widget buildListView() {
     bool hasItems = this.data?.data != null || this.searchedTags.length != 0;
@@ -1062,12 +1086,15 @@ class KfToHomeState extends BaseRemotePageState {
           child: Row(
             children: [
               Expanded(
-                  child: isReadingLocalHistory
+                  child: Stack(children: [
+                    isReadingLocalHistory
                       ? Container(
                           width: left_width_real,
                           child: buildLocalHistoryView(),
                         )
-                      : buildListView()),
+                      : buildListView(),
+                      buildSnackListView()
+                  ],)),
               Listener(
                   onPointerDown: (event) => {onDragLineStart(event)},
                   onPointerUp: ((event) => {onDragLineEnd()}),
