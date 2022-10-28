@@ -171,10 +171,12 @@ class ListItemConvertHelper {
         this.listTag = listTag
         this.tagBlankSize = tagBlankSize
         this.isCheckList = false
+        this.isNeedAddBar = false
         // this.tagTODO = '[TODO]'
         // this.tagDONE = '[DONE]'
         this.tagTODO = '[-]'
         this.tagDONE = '[x]'
+        this.tagAddBar = '[bar]'
     }
 
     
@@ -215,6 +217,13 @@ class ListItemConvertHelper {
             } else {
                 this.isCheckList = false
             }
+            if (line.indexOf(this.tagAddBar) > 0) {
+                this.isNeedAddBar = true
+                line = line.replace(this.tagAddBar, '')
+            } else {
+                this.isNeedAddBar = false
+            }
+            
             
             return `<${this.listTag} class=${className}>\n<li><div style="display:flex" ><p>${this.convertLineContent(line, lineNumber)}<p></div></li>`
         });
@@ -267,7 +276,7 @@ class ListItemConvertHelper {
                 this.currentLevel--
             }
 
-            if (this.isCheckList){
+            if (this.isCheckList && this.isNeedAddBar){
                 buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`
             }
             return buf

@@ -1,2 +1,7 @@
 #include "../../Flutter/Flutter-Debug.xcconfig"
 #include "Warnings.xcconfig"
+
+PRODUCT_NAME = LowBeeDev
+
+// The application's bundle identifier
+PRODUCT_BUNDLE_IDENTIFIER = life.kfdykme.dev.lowbee
