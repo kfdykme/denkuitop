@@ -81,6 +81,7 @@ class KfTodoTextField {
 
   Color textFieldColor = null;
 
+  Widget _view = null;
 
   KfTodoTextField ({ onChange: Function, prefixColor: Color}) {
     if (prefixColor == null) {
@@ -92,7 +93,8 @@ class KfTodoTextField {
   }
 
   Widget view() {
-    return TextFieldTags(
+    if (_view == null) {
+      _view =  TextFieldTags(
               textfieldTagsController: tagsFieldController,
               initialTags: const [
               ],
@@ -119,9 +121,9 @@ class KfTodoTextField {
                     RawKeyboardListener(
                       focusNode: fn,
                       onKey: (RawKeyEvent event) {
-                        if (event.data.logicalKey.keyId == 0x100000008) {
-                          tagsFieldController.tryDeleteTag();
-                        }
+                        // if (event.data.logicalKey.keyId == 0x100000008) {
+                        //   tagsFieldController.tryDeleteTag();
+                        // }
                       },
                       child:Row(
                         children: [Container(
@@ -132,13 +134,14 @@ class KfTodoTextField {
                         Expanded(child:
                     TextField(
                       controller: tec,
-                      cursorHeight: 26,
+                      // cursorHeight: 26,
                       // focusNode: fn,R
-                      style: TextStyle(color: ColorManager.Get("font")),
+                      cursorColor: ColorManager.Get("textr"),
+                      style: TextStyle(color: ColorManager.Get("fontmiddle")),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: tagsFieldController.hasTags ? '' : TextK.Get("Enter tag..."),
-                        hintStyle: TextStyle(color: ColorManager.Get("font")),
+                        hintStyle: TextStyle(color: ColorManager.Get("textr")),
                         enabledBorder: new UnderlineInputBorder(
                           borderSide: new BorderSide(
                             color: Color(0x00000000)
@@ -212,5 +215,7 @@ class KfTodoTextField {
                       ),
                   ));});}
               );
+    } 
+    return _view;
   }
 }

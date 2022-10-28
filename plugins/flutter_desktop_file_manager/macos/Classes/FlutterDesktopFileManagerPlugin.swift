@@ -28,9 +28,38 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
       print("before onSelectFileManager")
       
       onSelectFileManager(result: result);
+    case "updateDarkMode":
+      let argv:[String:Any] = call.arguments as! [String: Any];
+      var val =  argv["darkMode"];
+      if (val == nil) {
+        val = false;
+      } else {
+        val  = val as! Bool;
+      }
+      let darkMode = val;
+      print("updateDarkMode",darkMode,argv)
+      onUpdateDarkMode(darkMode: darkMode)
+      result("");
+    case "getDarkMode":
+      let darkMode = onGetDarkMode();
+      print("getDarkMode", darkMode)
+      result(darkMode);
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  public func onGetDarkMode() -> Bool {
+    let userDefaults = UserDefaults.standard
+    let darkMode = userDefaults.bool(forKey: "darkMode");
+      print("onGetDarkMode", darkMode)
+    return darkMode;
+  }
+
+  public func onUpdateDarkMode(darkMode: Any) {
+     let userDefaults = UserDefaults.standard
+     print("onUpdateDarkMode",darkMode);
+    userDefaults.set(darkMode, forKey: "darkMode");
   }
 
   public func onSelectFileManager(result: @escaping FlutterResult) {

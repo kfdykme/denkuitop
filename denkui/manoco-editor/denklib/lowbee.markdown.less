@@ -1,0 +1,218 @@
+@bgWhite: #fefefe;
+@linkColor: #fac03d;
+@colorH: #333333;
+@colorInlineBGCode: #f9f2f4;
+@colorInlineCode: #ffbcd4;
+@colorIt: #aabcd3;
+@colorSI: #aa56d3;
+@colorPreview: #2c3f51;
+@bgNote: #00bcd4;
+@colorPrimary: #ffffff;
+@isDarkMode: true;
+@colorListChecked: if((@isDarkMode), #888888, #aaaaaa);
+
+.editor_container_holder {
+    overflow-y: hidden;
+}
+.lowbee-markdown-preview {
+    font-size: 15.11111111111111px;
+    color: @colorPreview;
+    font-family: ui-monospace;
+    padding: 1em;
+    width: 90%;
+    background: @bgWhite;
+    display: inline-flex;
+    flex-direction: column;
+
+    ul,
+    ol {
+        margin-bottom: .55em;
+        line-height: 0.1em;
+        font-size: 16.11111111111111px;
+    }
+
+    ui {
+        display: block;
+        list-style-type: disc;
+    }
+
+    ul,li {
+        line-height: 0 !important;
+
+        * {
+            line-height: 1;
+        } 
+    }
+
+    li>p {
+        margin: 0px;
+    }
+
+    // li:hover {
+        // list-style-type: none;
+    // }
+    .list-todo {
+        padding-inline-start: 0;
+        margin-block-start: 0;
+        * {
+            list-style-type: none;
+        }
+    }
+
+
+    .list-item-checkbox-checked {
+        .ms-Checkbox-text {
+            color: @colorListChecked;
+        }
+    }
+
+    .checkbox-container {
+        margin: auto;
+    }
+    .ms-Checkbox-text {
+        color: @colorPreview;
+    }
+    .ms-Checkbox-text:hover {
+        color: @colorPreview;
+        font-size: large;
+    }
+
+    .ms-Checkbox-checkbox {
+        border-color: @colorInlineCode;
+        background-color: @colorInlineCode;
+    }
+    
+    .ms-Checkbox-checkmark {
+        color: @bgWhite;
+    }
+
+    .react-list-item-checkbox {
+        margin: auto 0;
+    }
+
+    text,
+    blockquote,
+    ul,
+    li,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    span {
+        white-space: normal;
+        width: 100%;
+        word-break: break-all;
+        line-height: 1.5
+    }
+
+    img {
+        width: 100%;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-weight: bold;
+        color: @colorH;
+        margin: 1.2em 0 .6em 0;
+    }
+
+    .markdown_code {
+        overflow-x: visible !important;
+        border-radius: 8px;
+    }
+
+    a,
+    .markdown_link {
+        color: @linkColor;
+        text-decoration: none;
+        font-size: 14.222222222222221px;
+    }
+
+    .toc {
+        background: @bgNote;
+        border-radius: 8px;
+        padding: 8px;
+
+        >p {
+            margin-block: 0;
+            margin-inline: 0;
+        }
+    }
+
+    .note_tag {
+        // background: @bgNote;
+        padding: 4px;
+        padding-left: 16px;
+        margin: 0px;
+        // border-radius: 8px;
+        border-left: 4px solid #e27e7dee;
+    }
+
+    i {
+        font-weight: bold;
+        color: @colorIt;
+    }
+
+    strong {
+        color: #00aaff
+    }
+
+    .inline {
+        color: @colorInlineCode;
+        background-color: @colorInlineBGCode;
+        border-radius: 4px;
+        padding: 0px 4px;
+        // margin:4px;
+    }
+
+    .header-container-item {
+        // background-color: @ffbcd433;
+        // border: 0.1px solid #00bcd4;
+        // border-radius: 12px;
+        padding: 8px;
+    }
+
+    strong>i {
+        color: @colorSI
+    }
+
+    h1 {
+        font-size: 31px;
+        border-bottom: 1px solid #aaaaaa;
+        padding-bottom: 8px;
+    }
+
+    h2 {
+        font-size: 28px;
+        border-bottom: 1px solid #aaaaaa;
+        padding-bottom: 8px;
+    }
+
+    h3 {
+        font-size: 25px;
+    }
+
+    h4 {
+        font-size: 22px;
+    }
+
+    h5 {
+        font-size: 19px;
+    }
+
+    h6 {
+        font-size: 16px;
+    }
+
+    .markdown_link:hover,
+    a:hover {
+        border-bottom: 1px solid;
+        cursor: pointer;
+    }
+}

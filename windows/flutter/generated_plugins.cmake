@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_desktop_cef_web
   flutter_desktop_file_manager
   libdeno_plugin
-  native_hotkey
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -34,8 +34,10 @@ class ColorManager  {
 
   init() {
     colors['cardbackground'] = new ColorPair(Colors.white, Color(0xff333333));
+    colors['cardbackgrounddark'] = new ColorPair(Color(0xff333333), Colors.white);
     colors['fontdark'] = new ColorPair(Color(0xaaffffff), Color(0xaa333333));
     colors['font'] = new ColorPair( Color(0xff333333), Color(0xffffffff));
+    colors['fontmiddle'] = new ColorPair( Color(0xffaaaaaa), Color(0xffaaaaaa));
     colors['background'] = new ColorPair(Color(0xefefefef), Color(0xff000000));
     colors['textr'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
     colors['snackbackground'] = new ColorPair(ViewBuilder.RandomColor(), ViewBuilder.RandomDarkColor());
