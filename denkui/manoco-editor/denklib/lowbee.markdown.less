@@ -11,6 +11,19 @@
 @isDarkMode: true;
 @colorListChecked: if((@isDarkMode), #888888, #aaaaaa);
 
+
+#editor_header_bar {
+    overflow-y: hidden;
+    white-space: nowrap;
+    font-family: Damascus;
+}
+
+
+
+#editor_header_bar::-webkit-scrollbar {
+    display: none;
+}
+
 .editor_container_holder {
     overflow-y: hidden;
 }
@@ -72,10 +85,10 @@
     .ms-Checkbox-text {
         color: @colorPreview;
     }
-    .ms-Checkbox-text:hover {
-        color: @colorPreview;
-        font-size: large;
-    }
+    // .ms-Checkbox-text:hover {
+    //     color: @colorPreview;
+    //     font-size: large;
+    // }
 
     .ms-Checkbox-checkbox {
         border-color: @colorInlineCode;
