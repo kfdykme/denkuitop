@@ -1263,9 +1263,11 @@ class KfToHomeState extends BaseRemotePageState {
                                     // textColor: color,
                                     onPressed: () {
                                       // TODO: 这里需要兼容Windows
-                                      ChildProcess(ChildProcessArg.from(
-                                              "open ${filePathLabelText}"))
-                                          .run();
+                                      if (filePathLabelText.isNotEmpty) {
+                                        ChildProcess(ChildProcessArg.from(
+                                                "open ${filePathLabelText}"))
+                                            .run();
+                                      }
                                     },
                                     child: Container(
                                       padding: EdgeInsets.only(
