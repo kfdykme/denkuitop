@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:denkuitop/native/DenoManager.dart';
 import 'package:web_socket_channel/io.dart';
 import 'dart:async';
 
@@ -17,14 +16,18 @@ class IpcClient {
   var isConnected = false;
 
   IpcClient() {
+//    init();
   }
 
   initSocket(int port) {
+    mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${port}",
+        headers: {'Origin': 'http://127.0.0.1'});
+
+    print("IpcClient init ${port}");
     inited = true;
-    this.send("DENKUI_START");
-    DenoManager.Instance().onData((message) {
+    mWebSocket.stream.listen((message) {
       if (!message.toString().contains('"name":"heart"')) {
-        print("IpcClient  message ${message}");
+        // print("IpcClient  message ${message}");
       }
       isConnected = true;
       listeners.forEach((callback) {
@@ -32,6 +35,7 @@ class IpcClient {
       });
       if (callbacks["onmessage"] != null) callbacks["onmessage"](message);
     });
+    // this.send("DENKUI_START");
   }
 
   init({int port = 7999}) async {
@@ -47,7 +51,6 @@ class IpcClient {
       if (this.isConnected) {
         timer.cancel();
       }
-      timer.cancel();
       print("Try Connect Socket ${port}");
 
       try {
@@ -59,12 +62,10 @@ class IpcClient {
   }
 
   send(dynamic data) {
-    // if (mWebSocket != null) {
-    //   print("IpcClient send ${data}");
-    //   mWebSocket.sink.add(data);
-    // }
-
-    DenoManager.Instance().send(data as String);
+    if (mWebSocket != null) {
+      print("IpcClient send ${data}");
+      mWebSocket.sink.add(data);
+    }
   }
 
   addCallback(Function callback) {
