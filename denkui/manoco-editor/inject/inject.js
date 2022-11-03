@@ -789,7 +789,7 @@ const updateHeader = () => {
             btn.innerHTML = 'preview:' + btn.innerHTML
         }
         let editorView = document.getElementById(id)
-        btn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;min-width: 200px;justify-content: space-between;'
+        btn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
         if (editorView && editorView.style.display === '') {
             btn.style.background = window.denkGetKey('isDarkMode') ? '#333333' : '#ffffff';
             // btn.style.background = 'rgb(' + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + ")"

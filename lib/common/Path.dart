@@ -31,7 +31,7 @@ class DenkuiRunJsPathHelper {
   static String GetResourcePath() {
     if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowBee'));
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowHumming'));
       var runableJsPath = "${executableDirPath + '/../Resources'}";
       return runableJsPath;
     } else if (Platform.isWindows) {
@@ -46,7 +46,7 @@ class DenkuiRunJsPathHelper {
   static String GetDenkBundleJsPath() {
     if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowBee'));
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowHumming'));
       print("GetDenkBundleJsPath ${Platform.resolvedExecutable}");
       var runableJsPath =
           "${executableDirPath + '/../Resources/denkui.bundle.js'}";
@@ -64,7 +64,7 @@ class DenkuiRunJsPathHelper {
   static String GetPreloadPath() {
     if (Platform.isMacOS) {
       var executableDirPath = Platform.resolvedExecutable
-          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowBee'));
+          .substring(0, Platform.resolvedExecutable.lastIndexOf('/LowHumming'));
       var runableJsPath = "${executableDirPath + '/../Resources/preload.js'}";
       return runableJsPath;
     } else if (Platform.isWindows) {

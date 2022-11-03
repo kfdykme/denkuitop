@@ -15,7 +15,7 @@ void doWork(SendPort sendPort) {
 
 void main() {
   runApp(MyApp());
-  new DenoManager().startDeno();
+  DenoManager.Instance().startDeno();
 }
 
 class MyApp extends StatelessWidget {

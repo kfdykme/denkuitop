@@ -11,6 +11,24 @@ class DenoManager {
     DenoManager() {
 
     }
+
+    static DenoManager _ins;
+
+    static DenoManager Instance() {
+      if (_ins == null) {
+        _ins = new DenoManager();
+      } 
+      return _ins;
+    }
+
+
+    onData(Function f) {
+      libdeno.onData(f);
+    }
+
+    send(String data) {
+      libdeno.send(data);
+    }
     
 
     startDeno() {
