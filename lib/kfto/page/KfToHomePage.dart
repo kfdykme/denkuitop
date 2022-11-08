@@ -1258,9 +1258,8 @@ class KfToHomeState extends BaseRemotePageState {
                                 vertical: ViewBuilder.size(1)),
                             child: Column(
                               children: [
-                                MaterialButton(
+                                filePathLabelText.isNotEmpty ?  MaterialButton(
                                     height: ViewBuilder.size(1.5),
-                                    // textColor: color,
                                     onPressed: () {
                                       // TODO: 这里需要兼容Windows
                                       if (filePathLabelText.isNotEmpty) {
@@ -1280,7 +1279,7 @@ class KfToHomeState extends BaseRemotePageState {
                                                       'textr')))
                                         ],
                                       ),
-                                    )),
+                                    )) :Container(),
                                 Container(
                                   padding: EdgeInsets.only(
                                       left: ViewBuilder.size(2),

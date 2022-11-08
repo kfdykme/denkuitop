@@ -62,7 +62,7 @@ window.denkSetKeyValue('getEditorByFilePath', (filePath) => {
     }
 
     if (editor) {
-        console.error('editor is null', window.denkAllKeys())
+        console.warn('editor is not null')
     } else {
         window.denkSetKeyValue(id, editor)
     }
@@ -756,7 +756,7 @@ const updateHeader = () => {
     generateHeaderBar().innerHTML = ''
     let markdownPreviewModeBtn = document.createElement('div')
     markdownPreviewModeBtn.className = 'header_btn_markdown_preview_mode_btn header_btn_close_btn';
-    markdownPreviewModeBtn.innerHTML = '<img src="markdown_preview_mode.png" height="20"/></div>'
+    markdownPreviewModeBtn.innerHTML = '<img src="mpm.png" height="20" alt="M"/></div>'
     markdownPreviewModeBtn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
     markdownPreviewModeBtn.onclick = () => {
         let func = window.denkGetKey('funcToggleMarkdownPreviewView')
@@ -765,6 +765,7 @@ const updateHeader = () => {
         }
     }
     generateHeaderBar().appendChild(markdownPreviewModeBtn)
+    let activeBtn = null
     getEditors().map(id => {
         let key = id
 
@@ -784,7 +785,7 @@ const updateHeader = () => {
         }
 
         let btnClass = 'header_btn_close_btn';//window.denkGetKey('isDarkMode') ? 'header_btn_close_btn' : 'header_btn_close_btn_dark'
-        btn.innerHTML = `<div>${key.substring(key.lastIndexOf(prefix) + 1)}</div><div id="${id}_header_btn_close_btn" class="${btnClass}"><img src="close.png" height="20"/></div>`//+ '<div id="' + key +'_close" style="margin:0 4px; background: rgba(255,255,255,0.9); padding: 0 8px;" >close</div>'
+        btn.innerHTML = `<div class="header_btn_text">${key.substring(key.lastIndexOf(prefix) + 1)}</div><div id="${id}_header_btn_close_btn" class="${btnClass}"><div title="Close (Escape)" tabindex="0" class="button codicon codicon-widget-close" role="button" aria-label="Close (Escape)" aria-disabled="false"></div>`//<img src="close.png" height="16"/></div>`//+ '<div id="' + key +'_close" style="margin:0 4px; background: rgba(255,255,255,0.9); padding: 0 8px;" >close</div>'
         if (key.startsWith('preview')) {
             btn.innerHTML = 'preview:' + btn.innerHTML
         }
@@ -792,6 +793,7 @@ const updateHeader = () => {
         btn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
         if (editorView && editorView.style.display === '') {
             btn.style.background = window.denkGetKey('isDarkMode') ? '#333333' : '#ffffff';
+            activeBtn = btn
             // btn.style.background = 'rgb(' + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + ")"
         } else {
             btn.style.background = window.denkGetKey('isDarkMode') ? '#444444' : '#efefef';
@@ -829,6 +831,9 @@ const updateHeader = () => {
 
         }
     })
+    if (activeBtn) {
+        activeBtn.scrollIntoView({behavior: 'smooth'}, true)
+    }
 }
 window.denkSetKeyValue('funcUpdateHeader', updateHeader)
 
