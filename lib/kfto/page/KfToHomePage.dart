@@ -207,11 +207,13 @@ class KfToHomeState extends BaseRemotePageState {
 
   void initWeb() {
     web.registerFunction("prepareInjectJs", (dynamic data) {
+
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
         var ktoData = KfToDoIpcData.fromAsync(data);
         print("getConfig: ${ktoData}");
         if (ktoData.data['editorInjectJsPath'] != null) {
+          print("${ktoData.data['editorInjectJsPath']}");
           var editorInjectJsPath = ktoData.data['editorInjectJsPath'];
           var injectJsList = [];
           if (editorInjectJsPath.runtimeType == String) {
@@ -239,6 +241,8 @@ class KfToHomeState extends BaseRemotePageState {
 
           // MARK: injectJs finish
           injectJsFinished = true;
+        } else {
+          print("getConfig empty");
         }
       });
     });
@@ -378,9 +382,9 @@ class KfToHomeState extends BaseRemotePageState {
     print("_insertIntoEditor isShowing ${web.isShowing} ${editorId}");
     
     if (!injectJsFinished) {
-      Future.delayed(Duration(milliseconds: 200), () {
-        _insertIntoEditor(content, editorId: editorId, force: force);
-      });
+      // Future.delayed(Duration(milliseconds: 200), () {
+      //   _insertIntoEditor(content, editorId: editorId, force: force);
+      // });
       return ;
     }
 
@@ -1256,7 +1260,7 @@ class KfToHomeState extends BaseRemotePageState {
                             // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
-                            child: Column(
+                            child: true ? Container() : Column(
                               children: [
                                 filePathLabelText.isNotEmpty ?  MaterialButton(
                                     height: ViewBuilder.size(1.5),

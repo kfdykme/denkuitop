@@ -45,8 +45,7 @@ list(APPEND CPP_WRAPPER_SOURCES_PLUGIN
 list(TRANSFORM CPP_WRAPPER_SOURCES_PLUGIN PREPEND "${WRAPPER_ROOT}/")
 list(APPEND CPP_WRAPPER_SOURCES_APP
   "flutter_engine.cc"
-  "flutter_view_controller.cc"
-  "hotkey_flutter_plugin.cpp"
+  "flutter_view_controller.cc" 
 )
 list(TRANSFORM CPP_WRAPPER_SOURCES_APP PREPEND "${WRAPPER_ROOT}/")
 

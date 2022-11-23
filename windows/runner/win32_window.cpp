@@ -4,7 +4,6 @@
 
 #include "resource.h"
 
-#include <native_hotkey/native_hotkey_plugin.h>
 
 #include <flutter_desktop_cef_web/flutter_desktop_cef_web_plugin.h>
 namespace {
@@ -190,7 +189,6 @@ Win32Window::MessageHandler(HWND hwnd,
 
     case WM_ACTIVATE:
       FlutterDesktopCefWebPluginCefOnResize();
-      NativeHotKeyOnWindowActiveEvent((int64_t)wparam);
       if (child_content_ != nullptr) {
         SetFocus(child_content_);
       }

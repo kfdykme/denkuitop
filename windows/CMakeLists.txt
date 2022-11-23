@@ -89,6 +89,25 @@ file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/*.*")
 install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-editor"
   COMPONENT Runtime)
 
+  
+  
+file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/denklib/*.*")
+# message("EDITOR_FILES: ${EDITOR_FILES}")
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-editor/denklib/"
+  COMPONENT Runtime)
+
+  
+  
+file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/inject/*.*")
+# message("EDITOR_FILES: ${EDITOR_FILES}")
+install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-editor/inject/"
+  COMPONENT Runtime)
+  
+file(GLOB_RECURSE README_FILES "../denkui/readmes/*.*")
+# message("README_FILES: ${README_FILES}")
+install(FILES "${README_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/readmes"
+  COMPONENT Runtime)
+
 execute_process(COMMAND "cmd.exe /c del /F /S /Q  bundle")
 execute_process(COMMAND "cmd.exe /c MKLINK /D bundle ${INSTALL_BUNDLE_LIB_DIR}/bundle")
 
