@@ -736,7 +736,7 @@ const generateHeaderBar = () => {
 
     header = document.createElement('div')
     header.id = 'editor_header_bar'
-    header.style = 'display:flex;width: 100%; background:#fefefe33; overflow-x: scroll;'
+    header.style = 'display:flex;width: 100%; overflow-x: scroll;'
 
     holder.parentNode.insertBefore(header, holder)
 
@@ -792,11 +792,11 @@ const updateHeader = () => {
         let editorView = document.getElementById(id)
         btn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
         if (editorView && editorView.style.display === '') {
-            btn.style.background = window.denkGetKey('isDarkMode') ? '#333333' : '#ffffff';
+            btn.style.background = window.denkGetKey('isDarkMode') ? '#444444' : '#efefef';
             activeBtn = btn
             // btn.style.background = 'rgb(' + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + "," + (Math.random() * 100 + 155) + ")"
         } else {
-            btn.style.background = window.denkGetKey('isDarkMode') ? '#444444' : '#efefef';
+            btn.style.background = window.denkGetKey('isDarkMode') ? '#333333' : '#ffffff';
         }
         btn.style.color = window.denkGetKey('isDarkMode') ? '#ffffff' : '#333333';
         btn.onclick = () => {
@@ -906,10 +906,10 @@ window.denkSetKeyValue('funcSwitchDarkMode', (isDarkMode, from) => {
     if (isDarkMode) {
         editor.setTheme('denk-dark')
         document.body.style.background = '#333333'
-        editor_header_bar && (editor_header_bar.style.background = '#444444')
+        // editor_header_bar && (editor_header_bar.style.background = '#444444')
     } else {
         document.body.style.background = '#ffffff'
-        editor_header_bar && (editor_header_bar.style.background = '#efefef')
+        // editor_header_bar && (editor_header_bar.style.background = '#efefef')
         editor.setTheme('denk')
     }
     window.denkGetKey('funcUpdateHeader')()

@@ -81,6 +81,10 @@ flutter:
     - family: msyh
       fonts:
         - asset: fonts/msyh.ttc
+    - family: SmileySans
+      fonts:
+        - asset: fonts/SmileySans-Oblique.ttf
+          weight: 700
 
 
   # fonts:
