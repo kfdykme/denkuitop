@@ -403,6 +403,9 @@ class KfToHomeState extends BaseRemotePageState {
       editorId = "_" + editorId;
     }
 
+    if(Platform.isWindows) {
+      editorId = editorId.replaceAll("\\","\\\\");
+    }
     web.insertByContentNId(content, editorId, force: force);
     web.needInsertContent = content;
     web.needInsertPath = editorId;
@@ -1269,8 +1272,9 @@ class KfToHomeState extends BaseRemotePageState {
                                     onPressed: () {
                                       // TODO: 这里需要兼容Windows
                                       if (filePathLabelText.isNotEmpty) {
+
                                         ChildProcess(ChildProcessArg.from(
-                                                "open ${filePathLabelText}"))
+                                                "${Platform.isWindows ? "start" : "open"} ${filePathLabelText}"))
                                             .run();
                                       }
                                     },
