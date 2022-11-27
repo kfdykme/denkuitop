@@ -188,7 +188,7 @@ Win32Window::MessageHandler(HWND hwnd,
     }
 
     case WM_ACTIVATE:
-      FlutterDesktopCefWebPluginCefOnResize();
+      // FlutterDesktopCefWebPluginCefOnResize();
       if (child_content_ != nullptr) {
         SetFocus(child_content_);
       }

@@ -4,6 +4,8 @@
 
 #include "flutter/generated_plugin_registrant.h"
  
+#include "iostream"
+#include <flutter_desktop_cef_web/flutter_desktop_cef_web_plugin.h>
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -41,8 +43,11 @@ void FlutterWindow::OnDestroy() {
 LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
-                              LPARAM const lparam) noexcept {
-  // Give Flutter, including plugins, an opportunity to handle window messages.
+                              LPARAM const lparam) noexcept { 
+  if (message == 33) {
+    FlutterDesktopCefWebPluginCefReleaseFocus();  
+  SetChildContent(flutter_controller_->view()->GetNativeWindow());
+  }
   if (flutter_controller_) {
     std::optional<LRESULT> result =
         flutter_controller_->HandleTopLevelWindowProc(hwnd, message, wparam,

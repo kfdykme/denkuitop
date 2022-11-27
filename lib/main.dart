@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           // is not restarted.
           primarySwatch: Colors.blue,
           backgroundColor: Colors.white,
-          // fontFamily: 'msyh',
+          fontFamily: 'msyh',
           appBarTheme: null,
           // This makes the visual density adapt to the platform that you run
           // the app on. For desktop platforms, the controls will be smaller and
