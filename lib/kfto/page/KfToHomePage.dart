@@ -165,7 +165,6 @@ class KfToHomeState extends BaseRemotePageState {
         ColorManager.instance().isDarkmode = value;
       });
     });
-    this.initWeb();
     initDenoLibSocket();
   }
 
@@ -181,6 +180,7 @@ class KfToHomeState extends BaseRemotePageState {
     denoLibSocketLife.onConnectedCallback = () {
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
+            print("onConnected");
         var ktoData = KfToDoIpcData.fromAsync(data);
         var basePath = ktoData.data['basePath'];
         if (basePath == null || basePath == ".") {
@@ -192,6 +192,7 @@ class KfToHomeState extends BaseRemotePageState {
         //     ColorManager.instance().isDarkmode = isDarkmode;
         //   });
         // }
+        initWeb();
       });
     };
   }
@@ -206,7 +207,9 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void initWeb() {
+    print("initWeb");
     web.registerFunction("prepareInjectJs", (dynamic data) {
+      print("on prepareInjectJs event");
       this.ipc().invokeNyName({"invokeName": "getConfig"},
           callback: (AsyncIpcData data) {
         var ktoData = KfToDoIpcData.fromAsync(data);
@@ -225,6 +228,7 @@ class KfToHomeState extends BaseRemotePageState {
             }
           }
 
+          web.show();
           for (var x = 0; x < injectJsList.length; x++) {
             CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
               print("CommonReadFile path: ${path}");
@@ -233,12 +237,14 @@ class KfToHomeState extends BaseRemotePageState {
                 web.toggleInsertFirst();
                 web.tryInsertFirst();
               }
-              web.show();
             }));
           }
 
           // MARK: injectJs finish
           injectJsFinished = true;
+          print("on prepareInjectJs event success");
+        } else {
+          print("ipcError");
         }
       });
     });
@@ -539,7 +545,7 @@ class KfToHomeState extends BaseRemotePageState {
       bool callbackOnError = false}) {
     _readFile(path, callback: (AsyncIpcData data) {
       var ktoData = KfToDoIpcData.fromAsync(data);
-      print("CommonReadFile _readFile callback" + ktoData.toString());
+      // print("CommonReadFile _readFile callback" + ktoData.toString());
       String path = ktoData.data['path'] as String;
       String error = ktoData.data['error'];
       if (error != null) {

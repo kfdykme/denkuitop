@@ -65,6 +65,8 @@ class IpcClient {
     if (mWebSocket != null) {
       print("IpcClient send ${data}");
       mWebSocket.sink.add(data);
+    } else {
+      print("IpcClient is not inited ${isConnected}");
     }
   }
 
