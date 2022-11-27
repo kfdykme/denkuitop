@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -29,7 +31,11 @@ class MethodChannelFlutterDesktopFileManager extends FlutterDesktopFileManagerPl
 
   @override
   Future<bool> onGetDarkMode() async {
-     final darkMode = await methodChannel.invokeMethod<bool>('getDarkMode');
-     return darkMode??false;
+    if(Platform.isMacOS) {
+      final darkMode = await methodChannel.invokeMethod<bool>('getDarkMode');
+      return darkMode??false;
+    } else {
+      return false;
+    }
   }
 }

@@ -98,14 +98,17 @@ install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-ed
 
   
   
-file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/inject/*.*")
-# message("EDITOR_FILES: ${EDITOR_FILES}")
+file(GLOB_RECURSE EDITOR_FILES "../denkui/manoco-editor/inject/*.*") 
 install(FILES "${EDITOR_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/manoco-editor/inject/"
   COMPONENT Runtime)
   
-file(GLOB_RECURSE README_FILES "../denkui/readmes/*.*")
-# message("README_FILES: ${README_FILES}")
+file(GLOB_RECURSE README_FILES "../denkui/readmes/*.*") 
 install(FILES "${README_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/readmes"
+  COMPONENT Runtime)
+
+  
+file(GLOB_RECURSE README_INIT_FILES "../denkui/readmes/readme.md") 
+install(FILES "${README_INIT_FILES}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/"
   COMPONENT Runtime)
 
 execute_process(COMMAND "cmd.exe /c del /F /S /Q  bundle")
