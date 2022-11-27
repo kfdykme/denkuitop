@@ -605,6 +605,9 @@ class KfToHomeState extends BaseRemotePageState {
       /**
        * home= 必须要是最
        */
+      if (Platform.isWindows) {
+        homePath = homePath.replaceAll("\\", "\\\\");
+      }
       var url =
           "http://localhost:10825/manoco-editor/index.html?isDarkMode=${ColorManager.instance().isDarkmode}&home=${homePath}";
 
