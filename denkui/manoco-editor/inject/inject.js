@@ -740,6 +740,10 @@ const generateHeaderBar = () => {
 
     holder.parentNode.insertBefore(header, holder)
 
+    header.addEventListener('wheel',(e) => {
+        header.scrollLeft += e.deltaY
+    })
+
     return header
 }
 
