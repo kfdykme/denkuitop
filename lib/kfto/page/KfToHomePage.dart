@@ -63,7 +63,9 @@ class KfToHomeState extends BaseRemotePageState {
 
       searchKeyItems.forEach((element) {
         for (KfToDoTagData item in dataTags) {
-          if (item.name.contains(element) && !searchRes.contains(item)) {
+          var name = item.name.toLowerCase();
+          element = element.toLowerCase();
+          if (name.contains(element) && !searchRes.contains(item)) {
             searchRes.add(item);
           }
         }
