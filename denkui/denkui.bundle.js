@@ -5309,8 +5309,11 @@ class KfTodoController {
         }
     }
     async initByConfig() {
-        const readmeContent = __default4.readFileSync(this.config['resourcePath'] + __default3.Dir.Spelator + 'readme.md');
-        __default4.writeFileSync(this.config["basePath"] + __default3.Dir.Spelator + "readme.md", readmeContent);
+        const readmeFiles = __default4.walkDirSync(this.config['resourcePath'] + __default3.Dir.Spelator + 'readmes');
+        readmeFiles.forEach((readmeFile)=>{
+            const readmeContent = __default4.readFileSync(readmeFile.path);
+            __default4.writeFileSync(this.config["basePath"] + __default3.Dir.Spelator + readmeFile.name, readmeContent);
+        });
         const files = __default4.walkDirSync(this.config.basePath);
         const denkuiblogFiles = files.filter((value)=>{
             const ext = __default8.getFileExtByType("denkuiblog", this.config);
@@ -5371,9 +5374,6 @@ class KfTodoController {
             });
         }
         if (invokeName === "getConfig") {
-            if (!this.config["editorInjectJsPath"]) {
-                this.config["editorInjectJsPath"] = this.generateInjectJsFile(this.config['resourcePath']);
-            }
             ipcData.data = this.config;
             this.ipc?.response(ipcData);
         }

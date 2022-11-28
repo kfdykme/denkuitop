@@ -1065,6 +1065,10 @@ class KfToHomeState extends BaseRemotePageState {
         setState(() {
           searchKey = value;
         });
+      }, onRefresh: () {
+        setState(() {
+          
+        });
       });
     }
 
