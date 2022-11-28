@@ -5368,10 +5368,12 @@ class KfTodoController {
                 path: invokeData
             };
             this.ipc?.response(ipcData);
-            await __default5.set({
-                key: "lastReadPath",
-                value: path
-            });
+            if (path.endsWith(".md")) {
+                await __default5.set({
+                    key: "lastReadPath",
+                    value: path
+                });
+            }
         }
         if (invokeName === "getConfig") {
             ipcData.data = this.config;

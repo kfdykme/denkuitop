@@ -205,7 +205,9 @@ class KfToHomeState extends BaseRemotePageState {
       web.loadCefContainer();
       web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
           DenkuiRunJsPathHelper.GetResourcePath());
+     
     }
+    web.show();
   }
 
   void initWeb() {
@@ -370,10 +372,24 @@ class KfToHomeState extends BaseRemotePageState {
   void handleIpcMessage(KfToDoIpcData data) {
     if (data.name == 'initData') {
       refreshByData(data);
+      return;
     }
+
 
     if (data.name == 'system.toast') {
       showSnack(data);
+      return;
+    }
+
+    if (data.name == 'notifyRead') {
+      String lastPath = data.rawMap["data"];
+      print("notifyRead ${lastPath}");
+      ListItemData item =  this.data.data.firstWhere((element) {
+        return element.path == lastPath;
+      });
+      if (item !=null) {
+        onPressSingleItemFunc(item);
+      }
     }
   }
 
@@ -550,7 +566,7 @@ class KfToHomeState extends BaseRemotePageState {
       bool callbackOnError = false}) {
     _readFile(path, callback: (AsyncIpcData data) {
       var ktoData = KfToDoIpcData.fromAsync(data);
-      // print("CommonReadFile _readFile callback" + ktoData.toString());
+      print("CommonReadFile _readFile callback" + ktoData.toString());
       String path = ktoData.data['path'] as String;
       String error = ktoData.data['error'];
       if (error != null) {
@@ -585,24 +601,10 @@ class KfToHomeState extends BaseRemotePageState {
     this.ipc().invoke(KfToDoIpcData.from('invoke', map), callback: callback);
   }
 
-  void onPressSingleItemFunc(ListItemData itemData) {
-    web.loadCefContainer();
-    print('onPressSingleItemFunc ' + itemData.type);
-    // if (itemData.type )
-    setState(() {
-      if (isTreeCardMode) {
-        isTreeCardMode = !isTreeCardMode;
-        web.toggle();
-      }
-    });
-    if (itemData.path.startsWith('http://') ||
-        itemData.path.startsWith('https://')) {
-      setState(() {
-        currentFilePath = '';
-        filePathLabelText = '';
-      });
-      web.executeJs('window.open("${itemData.path}","_self")');
-    } else {
+  void ensureLoadEditor() {
+      web.loadCefContainer();
+      ensureWebViewShow();
+
       var homePath = DenkuiRunJsPathHelper.GetResourcePath();
       /**
        * home= 必须要是最
@@ -612,10 +614,22 @@ class KfToHomeState extends BaseRemotePageState {
       }
       var url =
           "http://localhost:10825/manoco-editor/index.html?isDarkMode=${ColorManager.instance().isDarkmode}&home=${homePath}";
-
-      ensureWebViewShow();
       web.executeJs(
           'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
+  }
+
+  void onPressSingleItemFunc(ListItemData itemData) {
+    web.loadCefContainer();
+    print('onPressSingleItemFunc ' + itemData.type);
+    if (itemData.path.startsWith('http://') ||
+        itemData.path.startsWith('https://')) {
+      setState(() {
+        currentFilePath = '';
+        filePathLabelText = '';
+      });
+      web.executeJs('window.open("${itemData.path}","_self")');
+    } else {
+      ensureLoadEditor();
 
       CommonReadFile(itemData.path, func: ({content, path, suc}) {
         currentFilePath = path.replaceAll("\\", DirSpelator);
@@ -730,13 +744,14 @@ class KfToHomeState extends BaseRemotePageState {
                 }
                 String newFilePath = path + DirSpelator + name + ".md";
 
+                ensureLoadEditor();
                 // check is already has this file
                 CommonReadFile(newFilePath,
                     showError: false,
                     callbackOnError: true, func: (({content, path, suc}) {
+                      print("Add to list callback");
                   if (!suc) {
                     currentFilePath = newFilePath;
-
                     _refreshFilePathTextField();
                     initContent = initContent.replaceFirst(
                         "\$\{title\}", TextK.Get("请输入你的标题"));
