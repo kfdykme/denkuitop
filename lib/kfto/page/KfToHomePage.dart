@@ -1286,7 +1286,6 @@ class KfToHomeState extends BaseRemotePageState {
                           ),
                           Expanded(
                               child: Container(
-                            // color: filePathLabelText.isEmpty  ? null : ColorManager.Get("buttonbackground"),
                             margin: EdgeInsets.symmetric(
                                 vertical: ViewBuilder.size(1)),
                             child: Column(

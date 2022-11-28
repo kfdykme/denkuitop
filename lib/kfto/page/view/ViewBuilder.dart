@@ -266,9 +266,7 @@ class ViewBuilder {
     const buttonHeight = 45.0;
 
     var buttonView = Container(
-        color: backgroundColor == null
-            ? ColorManager.Get("buttonbackground")
-            : backgroundColor,
+        color: ColorManager.Get("buttonbackground"),
         height: buttonHeight,
         child: Row(
           mainAxisAlignment: alignment ,
@@ -279,7 +277,7 @@ class ViewBuilder {
             ),
             MaterialButton(
               textColor: ColorManager.Get("buttontext"),
-              height: buttonHeight,
+              height: buttonHeight + 19,
               hoverColor: color != null ? color.withAlpha(20) : ColorManager.Get("buttontext").withAlpha(20) ,
               onPressed: () {
                 print("BuildMaterialButton Press ${text} ${onPressFunc}");

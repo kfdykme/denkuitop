@@ -23,24 +23,24 @@ class KfTodoTextFieldController extends TextfieldTagsController {
   KfTodoTextFieldController({onChange: Function, onRefresh: Function}) {
     onChangeCallback = onChange;
     onRefreshCallback = onRefresh;
-    _doublesDeleteTag.debounceTime(Duration(milliseconds: 100)).listen((event) {
-      if (this.currentCache.trim() == "" ||
-          (getTags.length > 0 &&
-              getTags.last.trim() == this.currentCache.trim())) {
-        // remove last tags
-        if (getTags.length > 0) {
-          print("tryDeleteTag ${getTags} ${getTags.last}");
-          onTagDelete(getTags.last);
-          if (getTags.length > 0) {
-            this.currentCache = getTags.last;
-          }
+    // _doublesDeleteTag.debounceTime(Duration(milliseconds: 100)).listen((event) {
+    //   if (this.currentCache.trim() == "" ||
+    //       (getTags.length > 0 &&
+    //           getTags.last.trim() == this.currentCache.trim())) {
+    //     // remove last tags
+    //     if (getTags.length > 0) {
+    //       print("tryDeleteTag ${getTags} ${getTags.last}");
+    //       onTagDelete(getTags.last);
+    //       if (getTags.length > 0) {
+    //         this.currentCache = getTags.last;
+    //       }
 
-          if (onChangeCallback != null) {
-            onChangeCallback(getTags.join(","));
-          }
-        }
-      }
-    });
+    //       if (onChangeCallback != null) {
+    //         onChangeCallback(getTags.join(","));
+    //       }
+    //     }
+    //   }
+    // });
   }
 
   @override
@@ -79,7 +79,7 @@ class KfTodoTextFieldController extends TextfieldTagsController {
       tryDeleteTagFuture.cancel();
       tryDeleteTagFuture = null;
     }
-    tryDeleteTagFuture = Timer(Duration(milliseconds: 100), () {
+    tryDeleteTagFuture = Timer(Duration(milliseconds: 200), () {
       print("tryDeleteTag");
 
       if (lastTagReadDelete) {
