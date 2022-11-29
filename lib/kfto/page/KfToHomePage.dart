@@ -381,16 +381,17 @@ class KfToHomeState extends BaseRemotePageState {
       return;
     }
 
-    if (data.name == 'notifyRead') {
-      String lastPath = data.rawMap["data"];
-      print("notifyRead ${lastPath}");
-      ListItemData item =  this.data.data.firstWhere((element) {
-        return element.path == lastPath;
-      });
-      if (item !=null) {
-        onPressSingleItemFunc(item);
-      }
-    }
+    // 会导致新文件保存的时候有问题
+    // if (data.name == 'notifyRead') {
+    //   String lastPath = data.rawMap["data"];
+    //   print("notifyRead ${lastPath}");
+    //   ListItemData item =  this.data.data.firstWhere((element) {
+    //     return element.path == lastPath;
+    //   });
+    //   if (item !=null) {
+    //     onPressSingleItemFunc(item);
+    //   }
+    // }
   }
 
   AsyncIpcClient ipc() {
