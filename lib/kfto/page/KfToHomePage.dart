@@ -452,14 +452,7 @@ class KfToHomeState extends BaseRemotePageState {
     if (msg == null) {
       msg = TextK.Get("ERRRRRRRRRRRRRRR");
     }
-
-    // final snackBar = SnackBar(
-    //   behavior: SnackBarBehavior.floating,
-    //   backgroundColor: bkGC,
-    //   content: Text(msg),
-    // );
-
-    // ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    
     setState(() {
       snackColor = bkGC;
       snackText =  TextK.Get(msg);
@@ -1412,8 +1405,8 @@ class KfToHomeState extends BaseRemotePageState {
                       width: left_width_real,
                       child: Row(
                       children: [
-                        ViewBuilder.BuildInLineMaterialButton(snackText,
-                            color: snackColor,backgroundColor: ViewBuilder.RandomColor())
+                        snackText.length > 0 ? ViewBuilder.BuildInLineMaterialButton(snackText,
+                            color: snackColor,backgroundColor: ViewBuilder.RandomColor()) : Container()
                       ],
                     ),
                     ),
