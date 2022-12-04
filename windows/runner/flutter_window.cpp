@@ -46,7 +46,10 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               LPARAM const lparam) noexcept { 
   if (message == 33) {
     FlutterDesktopCefWebPluginCefReleaseFocus();  
-  SetChildContent(flutter_controller_->view()->GetNativeWindow());
+    SetChildContent(flutter_controller_->view()->GetNativeWindow());
+  }
+  if (message == 130) {
+    exit(0);
   }
   if (flutter_controller_) {
     std::optional<LRESULT> result =

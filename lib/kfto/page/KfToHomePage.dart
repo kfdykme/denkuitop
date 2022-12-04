@@ -1008,7 +1008,7 @@ class KfToHomeState extends BaseRemotePageState {
   Widget buildListView() {
     bool hasItems = this.data?.data != null || this.searchedTags.length != 0;
     return Container(
-      margin: EdgeInsets.fromLTRB(0, 24, 0, 0),
+      margin: Platform.isWindows ? EdgeInsets.all(0) : EdgeInsets.fromLTRB(0, 24, 0, 0),
       child: Column(
         children: [
           hasItems ? searchTagField.view() : Container(),
