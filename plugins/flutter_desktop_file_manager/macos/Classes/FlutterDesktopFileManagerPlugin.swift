@@ -14,6 +14,7 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
         var isStale = false;
       let url = try URL(resolvingBookmarkData: bookmarkData!,options:NSURL.BookmarkResolutionOptions.withSecurityScope, relativeTo: nil,bookmarkDataIsStale:&isStale)
         url.startAccessingSecurityScopedResource()
+        print("startAccessingSecurityScopedResource basePath", url);
       } catch let error {
         print("\(error)")
       }
@@ -44,9 +45,46 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
       let darkMode = onGetDarkMode();
       print("getDarkMode", darkMode)
       result(darkMode);
+    case "tryWriteImageFromClipboard":
+      let argv:[String:Any] = call.arguments as! [String: Any];
+      var val =  argv["fileName"];
+      if (val == nil) {
+        result("");
+        return
+      } else {
+        let fileName = val as! String;
+        print("tryWriteImageFromClipboard", fileName);
+        result(tryWriteImageFromClipboard(fileName: fileName));
+      }
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  public func tryWriteImageFromClipboard(fileName: String) -> String {
+
+    let userDefaults = UserDefaults.standard
+    let bookmarkData = userDefaults.string(forKey: "basePathURL");
+    print("tryWriteImageFromClipboard basepath ", bookmarkData);
+    if (bookmarkData != nil) {
+    let bookmarkDataPath = bookmarkData as! String;
+        print("tryWriteImageFromClipboard bookmarkDataPath ", bookmarkData);
+      let targetFilePath = bookmarkDataPath + "/" + fileName;
+      var img = NSImage.init(pasteboard: NSPasteboard.general);
+        
+      if (img != nil) {
+          var imgrep:NSBitmapImageRep? = img?.representations[0] as? NSBitmapImageRep;
+          if let representation = imgrep?.representation(using:  NSBitmapImageRep.FileType.png, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: 1]) {
+              NSData(data: representation).write(toFile: targetFilePath, atomically: false)
+              return targetFilePath;
+          }
+//          imgrep.representation(using: NSBitmapImageRep.FileType.png, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: 1])?.write(to: URL(filePath: targetFilePath));
+          
+      } else {
+        print("tryWriteImageFromClipboard get image fail")
+      }
+    } 
+    return "";
   }
 
   public func onGetDarkMode() -> Bool {
@@ -81,6 +119,7 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
           let url = openPanel.url!
           let bookmarkData = try url.bookmarkData(options:NSURL.BookmarkCreationOptions.withSecurityScope, includingResourceValuesForKeys: nil, relativeTo:nil)
           let userDefaults = UserDefaults.standard
+            print("selectedPath", selectedPath);
           userDefaults.set(bookmarkData, forKey: "basePath");
           userDefaults.set(selectedPath, forKey: "basePathURL");
         } catch let error {

@@ -24,7 +24,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/libdeno_plugin/macos
 
 SPEC CHECKSUMS:
-  flutter_desktop_cef_web: a8ba2e14a798a2a031a942a14073493ca378b5af
+  flutter_desktop_cef_web: 24a423589d373cf460013c5092d6780925ebc4d4
   flutter_desktop_file_manager: e35dba6f11a6eeaadc3d92b562994c3d2cdcc8dd
   FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
   libdeno_plugin: 13141f95326cfe3a27a67e70c15e1bb4cddba214

@@ -25,6 +25,14 @@ class MethodChannelFlutterDesktopFileManager extends FlutterDesktopFileManagerPl
   }
 
   @override
+  Future<String?> tryWriteImageFromClipboard(String fileName) async {
+    final path = await methodChannel.invokeMethod<String>('tryWriteImageFromClipboard', <String, Object>{ 'fileName': fileName});
+    print("tryWriteImageFromClipboard ${path}");
+    return path;
+  }
+
+
+  @override
   Future<void> onUpdateDarkMode(bool darkMode) async {
      await methodChannel.invokeMethod<String>('updateDarkMode', <String, Object>{'darkMode': darkMode});
   }

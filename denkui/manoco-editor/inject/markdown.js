@@ -685,3 +685,25 @@ window.denkSetKeyValue('funcToggleMarkdownPreviewView', () => {
     })
 })
 
+window.denkSetKeyValue('insertMarkdownImage', (value) => {
+    if (!value || value === '') {
+        return
+    }
+    let editor = window.denkGetKey('funcGetCurrentShowingEditor')()
+    let fileId = editor.id.replace('editor_', '')
+    let currentShowingEditor = window.denkGetKey('getEditorByFilePath')(fileId)
+    let pos = currentShowingEditor.getPosition()
+    console.info(pos)
+
+    const monaco = window.denkGetKey("monaco");
+    var range = new monaco.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column + 1);
+    var id = { major: 1, minor: 1 };
+    const imageName = 'image'
+    var op = { identifier: id, range: range, text: `![${imageName}](lowh://${value})`, forceMoveMarkers: true };
+
+    currentShowingEditor.executeEdits("my-source-checkbox", [op]);
+    setTimeout(() => {
+        window.denkGetKey('funcMarkdownPreview')()
+    }, 50)
+})
+

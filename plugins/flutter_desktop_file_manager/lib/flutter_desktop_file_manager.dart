@@ -15,6 +15,10 @@ class FlutterDesktopFileManager {
     return FlutterDesktopFileManagerPlatform.instance.onUpdateDarkMode(darkMode);
   }
 
+  Future<String?> tryWriteImageFromClipboard(String fileName) {
+    return FlutterDesktopFileManagerPlatform.instance.tryWriteImageFromClipboard(fileName);
+  }
+
   Future<bool> onGetDarkMode() {
     return FlutterDesktopFileManagerPlatform.instance.onGetDarkMode();
   }

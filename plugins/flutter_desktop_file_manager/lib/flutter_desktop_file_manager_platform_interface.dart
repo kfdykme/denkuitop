@@ -31,6 +31,10 @@ abstract class FlutterDesktopFileManagerPlatform extends PlatformInterface {
     throw UnimplementedError('onSelectFile() has not been implemented.');
   }
 
+  Future<String?> tryWriteImageFromClipboard(String fileName) {
+    throw UnimplementedError('tryWriteImageFromClipboard(String fileName) has not been implemented.');
+  }
+
   Future<void> onUpdateDarkMode(bool darkMode) {
     throw UnimplementedError('onUpdateDarkMode() has not been implemented.');
   }

@@ -35,7 +35,8 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _flutterDesktopFileManagerPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          await _flutterDesktopFileManagerPlugin.getPlatformVersion() ??
+              'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -51,42 +52,58 @@ class _MyAppState extends State<MyApp> {
   }
 
   void updateIsDarkMode() {
-
-      _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value) {
+    _flutterDesktopFileManagerPlugin.onGetDarkMode().then(
+      (value) {
         print("onGetDarkMode ${value}");
-      setState(() {
-        isDarkMode = value;
-      });
-        
-      },);
+        setState(() {
+          isDarkMode = value;
+        });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Column(
-            children: [
-              MaterialButton(onPressed: () {
-            print("on click select file");
-              _flutterDesktopFileManagerPlugin.OnSelectFile();
-          }, child: const Text("select file"),),
-              MaterialButton(onPressed: () {
-              _flutterDesktopFileManagerPlugin.onUpdateDarkMode(false);
-              updateIsDarkMode();
-          }, child: const Text("onSetDarkMode is false"),),
-              MaterialButton(onPressed: () {
-              _flutterDesktopFileManagerPlugin.onUpdateDarkMode(true);
-              updateIsDarkMode();
-          }, child: const Text("onSetDarkMode is true"),),
-            Text(isDarkMode.toString())
-            ],
-          ),)
-        ),
-      );
+          appBar: AppBar(
+            title: const Text('Plugin example app'),
+          ),
+          body: Center(
+            child: Column(
+              children: [
+                MaterialButton(
+                  onPressed: () {
+                    print("on click select file");
+                    _flutterDesktopFileManagerPlugin.OnSelectFile();
+                  },
+                  child: const Text("select file"),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    _flutterDesktopFileManagerPlugin.onUpdateDarkMode(false);
+                    updateIsDarkMode();
+                  },
+                  child: const Text("onSetDarkMode is false"),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    _flutterDesktopFileManagerPlugin.tryWriteImageFromClipboard("abc.png");
+                    
+                  },
+                  child: const Text("tryWriteImageFromClipboard"),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    _flutterDesktopFileManagerPlugin.onUpdateDarkMode(true);
+                    updateIsDarkMode();
+                  },
+                  child: const Text("onSetDarkMode is true"),
+                ),
+                Text(isDarkMode.toString())
+              ],
+            ),
+          )),
+    );
   }
 }

@@ -268,6 +268,16 @@ class KfToHomeState extends BaseRemotePageState {
       _saveFile();
     });
 
+    web.registerFunction("insertImageFromClipboard", (dynamic data) {
+      print("insertImageFromClipboard ${data}");
+      String fileName = data["fileName"] as String;
+      _flutterDesktopFileManagerPlugin.tryWriteImageFromClipboard(fileName)
+      .then((value) {
+        print("tryWriteImageFromClipboard result value ${value}");
+        web.executeJs("window.denkGetKey('insertMarkdownImage')('${value}')");
+      });
+    });
+
     web.registerFunction("onShowEditor", (dynamic data) {
       var id = data["id"] as String;
       currentFilePath = id;
@@ -560,7 +570,7 @@ class KfToHomeState extends BaseRemotePageState {
       bool callbackOnError = false}) {
     _readFile(path, callback: (AsyncIpcData data) {
       var ktoData = KfToDoIpcData.fromAsync(data);
-      print("CommonReadFile _readFile callback" + ktoData.toString());
+      // print("CommonReadFile _readFile callback" + ktoData.toString());
       String path = ktoData.data['path'] as String;
       String error = ktoData.data['error'];
       if (error != null) {
@@ -977,7 +987,7 @@ class KfToHomeState extends BaseRemotePageState {
             margin: EdgeInsets.fromLTRB(ViewBuilder.size(3),ViewBuilder.size(0.5),ViewBuilder.size(3),0),
           
             child: Card(color: ColorManager.Get('cardbackground'),
-            child: ViewBuilder.BuildInLineMaterialButton(e,color: ColorManager.Get('snackbackground') ,icon: Icon(Icons.info, color: ColorManager.Get('snackbackground'), size: ViewBuilder.size(2),)))
+            child: ViewBuilder.BuildInLineMaterialButton(e,color: ColorManager.Get('font') ,icon: Icon(Icons.info, color: ColorManager.Get('font'), size: ViewBuilder.size(2),)))
           );
         }).toList(),
       ),

@@ -5559,6 +5559,7 @@ class KfTodoController {
     }
 }
 let homePath1 = '';
+const httpServerCache = {};
 const startHttpServer = async ()=>{
     const server = Deno.listen({
         port: 10825
@@ -5571,8 +5572,12 @@ const startHttpServer = async ()=>{
         const httpConn = Deno.serveHttp(conn);
         for await (const requestEvent of httpConn){
             const url = new URL(requestEvent.request.url);
+            if (httpServerCache[url.toString()] != undefined) {
+                const response = new Response(httpServerCache[url.toString()]);
+                await requestEvent.respondWith(response);
+                return;
+            }
             const filepath = decodeURIComponent(url.pathname);
-            console.info('requestEvent.request.url', requestEvent.request.url);
             if (homePath1 == '') {
                 try {
                     homePath1 = requestEvent.request.url.split('home=')[1];
@@ -5592,8 +5597,8 @@ const startHttpServer = async ()=>{
                 return;
             }
             const readableStream = file.readable;
-            const response = new Response(readableStream);
-            await requestEvent.respondWith(response);
+            const response1 = new Response(readableStream);
+            await requestEvent.respondWith(response1);
         }
     }
 };

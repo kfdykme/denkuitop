@@ -587,66 +587,26 @@ window.denkSetKeyValue("insertIntoEditor", (content, filePath, force) => {
             }
         });
 
-        // editor.addAction({
-        //     // An unique identifier of the contributed action.
-        //     id: 'refresh',
-
-        //     // A label of the action that will be presented to the user.
-        //     label: 'refresh',
-
-        //     // An optional array of keybindings for the action.
-        //     keybindings: [
-        //         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR
-        //     ],
-
-        //     // A precondition for this action.
-        //     precondition: null,
-
-        //     // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-        //     keybindingContext: null,
-
-        //     contextMenuGroupId: 'navigation',
-
-        //     contextMenuOrder: 1.5,
-
-        //     // Method that will be executed when the action is triggered.
-        //     // @param editor The editor instance is passed in as a convenience
-        //     run: function (ed) {
-        //         location.reload(false)
-        //     }
-        // });
-
-        // editor.addAction({
-        //     // An unique identifier of the contributed action.
-        //     id: 'kfmarkdown preview',
-
-        //     // A label of the action that will be presented to the user.
-        //     label: 'kfmarkdown preview',
-
-        //     // An optional array of keybindings for the action.
-        //     keybindings: [
-        //         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM
-        //     ],
-
-        //     // A precondition for this action.
-        //     precondition: null,
-
-        //     // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
-        //     keybindingContext: null,
-
-        //     contextMenuGroupId: 'navigation',
-
-        //     contextMenuOrder: 1.5,
-
-        //     // Method that will be executed when the action is triggered.
-        //     // @param editor The editor instance is passed in as a convenience
-        //     run: function (ed) {
-        //         let func = window.denkGetKey('funcToggleMarkdownPreviewView')
-        //         if (func) {
-        //             func()
-        //         }
-        //     }
-        // });
+        editor.addAction({
+            id: "insertImageFromClipboard",
+            label: 'Insert Image From Clipboard',
+            precondition: null,
+            keybindings: [
+                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI
+            ],
+            keybindingContext: null,
+            contextMenuGroupId: 'navigation',
+            contextMenuOrder: 1.5,
+            run: function (ed) {
+                const fileName = "insert_image_from_clipboard_" + new Date().getTime() + ".png"
+                window.denkGetKey('sendIpcMessage')({
+                    name: 'insertImageFromClipboard',
+                    data: {
+                        "fileName": fileName
+                    }
+                })
+            }
+        })
     }
 
     window.denkSetKeyValue('onEditorCreate', (editor) => {
@@ -760,7 +720,7 @@ const updateHeader = () => {
     generateHeaderBar().innerHTML = ''
     let markdownPreviewModeBtn = document.createElement('div')
     markdownPreviewModeBtn.className = 'header_btn_markdown_preview_mode_btn header_btn_close_btn';
-    markdownPreviewModeBtn.innerHTML = '<img src="mpm.png" height="20" alt="M"/></div>'
+    markdownPreviewModeBtn.innerHTML = '<img src="mpm.png" height="20" alt="M"/></img>'
     markdownPreviewModeBtn.style = 'display:flex; padding: 8px; border-radius:2px; margin-right: 4px;height: 20px;justify-content: space-between;'
     markdownPreviewModeBtn.onclick = () => {
         let func = window.denkGetKey('funcToggleMarkdownPreviewView')
