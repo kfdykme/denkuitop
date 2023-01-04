@@ -88,28 +88,46 @@
 			let root = window.getReactDom(el)
 			let value = ''
 			const onChange = (ev, newText) => {
-				value = newText
+				value = ev.target.value
+			};
+			const addBarKeydown = (e) => {
+				if (e.keyCode === 13) {
+					onAdd();
+				}
+			}
+			const onAdd =  () => {
+				if (value !== '') {
+					onClick(value, el.attributes.line.value);
+				}
 			};
 			root.render(
-				<TextField
-					suffix=""
-					onChange={onChange}
-					onRenderSuffix={() => 
-						{
-							if (value === '') {
+				<div className="list-item-add-bar-container">
+					<div className="list-item-add-icon">
+						<div onClick={onAdd}></div>
+					</div>
+					<input className="list-item-add-bar-input" placeholder="Add Item" onKeyDown={(e)=> {
+						addBarKeydown(e)
+					}} onChange={onChange}/>
+				</div>
+				// <TextField
+				// 	suffix=""
+				// 	onChange={onChange}
+				// 	onRenderSuffix={() => 
+				// 		{
+				// 			if (value === '') {
 
-								return null
-							} else {
+				// 				return null
+				// 			} else {
 
-								return <ActionButton iconProps={{
-									iconName: iconName
-								}} title={iconName} ariaLabel={iconName} onClick={() => {
-									onClick(value, el.attributes.line.value)
-								}} />
-							}
-						}
-					}
-				/>
+				// 				return <ActionButton iconProps={{
+				// 					iconName: iconName
+				// 				}} title={iconName} ariaLabel={iconName} onClick={() => {
+				// 					onClick(value, el.attributes.line.value)
+				// 				}} />
+				// 			}
+				// 		}
+				// 	}
+				// />
 			)
 		}
 	</script>
