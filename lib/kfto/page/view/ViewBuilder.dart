@@ -214,12 +214,12 @@ class ViewBuilder {
     return Tooltip(
         message: "",
         verticalOffset: -8,
-        onTriggered: () {
-           print("BuildMaterialButton onTriggered ${text} ${onPressFunc}");
-            if (onPressFunc != null) {
-              onPressFunc();
-            }
-        },
+        // onTriggered: () {
+        //    print("BuildMaterialButton onTriggered ${text} ${onPressFunc}");
+        //     if (onPressFunc != null) {
+        //       onPressFunc();
+        //     }
+        // },
         child: MaterialButton(
           textColor: color,
           color: backgroundColor,
@@ -297,12 +297,12 @@ class ViewBuilder {
         message: text,
         verticalOffset: -8,
         child: buttonView,
-        onTriggered: () {
-          print("BuildMaterialButton Press t ${text} ${onPressFunc}");
-                if (onPressFunc != null) {
-                  onPressFunc();
-                }
-        },
+        // onTriggered: () {
+        //   print("BuildMaterialButton Press t ${text} ${onPressFunc}");
+        //         if (onPressFunc != null) {
+        //           onPressFunc();
+        //         }
+        // },
       );
     }
     return buttonView;

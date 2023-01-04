@@ -15,7 +15,11 @@ void doWork(SendPort sendPort) {
 
 void main() {
   runApp(MyApp());
-  DenoManager.Instance().startDeno();
+  DenoManager.Instance().startDeno().then((value) {
+    if (!value) {
+      print("not support");
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {

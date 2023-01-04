@@ -21,6 +21,7 @@ import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
 import 'package:denkuitop/kfto/page/view/GridCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/TreeCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
+import 'package:denkuitop/native/DenoManager.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1091,6 +1092,21 @@ class KfToHomeState extends BaseRemotePageState {
       });
     }
 
+    DenoManager.Instance().isSupport().then((value) {
+      if (!value) {
+
+        DenktuiDialog.initContext(context);
+        DenktuiDialog.ShowCommonDialog(contentTitle: TextK.Get("暂不支持您的操作系统版本"), options: [
+           CommonDialogButtonOption(
+              text: TextK.Get("退出"),
+              callback: () async {
+                exit(-100);
+              },
+              icon: Icons.exit_to_app),
+        ]);
+      }
+    });
+
     Widget webCView = cefContainer == null
         ? MaterialButton(
             child: Container(),
@@ -1146,7 +1162,11 @@ class KfToHomeState extends BaseRemotePageState {
                       dragLineColor = ViewBuilder.RandomColor();
                     });
                   }),
-                  child: Container(
+                  child: MouseRegion(
+                        cursor: SystemMouseCursors.resizeLeftRight,
+                        child: Container(
+                    // mouse
+                    // cursor: SystemMouseCursors.resizeLeftRight,
                       color: dragLineColor,
                       width: 4,
                       height: double.infinity,
@@ -1155,7 +1175,7 @@ class KfToHomeState extends BaseRemotePageState {
                         width: 2,
                         height: 20,
                         color: dragLineColor,
-                      ))),
+                      )))),
             ],
           ),
           color: ColorManager.Get("cardbackground"),
