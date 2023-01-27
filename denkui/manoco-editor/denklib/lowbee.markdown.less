@@ -118,6 +118,13 @@
     }
   }
 
+  .list-item-checkbox-checked:hover {
+    .ms-Checkbox-checkbox {
+      border-color: @colorInlineCode;
+      background-color: @colorInlineCode;
+    }
+  }
+
   .checkbox-container {
     margin: auto;
   }
@@ -134,6 +141,10 @@
     border-color: @colorInlineCode;
     background-color: @colorInlineCode;
     border-radius: 9px;
+  }
+
+  .ms-Checkbox-checkbox:hover {
+    color: @bgWhite;
   }
 
   .ms-Checkbox-checkmark {
@@ -321,7 +332,6 @@
       background-color: transparent;
       padding-left: 20px;
       font-size: 16px;
-      
     }
 
     .list-item-add-bar-input::-webkit-input-placeholder {
@@ -335,9 +345,17 @@
       align-items: center;
       > div {
         height: 20px;
-        background-color: #ffffff;
+        background-color: @bgWhite;
         width: 20px;
-        border-radius: 9px;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .list-item-add-bar-container:hover {
+    .list-item-add-icon {
+      > div {
+        background-color: @colorInlineBGCode;
       }
     }
   }
