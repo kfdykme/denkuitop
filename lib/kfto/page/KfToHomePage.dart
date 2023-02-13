@@ -187,7 +187,7 @@ class KfToHomeState extends BaseRemotePageState {
         var ktoData = KfToDoIpcData.fromAsync(data);
         var basePath = ktoData.data['basePath'];
         if (basePath == null || basePath == ".") {
-          initConfigDirectory(ktoData.data);
+          initConfigDirectory(ktoData.data, isCanQuit: true);
         }
         // var isDarkmode = ktoData.data['isDarkmode'];
         // if (isDarkmode != null) {
@@ -248,6 +248,8 @@ class KfToHomeState extends BaseRemotePageState {
           // MARK: injectJs finish
           injectJsFinished = true;
           print("on prepareInjectJs event success");
+        } else if (ktoData.data['basePath'] == "." || ktoData.data['basePath'] == null) {
+          initConfigDirectory(ktoData.data, isCanQuit: true);
         } else {
           print("ipcError");
         }
@@ -301,7 +303,7 @@ class KfToHomeState extends BaseRemotePageState {
     });
   }
 
-  void initConfigDirectory(dynamic config, {String title}) {
+  void initConfigDirectory(dynamic config, {String title, bool isCanQuit = false}) {
     print("initConfigDirectory");
 
     DenktuiDialog.initContext(context);
@@ -313,33 +315,41 @@ class KfToHomeState extends BaseRemotePageState {
               callback: () async {
                 var newPath =
                     await _flutterDesktopFileManagerPlugin.OnSelectFile();
+                if (newPath != "") {
 
-                this.ipc().invokeNyName({"invokeName": "getConfig"},
-                    callback: (AsyncIpcData data) {
-                  config['basePath'] = newPath;
-                  config['isDarkmode'] = ColorManager.instance().isDarkmode;
-                  config["resourcePath"] =
-                      DenkuiRunJsPathHelper.GetResourcePath();
-                  this.ipc().invokeNyName(
-                      {"invokeName": "saveConfig", "data": config},
-                      callback: ((data) {
-                    _refresh();
-                  }));
-                  web.hide();
-                  Future.delayed(Duration(seconds: 1)).then((value) {
-                    web.needInsertFirst = false;
-                    web.executeJs("location.reload(false)");
-                    web.show();
+                  this.ipc().invokeNyName({"invokeName": "getConfig"},
+                      callback: (AsyncIpcData data) {
+                    config['basePath'] = newPath;
+                    config['isDarkmode'] = ColorManager.instance().isDarkmode;
+                    config["resourcePath"] =
+                        DenkuiRunJsPathHelper.GetResourcePath();
+                    this.ipc().invokeNyName(
+                        {"invokeName": "saveConfig", "data": config},
+                        callback: ((data) {
+                      _refresh();
+                    }));
+                    web.hide();
+                    Future.delayed(Duration(seconds: 1)).then((value) {
+                      web.needInsertFirst = false;
+                      web.executeJs("location.reload(false)");
+                      web.show();
+                    });
                   });
-                });
+                } else {
+                  initConfigDirectory(config, title: title, isCanQuit: isCanQuit);
+                }
               },
               icon: Icons.folder),
           CommonDialogButtonOption(
-              text: TextK.Get("退出"),
-              callback: () {},
+              text: isCanQuit ? TextK.Get("退出") : TextK.Get("取消"),
+              callback: () {
+                if (isCanQuit) {
+                  exit(-200);
+                } 
+              },
               icon: Icons.error,
               optionType: 1)
-        ]);
+        ], barrierDismissible: false);
   }
 
   void refreshByData(KfToDoIpcData data) {

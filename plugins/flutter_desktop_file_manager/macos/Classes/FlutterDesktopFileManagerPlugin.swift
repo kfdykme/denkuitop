@@ -107,10 +107,13 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
     openPanel.allowsMultipleSelection = false
     openPanel.canChooseDirectories = true
     openPanel.canCreateDirectories = true
+      
     // openPanel.canCreateDirectories = false
     // openPanel.title = title
+      
+      let res = openPanel.runModal();
 
-    openPanel.begin(completionHandler: { (res) in 
+//    openPanel.begin(completionHandler: { (res) in
       if (res == NSApplication.ModalResponse.OK) {
         let selectedPath = openPanel.url!.path
 
@@ -128,7 +131,9 @@ public class FlutterDesktopFileManagerPlugin: NSObject, FlutterPlugin {
         
         
         result(selectedPath);
+      } else {
+        result("")
       }
-    })
+//    })
   }
 }

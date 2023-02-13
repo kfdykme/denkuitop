@@ -32,9 +32,10 @@ class DenktuiDialog {
   static initContext (BuildContext context) {
     _currentContexnt = context;
   }
-  static ShowDialog({Widget content, List<Widget> children}) {
+  static ShowDialog({Widget content, List<Widget> children, bool barrierDismissible = true}) {
     showDialog(
         context: _currentContexnt,
+        barrierDismissible: barrierDismissible,
         builder: (context) {
           return AlertDialog(
             backgroundColor: ColorManager.Get('cardbackground'),
@@ -52,7 +53,7 @@ class DenktuiDialog {
   
 
   
-  static ShowCommonDialog({ String contentTitle, List<CommonDialogButtonOption> options}) {
+  static ShowCommonDialog({ String contentTitle, List<CommonDialogButtonOption> options, bool barrierDismissible = true}) {
 
     List<Widget> views = [];
 
@@ -73,6 +74,6 @@ class DenktuiDialog {
     ShowDialog(content: Container(
       child: Text(contentTitle, style: TextStyle(color: ColorManager.Get("textdarkr"))),
       color: ColorManager.Get('cardbackground'),
-    ), children: views);
+    ), children: views, barrierDismissible: barrierDismissible);
   }
 }

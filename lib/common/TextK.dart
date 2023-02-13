@@ -14,7 +14,7 @@ class TextPair {
 
 class TextK {
   
-  bool _isCn = true;
+  bool _isCn = false;
 
   Map<String,TextPair> texts = new Map();
   TextK() {
