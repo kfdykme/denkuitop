@@ -115,7 +115,7 @@ registerConverter("/code_/", (line) => {
   if (line.trim() === "```") {
     return `</code>`;
   } else {
-    return line;
+    return '\n' + line;
   }
 }, true);
 registerConverter("code_end_", (line) => `</code>`, true);

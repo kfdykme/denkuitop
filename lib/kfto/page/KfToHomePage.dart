@@ -102,8 +102,6 @@ class KfToHomeState extends BaseRemotePageState {
     return ColorManager.Get("textr");
   }
 
-  Color dragLineColor = Color(0x00000000);
-
   bool isDragingLine = false;
 
   double left_width_real = 300;
@@ -477,7 +475,7 @@ class KfToHomeState extends BaseRemotePageState {
     
     setState(() {
       snackColor = bkGC;
-      snackText =  TextK.Get(msg);
+      // snackText =  TextK.Get(msg);
       snackTextList.add(snackText);
     });
     Future.delayed(Duration(seconds: 3), () {
@@ -926,10 +924,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void onDragLineStart(PointerDownEvent event) {
-    setState(() {
-      dragLineColor = dragLineActiveColor;
-    });
-
+    
     FlutterDesktopCefWeb.allWebViews.forEach((element) {
       element.hide();
     });
@@ -952,7 +947,6 @@ class KfToHomeState extends BaseRemotePageState {
 
   void onDragLineEnd() {
     setState(() {
-      dragLineColor = dragLineInActiveColor;
       FlutterDesktopCefWeb.allWebViews.forEach((element) {
         if (!isTreeCardMode) {
           element.show();
@@ -1166,25 +1160,15 @@ class KfToHomeState extends BaseRemotePageState {
                   onPointerMove: ((event) {
                     onDragLineMoving(event);
                   }),
-                  onPointerHover: ((event) {
-                    // print("onPointerHover ${event}");
-                    setState(() {
-                      dragLineColor = ViewBuilder.RandomColor();
-                    });
-                  }),
                   child: MouseRegion(
                         cursor: SystemMouseCursors.resizeLeftRight,
                         child: Container(
-                    // mouse
-                    // cursor: SystemMouseCursors.resizeLeftRight,
-                      color: dragLineColor,
                       width: 4,
                       height: double.infinity,
                       alignment: Alignment.center,
                       child: Container(
                         width: 2,
                         height: 20,
-                        color: dragLineColor,
                       )))),
             ],
           ),
