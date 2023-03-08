@@ -161,7 +161,7 @@ class TitleHearConvertHelper {
           for (let x = 0; x < level; x++) {
             prefixString += `  `;
           }
-          prefixString += `+ `;
+          prefixString += ` `;
           return `<p>${prefixString}<a href="#${content.replaceAll(
             " ",
             "-"
@@ -332,15 +332,16 @@ const myct = new CoastTimer();
 
 const colorMaps = [
   ["@bgWhite", "#fefefe", "#333333"],
-  ["@linkColor", "#fac03d", "#fac03d"],
+  ["@linkColor", "#3065B2", "#CF9A4D"],
   ["@bgNote", "#efefef33", "#fefefe33"],
-  ["@colorH", "#333333", "#aed0ee"],
+  ["@colorH", "#333333", "#aeddeeaa"],
   ["@colorInlineBGCode", "#f9f2f4", "#555555"],
   ["@colorInlineCode", "#ffbcd4", "#f9a0a0"],
   ["@colorIt", "#aabcd3", "#ffbcd3"],
   ["@colorSI", "#aa56d3", "#ff56d3"],
   ["@colorPrimary", "#ffffff", "#333333"],
   ["@colorPreview", "#2c3f51", "#eeeeee"],
+  ["@colorToc", "#00000000", "#5c5c5c"],
 ];
 
 const resolveColor = () => {

@@ -7,6 +7,7 @@
 @colorSI: #aa56d3;
 @colorPreview: #2c3f51;
 @bgNote: #00bcd4;
+@colorToc: #5c5c5c;
 @colorPrimary: #ffffff;
 @isDarkMode: true;
 @colorListChecked: if((@isDarkMode), #888888, #aaaaaa);
@@ -216,10 +217,14 @@
   }
 
   .toc {
-    background: @bgNote;
+    // background: @colorToc;
     border-radius: 8px;
+    border-color: @linkColor;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-style: solid;
     padding: 8px;
-
+    
     > p {
       margin-block: 0;
       margin-inline: 0;
