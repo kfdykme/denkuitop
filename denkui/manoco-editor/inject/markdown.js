@@ -1,6 +1,10 @@
 console.info("makrdown js");
 
-window.denkSetKeyValue("isMarkdownLoaded", true);
+const MGS = (key, value) => {
+  window.denkSetKeyValue(key,value)
+}
+
+MGS("isMarkdownLoaded", true);
 
 const converters = {};
 
@@ -11,18 +15,6 @@ const registerConverter = (tag, func, shouldContinue = false) => {
   converters[tag] = func;
     shouldContinues[tag] = shouldContinue
 };
-function HTMLEncode(s) {
-  return typeof s != "string"
-    ? s
-    : s.replace(this.REGX_HTML_ENCODE, function ($0) {
-        var c = $0.charCodeAt(0),
-          r = ["&#"];
-        c = c == 0x20 ? 0xa0 : c;
-        r.push(c);
-        r.push(";");
-        return r.join("");
-      });
-}
 
 const handleInline = (content) => {
   let regBig = /\*\*(.*?)\*\*/g;
@@ -43,7 +35,10 @@ const handleInline = (content) => {
 const convertMarkdownTagDatIntoHTML = (line, option) => {
   var [tag, content] = line;
 
-  let canContinueLine = option || option.canContinueLine || false
+  let canContinueLine = false
+  if (option && option.canContinueLine !== undefined) {
+    canContinueLine = option.canContinueLine
+  }
   let shouldContinueForThis = false
   if (typeof content === "object" && content instanceof Array) {
     // console.error(content)
@@ -67,10 +62,6 @@ const convertMarkdownTagDatIntoHTML = (line, option) => {
             shouldContinueForThis = true
         }
         break;
-      } else {
-        // return
-        // return ''
-        // console.error(x, tag, content)
       }
     }
     // register regexp text
@@ -104,6 +95,7 @@ const convertMarkdownTagDatIntoHTML = (line, option) => {
   return result;
 };
 
+
 registerConverter("headerConfig", (line) => "");
 registerConverter("normal", (line) => `<text>${line.trim(0)}</text>`);
 registerConverter("empty", (line) => `<text>${line.trim(0)}</text><br/>`);
@@ -125,6 +117,8 @@ registerConverter("note_tag", (line) => {
   console.info("kfdbeug note_tag", line);
   return `<blockquote class="note_tag"><div>${line}</div></blockquote>`;
 });
+
+
 class TitleHearConvertHelper {
   constructor() {
     this.init();
@@ -176,7 +170,7 @@ class TitleHearConvertHelper {
 }
 
 let titleHeaderConverter = new TitleHearConvertHelper();
-window.denkSetKeyValue(
+MGS(
   "makrdownTitleHeaderConvertHelper",
   titleHeaderConverter
 );
@@ -572,7 +566,7 @@ const handleMarkdown = (content, previewContainer) => {
     previewContinaerBodyElementClassName
   );
 
-  let version = new Date().getTime();
+  let version = new Date().toLocaleTimeString();
   // let output =
   const useNewLayout = true;
   if (useNewLayout) {
@@ -607,27 +601,38 @@ const handleMarkdown = (content, previewContainer) => {
           `preview-line-${lineIndex}`
         );
         let debugMsg = "";
-        const debug = false;
+        const debug = true;
         if (debug) {
-          debugMsg = `${version}-${line.hashCode()}`;
+          debugMsg = `${lineIndex}-${version}-${line.hashCode()}`;
         }
         if (hash != markdownPreviewLineHash[lineIndex]) {
-          lineNode.innerHTML = line; //`<div id="preview-line-${lineIndex}">${debugMsg}${line}</div>`
+          lineNode.innerHTML = `${debugMsg}${line}`; //`<div id="preview-line-${lineIndex}">${debugMsg}${line}</div>`
           markdownPreviewLineHash[lineIndex] = hash;
         }
 
         // previewContainer.innerHTML = 'das'
       });
+      
+      previewContainerBodyElement.childNodes.forEach((child, index) => {
+        if (index >= linesByPreviewNodes.length) {
+          previewContainerBodyElement.removeChild(child)
+        }
+      })
   } else {
     let output = res
-      .map(convertMarkdownTagDatIntoHTML)
+      .map((i) => {
+        const res = convertMarkdownTagDatIntoHTML(i, {
+          canContinueLine: false
+        })
+        return res
+      })
       .filter((line) => line !== "")
       .join("\n");
 
     previewContainerBodyElement.innerHTML = output
   }
 
-  myct.delay("finish convertMarkdownTagDatIntoHTML");
+  myct.delay("finish convertMarkdownTagDatIntoHTML", previewContainerBodyElement);
   // return output
 };
 
@@ -649,7 +654,7 @@ const getCurrentShowingEditor = () => {
   return editor;
 };
 
-window.denkSetKeyValue("funcGetCurrentShowingEditor", getCurrentShowingEditor);
+MGS("funcGetCurrentShowingEditor", getCurrentShowingEditor);
 
 let lastMarkdownPreview = 0;
 
@@ -691,7 +696,7 @@ const innerMarkdownPreview = () => {
   }
 
   console.info("preview", preview);
-  window.denkSetKeyValue(id, preview);
+ MGS(id, preview);
   window.denkGetKey("funcUpdateHeader")();
   // titleHeaderConverter.headerList = []
   titleHeaderConverter.reset();
@@ -799,7 +804,7 @@ const innerMarkdownPreview = () => {
   // }
 };
 
-window.denkSetKeyValue("funcMarkdownPreview", () => {
+MGS("funcMarkdownPreview", () => {
   lastMarkdownPreview = new Date().getTime();
 
   setTimeout(() => {
@@ -828,14 +833,14 @@ const refreshWidthByMarkdownPreviewMode = (el) => {
     }
   }
 };
-window.denkSetKeyValue("funcToggleMarkdownPreviewView", () => {
+MGS("funcToggleMarkdownPreviewView", () => {
   let mode = window.denkGetKey("markdownPreviewMode");
   if (mode === undefined) {
     mode = 1;
   } else {
     mode = (mode + 1) % 3;
   }
-  window.denkSetKeyValue("markdownPreviewMode", mode);
+ MGS("markdownPreviewMode", mode);
 
   // refresh width
   document.querySelectorAll(".editor_view").forEach((i) => {
@@ -843,7 +848,7 @@ window.denkSetKeyValue("funcToggleMarkdownPreviewView", () => {
   });
 });
 
-window.denkSetKeyValue("insertMarkdownImage", (value) => {
+MGS("insertMarkdownImage", (value) => {
   if (!value || value === "") {
     return;
   }
