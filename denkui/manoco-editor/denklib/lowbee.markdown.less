@@ -1,16 +1,19 @@
-@bgWhite: #fefefe;
-@linkColor: #fac03d;
-@colorH: #333333;
-@colorInlineBGCode: #f9f2f4;
-@colorInlineCode: #ffbcd4;
-@colorIt: #aabcd3;
-@colorSI: #aa56d3;
-@colorPreview: #2c3f51;
-@bgNote: #00bcd4;
-@colorToc: #5c5c5c;
 @colorPrimary: #ffffff;
+
 @isDarkMode: true;
 @colorListChecked: if((@isDarkMode), #888888, #aaaaaa);
+@bgWhite: if((@isDarkMode), #333333, #fefefe);
+@linkColor: if((@isDarkMode), #CF9A4D, #3065B2);
+@bgNote: if((@isDarkMode), #fefefe33, #efefef33);
+@colorH: if((@isDarkMode), #aeddeeaa, #333333);
+@colorInlineBGCode: if((@isDarkMode), #555555, #f9f2f4);
+@colorInlineCode: if((@isDarkMode), #f9a0a0, #ffbcd4);
+@colorIt: if((@isDarkMode), #ffbcd3, #aabcd3);
+@colorSI: if((@isDarkMode), #ff56d3, #aa56d3);
+@colorPrimary: if((@isDarkMode), #333333, #ffffff);
+@colorPreview: if((@isDarkMode), #eeeeee, #2c3f51);
+@colorToc: if((@isDarkMode), #5c5c5c, #00000000);
+
 
 * {
   font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", "STHeiti",

@@ -324,29 +324,9 @@ class CoastTimer {
 
 const myct = new CoastTimer();
 
-const colorMaps = [
-  ["@bgWhite", "#fefefe", "#333333"],
-  ["@linkColor", "#3065B2", "#CF9A4D"],
-  ["@bgNote", "#efefef33", "#fefefe33"],
-  ["@colorH", "#333333", "#aeddeeaa"],
-  ["@colorInlineBGCode", "#f9f2f4", "#555555"],
-  ["@colorInlineCode", "#ffbcd4", "#f9a0a0"],
-  ["@colorIt", "#aabcd3", "#ffbcd3"],
-  ["@colorSI", "#aa56d3", "#ff56d3"],
-  ["@colorPrimary", "#ffffff", "#333333"],
-  ["@colorPreview", "#2c3f51", "#eeeeee"],
-  ["@colorToc", "#00000000", "#5c5c5c"],
-];
-
 const resolveColor = () => {
   const colors = {};
   const darkMode = localStorage.getItem("isDarkMode") === "true";
-  colorMaps.forEach((colorItem) => {
-    const [key, light, dark] = colorItem;
-    const color = darkMode ? dark : light;
-    // text = text.replaceAll(key, color)
-    colors[key] = color;
-  });
   colors["@isDarkMode"] = darkMode;
 
   less.modifyVars(colors);
@@ -601,7 +581,7 @@ const handleMarkdown = (content, previewContainer) => {
           `preview-line-${lineIndex}`
         );
         let debugMsg = "";
-        const debug = true;
+        const debug = false;
         if (debug) {
           debugMsg = `${lineIndex}-${version}-${line.hashCode()}`;
         }
