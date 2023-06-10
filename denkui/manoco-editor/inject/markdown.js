@@ -1,19 +1,48 @@
 console.info("makrdown js");
 
 const MGS = (key, value) => {
-  window.denkSetKeyValue(key,value)
-}
+  window.denkSetKeyValue(key, value);
+};
 
+window.isDebug = false;
 MGS("isMarkdownLoaded", true);
 
 const converters = {};
 
 // for newlayout 是否与上一个reg的产物连接成一个节点
-const shouldContinues = {}
+const shouldContinues = {};
+
+
+const markdownPreviewLineHash = {};
+String.prototype.hashCode = function () {
+  var hash = 0,
+    i,
+    chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    chr = this.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+const makesureDocumentElementByTagWithClassName = (parent, tag, className, createNew = false) => {
+
+  let child = parent.getElementsByClassName(className)[0];
+  if (createNew) {
+    child = undefined
+  }
+  if (!child) {
+    child = document.createElement(tag);
+    child.className = className;
+    parent.appendChild(child);
+  }
+  return child;
+};
 
 const registerConverter = (tag, func, shouldContinue = false) => {
   converters[tag] = func;
-    shouldContinues[tag] = shouldContinue
+  shouldContinues[tag] = shouldContinue;
 };
 
 const handleInline = (content) => {
@@ -35,11 +64,12 @@ const handleInline = (content) => {
 const convertMarkdownTagDatIntoHTML = (line, option) => {
   var [tag, content] = line;
 
-  let canContinueLine = false
+  let canContinueLine = false;
   if (option && option.canContinueLine !== undefined) {
-    canContinueLine = option.canContinueLine
+    canContinueLine = option.canContinueLine;
   }
-  let shouldContinueForThis = false
+  let shouldContinueForThis = false;
+  let hitConverter = undefined
   if (typeof content === "object" && content instanceof Array) {
     // console.error(content)
     content[0] = content[0].replace(/[<>&"]/g, function (c) {
@@ -58,8 +88,9 @@ const convertMarkdownTagDatIntoHTML = (line, option) => {
     if (typeof x === "string") {
       if (x === tag) {
         result = converters[x](content);
+        hitConverter = converters[x]
         if (canContinueLine && shouldContinues[x]) {
-            shouldContinueForThis = true
+          shouldContinueForThis = true;
         }
         break;
       }
@@ -69,8 +100,9 @@ const convertMarkdownTagDatIntoHTML = (line, option) => {
       let res = new RegExp(x.substring(1, x.length - 1)).exec(tag);
       if (res !== null) {
         result = converters[x](content, res);
+        hitConverter = converters[x]
         if (canContinueLine && shouldContinues[x]) {
-            shouldContinueForThis = true
+          shouldContinueForThis = true;
         }
         break;
       }
@@ -88,13 +120,13 @@ const convertMarkdownTagDatIntoHTML = (line, option) => {
   });
   if (canContinueLine) {
     return {
-        result,
-        shouldContinueForThis
-    }
+      result,
+      shouldContinueForThis,
+      hitConverter
+    };
   }
   return result;
 };
-
 
 registerConverter("headerConfig", (line) => "");
 registerConverter("normal", (line) => `<text>${line.trim(0)}</text>`);
@@ -103,13 +135,17 @@ registerConverter(
   "/code_start_(.*)/",
   (line, res) => `<code class="language_${res[1]} markdown_code">`
 );
-registerConverter("/code_/", (line) => {
-  if (line.trim() === "```") {
-    return `</code>`;
-  } else {
-    return '\n' + line;
-  }
-}, true);
+registerConverter(
+  "/code_/",
+  (line) => {
+    if (line.trim() === "```") {
+      return `</code>`;
+    } else {
+      return "\n" + line;
+    }
+  },
+  true
+);
 registerConverter("code_end_", (line) => `</code>`, true);
 registerConverter("line", (line) => `<hr>`);
 
@@ -117,7 +153,6 @@ registerConverter("note_tag", (line) => {
   console.info("kfdbeug note_tag", line);
   return `<blockquote class="note_tag"><div>${line}</div></blockquote>`;
 });
-
 
 class TitleHearConvertHelper {
   constructor() {
@@ -170,10 +205,7 @@ class TitleHearConvertHelper {
 }
 
 let titleHeaderConverter = new TitleHearConvertHelper();
-MGS(
-  "makrdownTitleHeaderConvertHelper",
-  titleHeaderConverter
-);
+MGS("makrdownTitleHeaderConvertHelper", titleHeaderConverter);
 // registerConverter('link', (line) => {
 
 //     var regLink = /\[(.*?)\]\((.*?)\)/
@@ -181,6 +213,96 @@ MGS(
 //     const [normal, text, link] = regLink.exec(line)
 //     return `<a href="${link}" target="_blank">${text}</a>`
 // })
+
+// class ListTreeNode {
+//   constructor(source) {
+
+//   }
+// }
+
+class ListTreeNode {
+  constructor(level, content,children) {
+    this.id = content.hashCode()
+    this.level = level,
+    this.content = content
+    this.children = children
+  }
+
+  push(child) {
+    this.children.push(child)
+  }
+
+  className() {
+    return `markdown-newlayout-list-tree-node-${this.id} markdown-newlayout-list-tree-node-level-${this.level} markdown-newlayout-list-tree-node-container`
+  }
+
+  render(parentNode) {
+    const containerNode = makesureDocumentElementByTagWithClassName(parentNode, 'div', this.className())
+    const node = makesureDocumentElementByTagWithClassName(containerNode, 'div', 'markdown-newlayout-list-tree-node-line')
+    // build left padding
+    if (this.level >= 0) {
+      let leftPaddingStaticsNode = []
+      while(leftPaddingStaticsNode.length + 1<= this.level) {
+        leftPaddingStaticsNode.push(makesureDocumentElementByTagWithClassName(node, 'div', 'markdown-newlayout-list-tree-node-left-padding', true))
+      }
+      if (this.level % 2 === 0) {
+        leftPaddingStaticsNode.push(makesureDocumentElementByTagWithClassName(node, 'div', 'markdown-newlayout-list-tree-node-left-node-style0'))
+      } else {
+        leftPaddingStaticsNode.push(makesureDocumentElementByTagWithClassName(node, 'div', 'markdown-newlayout-list-tree-node-left-node-style1'))
+      }
+    } 
+    makesureDocumentElementByTagWithClassName(node, 'div', 'markdown-newlayout-list-tree-node-left-node-content').innerHTML = handleInline(this.content.replace("- ", "").trimLeft())
+    // node.innerHTML = handleInline(this.content.replace("- ", "").trimLeft())
+    
+    this.children.forEach(child => {
+      child.render(containerNode)
+    })
+  }
+}
+class ListTree {
+
+  constructor(source) {
+    
+    // const ListTreeNodeArray = []
+    // let currentNodeStack =
+    this.nodeStack = []
+    this.rootNode = new ListTreeNode(-1, '', [])
+    this.nodeMap = new Map();
+    //build a tree
+    source.split('\n').filter(line => line !== "").forEach((line) => {
+      const level = listItemConvertHepler.getLevel(line)
+      const id = line.trim().hashCode();
+      const cNode = new ListTreeNode(level, line.trim(), []) //{level, content: line.trim(), children:[]}
+      this.nodeMap.set(id, cNode)
+      // console.info('kfdebug buildFromSource stack', this.nodeStack, cNode)
+      while (this.lastNode().level >= level) {
+        this.nodeStack.pop()
+      }
+      // console.info('kfdebug buildFromSource stack', this.nod)
+
+
+      if (this.lastNode()) {
+        this.lastNode().push(cNode)
+      } 
+
+      this.nodeStack.push(cNode)
+    })
+  }
+
+  render(documentNode) {
+    while(documentNode.firstChild) {
+      documentNode.removeChild(documentNode.firstChild)
+    }
+    this.rootNode.render(documentNode)
+  }
+
+  lastNode() {
+    if (this.nodeStack.length === 0) {
+      return this.rootNode
+    }
+    return this.nodeStack[this.nodeStack.length -1]
+  }
+}
 
 class ListItemConvertHelper {
   constructor(listTag = "ul", tagBlankSize = 4) {
@@ -195,6 +317,7 @@ class ListItemConvertHelper {
     this.tagTODO = "[-]";
     this.tagDONE = "[x]";
     this.tagAddBar = "[bar]";
+    this.convertResult = new Map()
   }
 
   convertLineContent(line, lineNumber) {
@@ -248,60 +371,95 @@ class ListItemConvertHelper {
         lineNumber
       )}<p></div></li>`;
     });
-    registerConverter("list", (i) => {
-      var [line, lineNumber] = i;
-      let lv = this.getLevel(line);
-      // console.info('getLevel', lv)
-      if (this.currentLevel < 0) {
-        this.currentLevel = 0;
-      }
-      line = this.convertLineContent(line, lineNumber);
-      // if (line.endsWith('[DONE]')) {
-      // }
-      if (lv === this.currentLevel) {
-        return `<li><div style="display:flex" ><p>${line}</div></p></li>`;
-      }
-      if (lv > this.currentLevel) {
-        let buf = "";
-        while (lv > this.currentLevel) {
-          buf += `<${this.listTag}>\n`;
-          this.currentLevel++;
-        }
-        buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`;
-        return buf;
-      }
-      if (lv < this.currentLevel) {
-        let buf = "";
-        while (lv < this.currentLevel) {
-          buf += `\n</${this.listTag}>`;
-          this.currentLevel--;
-        }
+    registerConverter(
+      "list",
+      (i) => {
+        var [line, lineNumber] = i;
+        let lv = this.getLevel(line);
+        // console.info('getLevel', lv)
         if (this.currentLevel < 0) {
           this.currentLevel = 0;
         }
-        buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`;
+        line = this.convertLineContent(line, lineNumber);
+        // if (line.endsWith('[DONE]')) {
+        // }
+        if (lv === this.currentLevel) {
+          return `<li><div style="display:flex" ><p>${line}</div></p></li>`;
+        }
+        if (lv > this.currentLevel) {
+          let buf = "";
+          while (lv > this.currentLevel) {
+            buf += `<${this.listTag}>\n`;
+            this.currentLevel++;
+          }
+          buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`;
+          return buf;
+        }
+        if (lv < this.currentLevel) {
+          let buf = "";
+          while (lv < this.currentLevel) {
+            buf += `\n</${this.listTag}>`;
+            this.currentLevel--;
+          }
+          if (this.currentLevel < 0) {
+            this.currentLevel = 0;
+          }
+          buf += `<li><div style="display:flex" ><p>${line}</div></p></li>`;
+          return buf;
+        }
+        return line;
+      },
+      true
+    );
+    registerConverter(
+      "list_end",
+      (i) => {
+        const [line, lineNumber] = i;
+        let buf = "";
+
+        if (this.currentLevel < 0) {
+          this.currentLevel = 0;
+        }
+
+        while (0 <= this.currentLevel) {
+          buf += `\n</${this.listTag}>`;
+          this.currentLevel--;
+        }
+
+        if (this.isCheckList && this.isNeedAddBar) {
+          buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`;
+        }
         return buf;
-      }
-      return line;
-    }, true);
-    registerConverter("list_end", (i) => {
-      const [line, lineNumber] = i;
-      let buf = "";
+      },
+      true
+    );
+  }
 
-      if (this.currentLevel < 0) {
-        this.currentLevel = 0;
+  checkIsChildConverter(f) {
+    for(let x in converters) {
+      if (f === converters[x]) {
+        if (x.startsWith("list")) {
+          return true;
+        }
       }
+    }
+    return false;
+  }
 
-      while (0 <= this.currentLevel) {
-        buf += `\n</${this.listTag}>`;
-        this.currentLevel--;
-      }
+  // for newLayout
+  buildFromSource(source, node) {
+    console.info('buildFromSource start') 
+    const hashCodeForSource = source.hashCode()
+    // if (this.convertResult.has(hashCodeForSource)) {
+    //   console.info('buildFromSource check cache success')
+    //   return this.convertResult.get(hashCodeForSource)
+    // }
 
-      if (this.isCheckList && this.isNeedAddBar) {
-        buf += `<div class="list-item-add-button" line="${lineNumber}"></div>`;
-      }
-      return buf;
-    }, true);
+    let result = new ListTree(source)
+
+    console.info('kfdebug buildFromSource end', result)
+    this.convertResult.set(hashCodeForSource, result)
+    return result
   }
 }
 
@@ -325,42 +483,30 @@ class CoastTimer {
 const myct = new CoastTimer();
 
 const resolveColor = () => {
-  const colors = {};
+  // const colors = {};
   const darkMode = localStorage.getItem("isDarkMode") === "true";
-  colors["@isDarkMode"] = darkMode;
+  // colors["@isDarkMode"] = darkMode;
 
-  less.modifyVars(colors);
+  // less.modifyVars(colors);
+  
 };
 
-const markdownPreviewLineHash = {};
-String.prototype.hashCode = function () {
-  var hash = 0,
-    i,
-    chr;
-  if (this.length === 0) return hash;
-  for (i = 0; i < this.length; i++) {
-    chr = this.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0; // Convert to 32bit integer
+
+const getSourceFromHandleMarkdownMiddleRes = (item) => {
+  // console.info('kfdebug getSourceFromHandleMarkdownMiddleRes',item)
+  if (typeof item === 'string') {
+    return item
   }
-  return hash;
-};
-const makesureDocumentElementByTagWithClassName = (parent, tag, className) => {
-  let child = parent.getElementsByClassName(className)[0];
-  if (!child) {
-    child = document.createElement(tag);
-    child.className = className;
-    parent.appendChild(child);
+  if (typeof item === 'object') {
+    if (typeof item[1] === 'string') {
+      return item[1]
+    }
+    if (typeof item[1] === 'object') {
+      return item[1][0]
+    }
   }
-  console.info(
-    "kfdebugdef makesureDocumentElementByTagWithClassName",
-    parent,
-    tag,
-    className,
-    child
-  );
-  return child;
-};
+  throw new Error('getSourceFromHandleMarkdownMiddleResError', item)
+}
 
 const handleMarkdown = (content, previewContainer) => {
   myct.delay("start handleMarkdown");
@@ -393,7 +539,7 @@ const handleMarkdown = (content, previewContainer) => {
   myct.delay("inited handleMarkdown reg");
   content.split("\n").forEach((line, lineNumber) => {
     // replace \t => ' '
-    line = line.replaceAll(/\t/g,'  ')
+    line = line.replaceAll(/\t/g, "  ");
 
     // header Condfig start&end
     if (regHeader.exec(line) !== null) {
@@ -525,15 +671,13 @@ const handleMarkdown = (content, previewContainer) => {
     );
 
   // render previewCOntainer header element
+  // const darkMode = localStorage.getItem("isDarkMode") == "true";
+  // const cssStyleFile = !darkMode
+  //   ? "solarized-light.min.css"
+  //   : "railscasts.min.css";
+  // const header = `<link rel="stylesheet" href="${cssStyleFile}">`;
+  // previewContainerHeaderElement.innerHTML = header;
 
-  const darkMode = localStorage.getItem("isDarkMode") == "true";
-  const cssStyleFile = !darkMode
-    ? "solarized-light.min.css"
-    : "railscasts.min.css";
-  const header = `<link rel="stylesheet" href="${cssStyleFile}">`;
-
-  resolveColor();
-  previewContainerHeaderElement.innerHTML = header;
 
   // previewContinaer header element finish -----------
 
@@ -550,69 +694,90 @@ const handleMarkdown = (content, previewContainer) => {
   // let output =
   const useNewLayout = true;
   if (useNewLayout) {
-    const linesByPreviewNodes = []
-    const linesByPreviewNodeSources= []
+    const linesByPreviewNodes = [];
+    const linesByPreviewNodeSources = [];
     res = res
       .map((item) => {
-        const {result, shouldContinueForThis} =  convertMarkdownTagDatIntoHTML(item, { canContinueLine: useNewLayout})
-        return {result, shouldContinueForThis, source: item}
+        const { result, shouldContinueForThis, hitConverter } = convertMarkdownTagDatIntoHTML(
+          item,
+          { canContinueLine: useNewLayout }
+        );
+        return { result, shouldContinueForThis, source: getSourceFromHandleMarkdownMiddleRes(item), hitConverter };
       })
-      .filter((line) => line.result !== "")
+      .filter((line) => line.result !== "");
 
-    let linesByPreivewNodesIndex = 0
-    for(let x in res) {
-        if (res[x].shouldContinueForThis) {
-            linesByPreviewNodes[linesByPreivewNodesIndex - 1] = linesByPreviewNodes[linesByPreivewNodesIndex - 1] + res[x].result
-            linesByPreviewNodeSources[linesByPreivewNodesIndex - 1] = linesByPreviewNodeSources[linesByPreivewNodesIndex - 1] + res[x].source
-            
-        } else {
-            linesByPreviewNodes.push(res[x].result)
-            linesByPreviewNodeSources.push(res[x].source)
-            linesByPreivewNodesIndex++
-        }
+    let linesByPreivewNodesIndex = 0;
+
+    // 保存某一行是否需要作为块来单独渲染
+    const lineIsShouldContinueFlagCache = {}; 
+    for (let x in res) {
+      if (res[x].shouldContinueForThis) {
+        const targetLineIndex = linesByPreivewNodesIndex - 1
+        lineIsShouldContinueFlagCache[targetLineIndex] = res[x].hitConverter
+        linesByPreviewNodes[targetLineIndex] =
+          linesByPreviewNodes[targetLineIndex] + res[x].result + '\n';
+        linesByPreviewNodeSources[targetLineIndex] =
+          linesByPreviewNodeSources[targetLineIndex] +'\n' +
+          res[x].source;
+      } else {
+        linesByPreviewNodes.push(res[x].result);
+        linesByPreviewNodeSources.push(res[x].source);
+        linesByPreivewNodesIndex++;
+      }
     }
 
-
     linesByPreviewNodes.forEach((line, lineIndex) => {
-        const hash = line.hashCode();
-        const lineNode = makesureDocumentElementByTagWithClassName(
-          previewContainerBodyElement,
-          "div",
-          `preview-line-${lineIndex}`
-        );
-        let debugMsg = "";
-        const debug = false;
-        if (debug) {
-          debugMsg = `${lineIndex}-${version}-${line.hashCode()}`;
-        }
-        if (hash != markdownPreviewLineHash[lineIndex]) {
+      let buildFromSourceMultLine = false
+      let hitMultLineConverter = lineIsShouldContinueFlagCache[lineIndex]
+      if (hitMultLineConverter) {
+        line = linesByPreviewNodeSources[lineIndex]
+        buildFromSourceMultLine = true
+      }
+      const hash = line.hashCode();
+      const lineNode = makesureDocumentElementByTagWithClassName(
+        previewContainerBodyElement,
+        "div",
+        `preview-line-${lineIndex}`
+      );
+      let debugMsg = "";
+      if (window.isDebug) {
+        debugMsg = `${lineIndex}-${version}-${line.hashCode()}`;
+      }
+      if (hash != markdownPreviewLineHash[lineIndex]) {
+        if (buildFromSourceMultLine && hitMultLineConverter && listItemConvertHepler.checkIsChildConverter(hitMultLineConverter)) {
+          listItemConvertHepler.buildFromSource(line, lineNode).render(lineNode)
+        } else {
           lineNode.innerHTML = `${debugMsg}${line}`; //`<div id="preview-line-${lineIndex}">${debugMsg}${line}</div>`
-          markdownPreviewLineHash[lineIndex] = hash;
         }
+        markdownPreviewLineHash[lineIndex] = hash;
+      }
 
-        // previewContainer.innerHTML = 'das'
-      });
-      
-      previewContainerBodyElement.childNodes.forEach((child, index) => {
-        if (index >= linesByPreviewNodes.length) {
-          previewContainerBodyElement.removeChild(child)
-        }
-      })
+      // previewContainer.innerHTML = 'das'
+    });
+
+    previewContainerBodyElement.childNodes.forEach((child, index) => {
+      if (index >= linesByPreviewNodes.length) {
+        previewContainerBodyElement.removeChild(child);
+      }
+    });
   } else {
     let output = res
       .map((i) => {
         const res = convertMarkdownTagDatIntoHTML(i, {
-          canContinueLine: false
-        })
-        return res
+          canContinueLine: false,
+        });
+        return res;
       })
       .filter((line) => line !== "")
       .join("\n");
 
-    previewContainerBodyElement.innerHTML = output
+    previewContainerBodyElement.innerHTML = output;
   }
 
-  myct.delay("finish convertMarkdownTagDatIntoHTML", previewContainerBodyElement);
+  myct.delay(
+    "finish convertMarkdownTagDatIntoHTML",
+    previewContainerBodyElement
+  );
   // return output
 };
 
@@ -676,7 +841,7 @@ const innerMarkdownPreview = () => {
   }
 
   console.info("preview", preview);
- MGS(id, preview);
+  MGS(id, preview);
   window.denkGetKey("funcUpdateHeader")();
   // titleHeaderConverter.headerList = []
   titleHeaderConverter.reset();
@@ -691,7 +856,7 @@ const innerMarkdownPreview = () => {
     }
   });
   document.querySelectorAll(".markdown_link").forEach((el) => {
-    console.info(el.attributes.href.value);
+    console.info("markdown_linl url:", el.attributes.href.value);
     el.onclick = () => {
       window.denkGetKey("sendIpcMessage")({
         name: "openLink",
@@ -820,7 +985,7 @@ MGS("funcToggleMarkdownPreviewView", () => {
   } else {
     mode = (mode + 1) % 3;
   }
- MGS("markdownPreviewMode", mode);
+  MGS("markdownPreviewMode", mode);
 
   // refresh width
   document.querySelectorAll(".editor_view").forEach((i) => {
@@ -858,4 +1023,49 @@ MGS("insertMarkdownImage", (value) => {
   setTimeout(() => {
     window.denkGetKey("funcMarkdownPreview")();
   }, 50);
+});
+
+const invokeCallbacks = new Map();
+
+MGS("invokeCallback", (callbackId, result) => {
+  const func = invokeCallbacks.get(callbackId);
+  console.info("kfdebug invokeCallbacks func", callbackId, result);
+  if (func && typeof func === "function") {
+    func(result);
+    invokeCallbacks.delete(callbackId);
+  }
+});
+
+MGS("sendIpcMessageWithResult", (message) => {
+  const functionName = message["name"];
+  const callbackId = `${functionName}${new Date().getTime()}${Math.random()}`;
+  if (!message["data"]) {
+    message["data"] = callbackId;
+  }
+  message["data"]["callbackId"] = callbackId;
+  window.denkGetKey("sendIpcMessage")(message);
+  return new Promise((reslove, reject) => {
+    invokeCallbacks.set(callbackId, reslove);
+  });
+});
+
+const urlTitleCache = new Map();
+
+MGS("getUrlTitle", (url) => {
+  if (urlTitleCache.has(url)) {
+    console.info(urlTitleCache, urlTitleCache.get(url));
+    return new Promise.reslove(urlTitleCache.get(url));
+  } else {
+    return window
+      .denkGetKey("sendIpcMessageWithResult")({
+        name: "getUrlTitle",
+        data: {
+          url: url,
+        },
+      })
+      .then((res) => {
+        urlTitleCache.set(url, res);
+        return res;
+      });
+  }
 });

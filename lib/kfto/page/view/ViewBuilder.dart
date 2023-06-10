@@ -153,7 +153,7 @@ class ViewBuilder {
       listItemEndView = Text(
         '@${e.date}',
         style: TextStyle(
-            color: ColorManager.Get("fontdark"),
+            color: ColorManager.Get("textr"),
             overflow: TextOverflow.ellipsis),
       );
     }

@@ -29,12 +29,6 @@ class DenoManager {
     send(String data) {
       libdeno.send(data);
     }
-
-    Future<bool> isSupport() {
-      return libdeno.isSupport();
-    }
-    
-
     Future<bool> startDeno() async {
       print("DenoManager startDeno");
       var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
@@ -43,14 +37,9 @@ class DenoManager {
       if (isDevDeno) {
         port = 8673;
       } else {
-        bool isSupport = await libdeno.isSupport();
-        
-        if (isSupport) {
-          libdeno.load();
-          libdeno.run("deno run -A ${runableJsPath} --port=${port}");
-        } else {
-          return false;
-        }
+        libdeno.load();
+        final cmd = "deno run -A ${runableJsPath} --port=${port}";
+        libdeno.run(cmd);
       }
       return true;
     }

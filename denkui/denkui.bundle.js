@@ -106,10 +106,11 @@ const walkDirSync = (filePath)=>{
     }
     return res;
 };
-const statSync = (filePath)=>{
+const statSync = (filePath, read = true, write = false)=>{
     try {
         const fileid = Deno.openSync(filePath, {
-            read: true
+            read: read,
+            write: write
         });
         return {
             isExist: true,
@@ -583,9 +584,9 @@ function concat(...buf) {
     }
     const output = new Uint8Array(length);
     let index = 0;
-    for (const b1 of buf){
-        output.set(b1, index);
-        index += b1.length;
+    for (const b of buf){
+        output.set(b, index);
+        index += b.length;
     }
     return output;
 }
@@ -603,13 +604,13 @@ const MIN_BUF_SIZE = 16;
 const CR = "\r".charCodeAt(0);
 const LF = "\n".charCodeAt(0);
 class BufferFullError extends Error {
+    partial;
     name;
     constructor(partial){
         super("Buffer full");
         this.partial = partial;
         this.name = "BufferFullError";
     }
-    partial;
 }
 class PartialReadError extends Error {
     name = "PartialReadError";
@@ -675,10 +676,10 @@ class BufReader {
         if (p.byteLength === 0) return rr;
         if (this.r === this.w) {
             if (p.byteLength >= this.buf.byteLength) {
-                const rr1 = await this.rd.read(p);
-                const nread = rr1 ?? 0;
+                const rr = await this.rd.read(p);
+                const nread = rr ?? 0;
                 assert(nread >= 0, "negative read");
-                return rr1;
+                return rr;
             }
             this.r = 0;
             this.w = 0;
@@ -844,6 +845,7 @@ class AbstractBufBase {
     }
 }
 class BufWriter extends AbstractBufBase {
+    writer;
     static create(writer, size = 4096) {
         return writer instanceof BufWriter ? writer : new BufWriter(writer, size);
     }
@@ -898,7 +900,6 @@ class BufWriter extends AbstractBufBase {
         totalBytesWritten += numBytesWritten;
         return totalBytesWritten;
     }
-    writer;
 }
 const decoder1 = new TextDecoder();
 const invalidHeaderCharRegex = /[^\t\x20-\x7e\x80-\xff]/g;
@@ -913,6 +914,7 @@ function charCode(s) {
     return s.charCodeAt(0);
 }
 class TextProtoReader {
+    r;
     constructor(r){
         this.r = r;
     }
@@ -987,7 +989,6 @@ class TextProtoReader {
         }
         return n;
     }
-    r;
 }
 var Status;
 (function(Status) {
@@ -1383,8 +1384,8 @@ function chunkedBodyReader(h, r) {
                 return buf.byteLength;
             } else {
                 const bufToFill = buf.subarray(0, chunkSize);
-                const eof1 = await r.readFull(bufToFill);
-                if (eof1 === null) {
+                const eof = await r.readFull(bufToFill);
+                if (eof === null) {
                     throw new Deno.errors.UnexpectedEof();
                 }
                 if (await tp.readLine() === null) {
@@ -1527,14 +1528,14 @@ async function writeResponse(w, r) {
     const n = await writer.write(header);
     assert(n === header.byteLength);
     if (r.body instanceof Uint8Array) {
-        const n1 = await writer.write(r.body);
-        assert(n1 === r.body.byteLength);
+        const n = await writer.write(r.body);
+        assert(n === r.body.byteLength);
     } else if (headers.has("content-length")) {
         const contentLength = headers.get("content-length");
         assert(contentLength != null);
         const bodyLength = parseInt(contentLength);
-        const n2 = await Deno.copy(r.body, writer);
-        assert(n2 === bodyLength);
+        const n = await Deno.copy(r.body, writer);
+        assert(n === bodyLength);
     } else {
         await writeChunkedBody(writer, r.body);
     }
@@ -1670,6 +1671,7 @@ async function readRequest(conn, bufr) {
     return req;
 }
 class Server {
+    listener;
     #closing;
     #connections;
     constructor(listener){
@@ -1758,7 +1760,6 @@ class Server {
         mux.add(this.acceptConnAndIterateHttpRequests(mux));
         return mux.iterate();
     }
-    listener;
 }
 function _parseAddrFromStr(addr) {
     let url;
@@ -2242,9 +2243,9 @@ async function readFrame(buf) {
         assert(l !== null);
         payloadLength = l;
     } else if (payloadLength === 127) {
-        const l1 = await readLong(buf);
-        assert(l1 !== null);
-        payloadLength = Number(l1);
+        const l = await readLong(buf);
+        assert(l !== null);
+        payloadLength = Number(l);
     }
     let mask;
     if (hasMask) {
@@ -2294,9 +2295,9 @@ class WebSocketImpl {
                     if (frame.isLastFrame) {
                         const concat = new Uint8Array(payloadsLength);
                         let offs = 0;
-                        for (const frame1 of frames){
-                            concat.set(frame1.payload, offs);
-                            offs += frame1.payload.length;
+                        for (const frame of frames){
+                            concat.set(frame.payload, offs);
+                            offs += frame.payload.length;
                         }
                         if (frames[0].opcode === OpCode.TextFrame) {
                             yield decoder.decode(concat);
@@ -2495,6 +2496,8 @@ var WebSocketState;
     WebSocketState[WebSocketState["CLOSED"] = 3] = "CLOSED";
 })(WebSocketState || (WebSocketState = {}));
 class WebSocketServer extends EventEmitter {
+    port;
+    realIpHeader;
     clients;
     server;
     constructor(port = 8080, realIpHeader = null){
@@ -2538,8 +2541,6 @@ class WebSocketServer extends EventEmitter {
         this.server?.close();
         this.clients.clear();
     }
-    port;
-    realIpHeader;
 }
 class WebSocketAcceptedClient extends EventEmitter {
     state = WebSocketState.CONNECTING;
@@ -2562,8 +2563,8 @@ class WebSocketAcceptedClient extends EventEmitter {
                     const [, body] = ev;
                     this.emit("ping", body);
                 } else if (isWebSocketPongEvent(ev)) {
-                    const [, body1] = ev;
-                    this.emit("pong", body1);
+                    const [, body] = ev;
+                    this.emit("pong", body);
                 } else if (isWebSocketCloseEvent(ev)) {
                     const { code , reason  } = ev;
                     this.state = WebSocketState.CLOSED;
@@ -4314,9 +4315,9 @@ class SaxesParser {
             this.topNS[local] = trimmed;
             nsPairCheck(this, local, trimmed);
         } else if (name === "xmlns") {
-            const trimmed1 = value.trim();
-            this.topNS[""] = trimmed1;
-            nsPairCheck(this, "", trimmed1);
+            const trimmed = value.trim();
+            this.topNS[""] = trimmed;
+            nsPairCheck(this, "", trimmed);
         }
     }
     pushAttribPlain(name, value) {
@@ -4409,25 +4410,25 @@ class SaxesParser {
         const { attributes  } = tag;
         const seen = new Set();
         for (const attr of attribList){
-            const { name , prefix: prefix1 , local: local1  } = attr;
-            let uri1;
+            const { name , prefix , local  } = attr;
+            let uri;
             let eqname;
-            if (prefix1 === "") {
-                uri1 = name === "xmlns" ? XMLNS_NAMESPACE : "";
+            if (prefix === "") {
+                uri = name === "xmlns" ? XMLNS_NAMESPACE : "";
                 eqname = name;
             } else {
-                uri1 = this.resolve(prefix1);
-                if (uri1 === undefined) {
-                    this.fail(`unbound namespace prefix: ${JSON.stringify(prefix1)}.`);
-                    uri1 = prefix1;
+                uri = this.resolve(prefix);
+                if (uri === undefined) {
+                    this.fail(`unbound namespace prefix: ${JSON.stringify(prefix)}.`);
+                    uri = prefix;
                 }
-                eqname = `{${uri1}}${local1}`;
+                eqname = `{${uri}}${local}`;
             }
             if (seen.has(eqname)) {
                 this.fail(`duplicate attribute: ${eqname}.`);
             }
             seen.add(eqname);
-            attr.uri = uri1;
+            attr.uri = uri;
             attributes[name] = attr;
         }
         this.attribList = [];
@@ -5137,6 +5138,7 @@ class KfTodoController {
     config = {
         basePath: "."
     };
+    heartTimer = 0;
     async start() {
         let res = await __default5.get({
             key: "GLOBAL_PORT"
@@ -5157,9 +5159,9 @@ class KfTodoController {
         };
         this.ipc.addOnConnectCallback(onFirstConnect);
         this.ipc.addCallback(onMessageHandler);
-        setInterval(()=>{
+        this.heartTimer = setInterval(()=>{
             this.heart();
-        }, 2000);
+        }, 500);
         __default7.init(this.send);
         this.rssController.initResponseFunc((data)=>{
             data.isResponse = true;
@@ -5167,10 +5169,12 @@ class KfTodoController {
         });
     }
     heart() {
-        !this.hasFirstConnect && this.ipc?.send(JSON.stringify({
-            name: "heart",
-            data: "KfTodoController " + !this.hasFirstConnect
-        }));
+        if (!this.hasFirstConnect) {
+            this.ipc?.send(JSON.stringify({
+                name: "heart",
+                data: "KfTodoController " + !this.hasFirstConnect
+            }));
+        }
     }
     send(event) {
         this.ipc?.send(JSON.stringify(event));
@@ -5230,20 +5234,26 @@ class KfTodoController {
                     value: listDataRes.data
                 });
             } else {
-                const currentConfigContent1 = __default4.readFileSync(confgPath);
-                this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent1));
+                const currentConfigContent = __default4.readFileSync(confgPath);
+                this.config = JSON.parse(BlogTextHelper.GetContentFromText(currentConfigContent));
             }
-        } catch (err1) {
-            __default1.info(err1);
+        } catch (err) {
+            __default1.info(err);
             this.send({
                 name: "toast",
                 data: {
-                    error: `${err1}`
+                    error: `${err}`
                 }
             });
         }
         this.config['resourcePath'] = resourcePath;
-        this.initByConfig();
+        try {
+            this.initByConfig();
+        } catch (err) {
+            this.send({
+                name: 'initFail'
+            });
+        }
         const lastReadPathRes = await __default5.get({
             key: "lastReadPath"
         });
@@ -5280,7 +5290,6 @@ class KfTodoController {
         const listDataRes = await __default5.get({
             key: "listData"
         });
-        console.info("kfdbeug", listDataRes);
         return listDataRes ? listDataRes.data.headerInfos.filter((header)=>{
             return header.type != undefined;
         }) : [];
@@ -5309,6 +5318,12 @@ class KfTodoController {
         }
     }
     async initByConfig() {
+        if (!__default4.statSync(this.config["basePath"]).isExist) {
+            this.send({
+                name: 'initByConfigFail'
+            });
+            return;
+        }
         const readmeFiles = __default4.walkDirSync(this.config['resourcePath'] + __default3.Dir.Spelator + 'readmes');
         readmeFiles.forEach((readmeFile)=>{
             const readmeContent = __default4.readFileSync(readmeFile.path);
@@ -5368,12 +5383,10 @@ class KfTodoController {
                 path: invokeData
             };
             this.ipc?.response(ipcData);
-            if (path.endsWith(".md")) {
-                await __default5.set({
-                    key: "lastReadPath",
-                    value: path
-                });
-            }
+            await __default5.set({
+                key: "lastReadPath",
+                value: path
+            });
         }
         if (invokeName === "getConfig") {
             ipcData.data = this.config;
@@ -5385,8 +5398,8 @@ class KfTodoController {
             for(let x in ipcData.data.data){
                 cacheConfig[x] = ipcData.data.data[x];
             }
-            const content1 = __default4.readFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH);
-            let headerContent = BlogTextHelper.GetHeaderInfoFromText(content1);
+            const content = __default4.readFileSync(KfTodoController.KFTODO_CONFIG_MD_PATH);
+            let headerContent = BlogTextHelper.GetHeaderInfoFromText(content);
             if (headerContent === null) {
                 headerContent = '';
             }
@@ -5400,33 +5413,33 @@ class KfTodoController {
             this.initByConfig();
         }
         if (invokeName === 'readLocalHistory') {
-            const { path: path1  } = invokeData;
-            const res = LocalHistoryService.Get(this.config.basePath).onReadLocalHistory(path1);
+            const { path  } = invokeData;
+            const res = LocalHistoryService.Get(this.config.basePath).onReadLocalHistory(path);
             ipcData.data = {
                 history: res
             };
             this.ipc?.response(ipcData);
         }
         if (invokeName === "writeFile") {
-            const { content: content2 , path: path2  } = invokeData;
-            __default4.mkdirSync(__default3.getDirPath(path2), {
+            const { content , path  } = invokeData;
+            __default4.mkdirSync(__default3.getDirPath(path), {
                 recursive: true
             });
-            __default4.writeFileSync(path2, content2);
-            LocalHistoryService.Get(this.config.basePath).onWriteFile(path2, content2).then((res)=>{});
-            __default1.info("handleInvoke writeFile path:", path2);
-            if (path2.endsWith(__default8.getFileExtByType("script", this.config))) {
+            __default4.writeFileSync(path, content);
+            LocalHistoryService.Get(this.config.basePath).onWriteFile(path, content).then((res)=>{});
+            __default1.info("handleInvoke writeFile path:", path);
+            if (path.endsWith(__default8.getFileExtByType("script", this.config))) {
                 ipcData.msg = `${ipcData.data.invokeName} success`;
                 this.ipc?.response(ipcData);
             } else {
                 const listDataRes = await __default5.get({
                     key: "listData"
                 });
-                let item = await this.getMdHeaderInfoByPath(path2, content2);
+                let item = await this.getMdHeaderInfoByPath(path, content);
                 __default1.info("handleInvoke writeFile path compare to", KfTodoController.KFTODO_CONFIG_MD_PATH);
-                if (path2 === KfTodoController.KFTODO_CONFIG_MD_PATH || path2 === "./.denkui/.config.md") {
+                if (path === KfTodoController.KFTODO_CONFIG_MD_PATH || path === "./.denkui/.config.md") {
                     try {
-                        const configContent = BlogTextHelper.GetContentFromText(content2).trim();
+                        const configContent = BlogTextHelper.GetContentFromText(content).trim();
                         __default1.info("KfTodoController ", configContent);
                         this.config = JSON.parse(configContent);
                         this.initByConfig();
@@ -5441,15 +5454,15 @@ class KfTodoController {
                     }
                 } else {
                     try {
-                        let info = __default6.handleFile(content2, path2);
+                        let info = __default6.handleFile(content, path);
                         item.title = info.title;
                         item.date = info.date;
                         item.path = info.path;
                         item.tags = info.tags;
                         ipcData.msg = `${ipcData.data.invokeName} success`;
-                    } catch (err1) {
+                    } catch (err) {
                         ipcData.data = {
-                            error: "error: " + err1
+                            error: "error: " + err
                         };
                         this.ipc?.response(ipcData);
                         return;
@@ -5463,38 +5476,38 @@ class KfTodoController {
             }
         }
         if (invokeName === "deleteItem") {
-            const { path: path3  } = invokeData;
-            __default1.info("KfTodoController try deleteItem", path3);
-            if (!path3.startsWith('http')) {
-                await __default4.unlinkFile(path3);
+            const { path  } = invokeData;
+            __default1.info("KfTodoController try deleteItem", path);
+            if (!path.startsWith('http')) {
+                await __default4.unlinkFile(path);
             }
-            const listDataRes1 = await __default5.get({
+            const listDataRes = await __default5.get({
                 key: "listData"
             });
-            const hitItems = listDataRes1.data.headerInfos.filter((item)=>{
-                if (item.path == path3) {
-                    __default1.info("KfTodoController deleteItem", path3);
+            const hitItems = listDataRes.data.headerInfos.filter((item)=>{
+                if (item.path == path) {
+                    __default1.info("KfTodoController deleteItem", path);
                 }
-                return item.path != path3;
+                return item.path != path;
             });
-            listDataRes1.data.headerInfos = hitItems;
+            listDataRes.data.headerInfos = hitItems;
             await __default5.set({
                 key: "listData",
-                value: listDataRes1.data
+                value: listDataRes.data
             });
             this.ipc?.response(ipcData);
         }
         if (invokeName === "getNewBlogTemplate") {
-            const content3 = BlogTextHelper.GenerateEmptyText();
+            const content = BlogTextHelper.GenerateEmptyText();
             ipcData.data = {
-                content: content3,
+                content,
                 path: this.config.basePath
             };
             this.ipc?.response(ipcData);
         }
         if (invokeName === "initData") {
-            const { path: path4  } = invokeData;
-            const files = __default4.walkDirSync(path4);
+            const { path  } = invokeData;
+            const files = __default4.walkDirSync(path);
             const denkuiblogFiles = files.filter((value)=>{
                 const ext = __default8.getFileExtByType("denkuiblog", this.config);
                 return value.name.endsWith(ext);
@@ -5531,6 +5544,7 @@ class KfTodoController {
         __default1.info("KfTodoController onMessage", message);
         if (!this.hasFirstConnect) {
             this.hasFirstConnect = true;
+            clearInterval(this.heartTimer);
         }
         try {
             const event = JSON.parse(message);
@@ -5558,8 +5572,59 @@ class KfTodoController {
         }
     }
 }
+function isCloser(value) {
+    return typeof value === "object" && value != null && "close" in value && typeof value["close"] === "function";
+}
+function readableStreamFromReader(reader, options = {}) {
+    const { autoClose =true , chunkSize =16_640 , strategy  } = options;
+    return new ReadableStream({
+        async pull (controller) {
+            const chunk = new Uint8Array(chunkSize);
+            try {
+                const read = await reader.read(chunk);
+                if (read === null) {
+                    if (isCloser(reader) && autoClose) {
+                        reader.close();
+                    }
+                    controller.close();
+                    return;
+                }
+                controller.enqueue(chunk.subarray(0, read));
+            } catch (e) {
+                controller.error(e);
+                if (isCloser(reader)) {
+                    reader.close();
+                }
+            }
+        },
+        cancel () {
+            if (isCloser(reader) && autoClose) {
+                reader.close();
+            }
+        }
+    }, strategy);
+}
 let homePath1 = '';
 const httpServerCache = {};
+function getContentType(fileExt) {
+    switch(fileExt){
+        case 'html':
+            return 'text/html';
+        case 'css':
+            return 'text/css';
+        case 'js':
+            return 'text/javascript';
+        case 'json':
+            return 'application/json';
+        case 'png':
+            return 'image/png';
+        case 'jpg':
+        case 'jpeg':
+            return 'image/jpeg';
+        default:
+            return 'text/plain';
+    }
+}
 const startHttpServer = async ()=>{
     const server = Deno.listen({
         port: 10825
@@ -5572,11 +5637,7 @@ const startHttpServer = async ()=>{
         const httpConn = Deno.serveHttp(conn);
         for await (const requestEvent of httpConn){
             const url = new URL(requestEvent.request.url);
-            if (httpServerCache[url.toString()] != undefined) {
-                const response = new Response(httpServerCache[url.toString()]);
-                await requestEvent.respondWith(response);
-                return;
-            }
+            console.info(httpServerCache[url.toString()], url.toString());
             const filepath = decodeURIComponent(url.pathname);
             if (homePath1 == '') {
                 try {
@@ -5596,9 +5657,15 @@ const startHttpServer = async ()=>{
                 await requestEvent.respondWith(notFoundResponse);
                 return;
             }
-            const readableStream = file.readable;
-            const response1 = new Response(readableStream);
-            await requestEvent.respondWith(response1);
+            const body = readableStreamFromReader(file);
+            const fileExt = filepath.split('.').pop();
+            const contentType = getContentType(fileExt);
+            const response = new Response(body, {
+                headers: new Headers({
+                    'Content-Type': contentType
+                })
+            });
+            await requestEvent.respondWith(response);
         }
     }
 };

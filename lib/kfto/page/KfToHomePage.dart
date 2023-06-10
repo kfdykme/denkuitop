@@ -21,10 +21,13 @@ import 'package:denkuitop/kfto/page/uiwidgets/TagTextField.dart';
 import 'package:denkuitop/kfto/page/view/GridCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/TreeCardPainter.dart';
 import 'package:denkuitop/kfto/page/view/ViewBuilder.dart';
+import 'package:denkuitop/kfto/views/editor/EditorUtils.dart';
 import 'package:denkuitop/native/DenoManager.dart';
 import 'package:denkuitop/remote/base/BaseRemotePage.dart';
+import 'package:denkuitop/utils/NetworkUtils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_desktop_cef_web/cef_widget.dart';
 import 'package:flutter_desktop_cef_web/flutter_desktop_cef_web.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:flutter_desktop_file_manager/flutter_desktop_file_manager.dart';
@@ -47,8 +50,6 @@ class KfToHomeState extends BaseRemotePageState {
   ListData data = null;
   List<KfToDoTagData> dataTags = [];
   String searchKey = "";
-
-  SplitCardData gridCardData;
 
   List<KfToDoTagData> get searchedTags {
     if (searchKey == "") {
@@ -92,7 +93,6 @@ class KfToHomeState extends BaseRemotePageState {
 
   var treeCardPainterKey = GlobalKey();
 
-  Widget cefContainer = null;
 
   Color get dragLineActiveColor {
     return ColorManager.Get("textdarkr");
@@ -129,7 +129,9 @@ class KfToHomeState extends BaseRemotePageState {
   DenoLibSocketLife denoLibSocketLife = DenoLibSocketLife();
 
   //cef view
-  var web = FlutterDesktopEditor();
+  FlutterDesktopEditor web;
+  CefWidget cefWidget;
+
 
   final _flutterDesktopFileManagerPlugin = FlutterDesktopFileManager();
 
@@ -161,11 +163,9 @@ class KfToHomeState extends BaseRemotePageState {
   KfToHomeState() {
     this._currentPathcontroller = TextEditingController();
 
-    _flutterDesktopFileManagerPlugin.onGetDarkMode().then((value) {
-      setState(() {
-        ColorManager.instance().isDarkmode = value;
-      });
-    });
+    web = FlutterDesktopEditor();
+    cefWidget=  CefWidget(url: getDefaultUrl(), web: web,);
+    web.titleHeight = 0;
     initDenoLibSocket();
   }
 
@@ -187,26 +187,11 @@ class KfToHomeState extends BaseRemotePageState {
         if (basePath == null || basePath == ".") {
           initConfigDirectory(ktoData.data, isCanQuit: true);
         }
-        // var isDarkmode = ktoData.data['isDarkmode'];
-        // if (isDarkmode != null) {
-        //   setState(() {
-        //     ColorManager.instance().isDarkmode = isDarkmode;
-        //   });
-        // }
+
         initWeb();
       });
     };
-  }
-
-  void ensureWebViewShow() {
-    if (cefContainer == null) {
-      cefContainer = web.generateCefContainer(RIGHT_WIDTH, MAX_HEIGHT);
-      web.loadCefContainer();
-      web.setUrl("http://localhost:10825/manoco-editor/index.html?home=" +
-          DenkuiRunJsPathHelper.GetResourcePath());
-     
-    }
-    web.show();
+    
   }
 
   void initWeb() {
@@ -232,16 +217,18 @@ class KfToHomeState extends BaseRemotePageState {
           }
 
           web.show();
-          for (var x = 0; x < injectJsList.length; x++) {
-            CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
-              print("CommonReadFile path: ${path}");
-              web.executeJs(content);
-              if (!web.needInsertFirst) {
-                web.toggleInsertFirst();
-                web.tryInsertFirst();
-              }
-            }));
-          }
+          // if (!kDebugMode) {
+            for (var x = 0; x < injectJsList.length; x++) {
+              CommonReadFile(injectJsList[x], func: (({content, path, suc}) {
+                print("CommonReadFile path: ${path}");
+                web.executeJs(content);
+                if (!web.needInsertFirst) {
+                  web.toggleInsertFirst();
+                  web.tryInsertFirst();
+                }
+              }));
+            }
+          // }
 
           // MARK: injectJs finish
           injectJsFinished = true;
@@ -299,6 +286,12 @@ class KfToHomeState extends BaseRemotePageState {
         ChildProcess(ChildProcessArg.from("open ${url}")).run();
       }
     });
+
+    web.registerFunctionWithResult('getUrlTitle', (dynamic data) {
+      print("getUrlTitle ${data}");
+      var url = data["url"] as String;
+      return NetworkUtils().getTitleFromUrl(url);
+    });
   }
 
   void initConfigDirectory(dynamic config, {String title, bool isCanQuit = false}) {
@@ -353,7 +346,6 @@ class KfToHomeState extends BaseRemotePageState {
   void refreshByData(KfToDoIpcData data) {
     dataTags = [];
     setState(() {
-      ensureWebViewShow();
       this.data = ListData.fromMap(data.data as Map<String, dynamic>);
 
       this.data?.data?.forEach((element) {
@@ -428,10 +420,9 @@ class KfToHomeState extends BaseRemotePageState {
       return ;
     }
 
-    if (cefContainer == null) {
-      ensureWebViewShow();
-      web.toggleInsertFirst();
-    }
+    // if (web.needInsertFirst) {
+    //   web.toggleInsertFirst();
+    // }
 
     if (editorId == null) {
       editorId = currentFilePath;
@@ -516,7 +507,7 @@ class KfToHomeState extends BaseRemotePageState {
         if (!data.hasError()) {
           _refresh();
         } else {
-          print("_saveFile " + data.hasError().toString());
+          print("_saveFile " + data.error().toString());
         }
       });
     }).catchError((err) {
@@ -616,23 +607,12 @@ class KfToHomeState extends BaseRemotePageState {
 
   void ensureLoadEditor() {
       web.loadCefContainer();
-      ensureWebViewShow();
 
-      var homePath = DenkuiRunJsPathHelper.GetResourcePath();
-      /**
-       * home= 必须要是最
-       */
-      if (Platform.isWindows) {
-        homePath = homePath.replaceAll("\\", "\\\\");
-      }
-      var url =
-          "http://localhost:10825/manoco-editor/index.html?isDarkMode=${ColorManager.instance().isDarkmode}&home=${homePath}";
       web.executeJs(
-          'if (!location.href.startsWith("http://localhost")) { location.href =  "${url}"}');
+          'if (!location.href.startsWith("http://localhost")) { location.href =  "${getDefaultUrl()}"}');
   }
 
   void onPressSingleItemFunc(ListItemData itemData) {
-    web.loadCefContainer();
     print('onPressSingleItemFunc ' + itemData.type);
     if (itemData.path.startsWith('http://') ||
         itemData.path.startsWith('https://')) {
@@ -1028,12 +1008,6 @@ class KfToHomeState extends BaseRemotePageState {
       child: Column(
         children: [
           hasItems ? searchTagField.view() : Container(),
-          // ViewBuilder.BuildSearchMaterialInput(onChange: (value) {
-          //   // print("search value:" + value + dataTags.toString());
-          //   setState(() {
-          //     searchKey = value;
-          //   });
-          // }, currentSearchKey:  searchKey),
           Expanded(
             child: ListView.builder(
                 shrinkWrap: true,
@@ -1063,23 +1037,6 @@ class KfToHomeState extends BaseRemotePageState {
     );
   }
 
-  CustomPainter buildTreeCardPainter() {
-    SplitCardPainter painter = SplitCardPainter(
-        ValueNotifier<int>(this.searchedTags.length),
-        customKey: treeCardPainterKey);
-    if (this.gridCardData == null) {
-      gridCardData = SplitCardData();
-
-      // gridCardData.calcAll();
-      // RefreshTreeCardData();
-    }
-    gridCardData.setData(this.searchedListData, this.searchedTags);
-    // painter.gridCardData = gridCardData;
-    painter.setPainterSplitData(gridCardData);
-    // RefreshTreeCard()
-
-    return painter;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1095,45 +1052,6 @@ class KfToHomeState extends BaseRemotePageState {
         });
       });
     }
-
-    DenoManager.Instance().isSupport().then((value) {
-      if (!value) {
-
-        DenktuiDialog.initContext(context);
-        DenktuiDialog.ShowCommonDialog(contentTitle: TextK.Get("暂不支持您的操作系统版本"), options: [
-           CommonDialogButtonOption(
-              text: TextK.Get("退出"),
-              callback: () async {
-                exit(-100);
-              },
-              icon: Icons.exit_to_app),
-        ]);
-      }
-    });
-
-    Widget webCView = cefContainer == null
-        ? MaterialButton(
-            child: Container(),
-            onPressed: () {
-              web.generateCefContainer(400, 500);
-              web.loadCefContainer();
-            },
-          )
-        : cefContainer;
-
-    // if (treeCardData == null) {
-    //   treeCardData = TreeCardData(data: this.data, dataTags: this.searchedTags);
-    // }
-    // if (treeCardData.data == null) {
-    //   treeCardData.data = this.data;
-    // }
-
-    // if (treeCardData.dataTags == null || treeCardData.dataTags.length == 0) {
-    //   treeCardData.dataTags = this.searchedTags;
-    // }
-    // if (isTreeCardMode) {
-    //   RefreshTreeCard();
-    // }
 
     var listModeChilds = [
       new Container(
@@ -1175,74 +1093,7 @@ class KfToHomeState extends BaseRemotePageState {
           color: ColorManager.Get("cardbackground"),
         ),
       ),
-      isTreeCardMode
-          ? Stack(
-              children: [
-                Listener(
-                    onPointerDown: (event) {
-                      is_darging_tree_card = !is_darging_tree_card;
-                      print(
-                          "toggle is_darging_tree_card ${is_darging_tree_card}");
-                      darging_tree_card_pos_cache = event.position;
-                      // setState(() {
-                      // is_darging_tree_card = is_darging_tree_card;
-                      // treeCardData.is_darging_tree_card =
-                      //     is_darging_tree_card;
-                      // treeCardData.calc();
-                      // RefreshTreeCard();
-                      // });
-                      RefreshTreeCardData();
-                    },
-                    onPointerUp: ((event) {
-                      // treeCardData.is_darging_tree_card = is_darging_tree_card;
-                      // darging_tree_card_pos_cache = Offset.zero;
-                    }),
-                    onPointerMove: ((event) {
-                      // print("${event}");
-                    }),
-                    onPointerHover: ((event) {
-                      setState(() {
-                        gridCardData.onHover(event.position);
-                      });
-
-                      // print("onPointerHover r${event}");
-                      if (is_darging_tree_card) {
-                        // print("${event.delta}");
-                        var offset = Offset(
-                            event.position.dx - darging_tree_card_pos_cache.dx,
-                            event.position.dy - darging_tree_card_pos_cache.dy);
-                      } else {
-                        // setState(() {
-                        //   // tree_card_mouse_pos = event.position;
-                        // });
-
-                      }
-                    }),
-                    child: Container(
-                      key: treeCardPainterKey,
-                      width: 1080,
-                      child: CustomPaint(
-                        // // painter:
-                        // foregroundPainter: TreeCardPainter(treeCardData,
-                        //     isDarkmode: ColorManager.instance().isDarkmode,
-                        //     customKey: treeCardPainterKey,
-                        //     offset: darging_tree_card_pos,
-                        //     dataTags: this.searchedTags,
-                        //     mouseOffset: tree_card_mouse_pos,
-                        //     onNeedRefreshCallback: () {
-                        //   // RefreshTreeCard();
-                        // }, isDraging: is_darging_tree_card),
-                        foregroundPainter: buildTreeCardPainter(),
-                        child: Container(
-                          color: Color(0x333333),
-                          height: currentWindowHeight - 50,
-                        ),
-                      ),
-                      height: double.infinity,
-                    )),
-              ],
-            )
-          : Expanded(
+       Expanded(
               child: Container(
               child: Card(
                 margin: EdgeInsets.zero,
@@ -1389,19 +1240,7 @@ class KfToHomeState extends BaseRemotePageState {
                         ],
                       ),
                     ),
-                    webCView
-                    // Expanded(
-                    //   key: containerKey,
-                    //   child: Container(
-                    //     alignment: Alignment.topLeft,
-                    //   // child: Text("flexable"),
-                    //     child: cefContainer == null ? Container(
-                    //       color: Colors.amberAccent,
-                    //       width: 400,
-                    //       height: 400,
-                    //     ): cefContainer,
-                    //   ),
-                    // )
+                    cefWidget
                   ],
                 ),
               ),
@@ -1438,22 +1277,7 @@ class KfToHomeState extends BaseRemotePageState {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // ViewBuilder.BuildInLineMaterialButton(TextK.Get("Tree Card"),
-                        //     onPressFunc: () {
-                        //   setState(() {
-                        //     isTreeCardMode = !isTreeCardMode;
-                        //     web.toggle();
-                        //     web.executeJs(
-                        //         'window.denkGetKey("funcSwitchDarkMode")(${ColorManager.instance().isDarkmode ? 'true' : 'false'})');
-                        //   });
-                        // },
-                        //     color: ColorManager.Get("textdarkr"),
-                        //     withText: false,
-                        //     icon: Icon(
-                        //       Icons.trending_down,
-                        //       color: ColorManager.Get("textdarkr"),
-                        //       size: ViewBuilder.size(false ? 2 : 2),
-                        //     )),
+                       
                         ViewBuilder.BuildInLineMaterialButton(
                             TextK.Get("DarkMode"), onPressFunc: () {
                           setState(() {
@@ -1468,9 +1292,6 @@ class KfToHomeState extends BaseRemotePageState {
                           var config = {};
                           config['isDarkmode'] =
                               ColorManager.instance().isDarkmode;
-                          // this.ipc()
-                          //     .invokeNyName({"invokeName": "saveConfig", "data": config}, callback: ((data) {
-                          //     }));
                         },
                             color: ColorManager.Get("textdarkr"),
                             withText: false,
@@ -1559,18 +1380,4 @@ class KfToHomeState extends BaseRemotePageState {
     });
   }
 
-  void RefreshTreeCardData() {
-    if (gridCardData.isFull) {
-      return;
-    }
-    setState(() {
-      gridCardData.calc();
-    });
-    if (gridCardData.isFull) {
-      return;
-    }
-    Future.delayed(Duration(microseconds: 100), () {
-      RefreshTreeCardData();
-    });
-  }
 }
