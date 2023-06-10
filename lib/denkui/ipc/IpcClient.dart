@@ -1,10 +1,12 @@
 import 'dart:collection';
 
+import 'package:denkuitop/common/Logger.dart';
 import 'package:web_socket_channel/io.dart';
 import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+Logger logger = Logger("IpcClient");
 class IpcClient {
   var mWebSocket;
 
@@ -23,11 +25,11 @@ class IpcClient {
     mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${port}",
         headers: {'Origin': 'http://127.0.0.1'});
 
-    print("IpcClient init ${port}");
+    logger.log("IpcClient init ${port}");
     inited = true;
     mWebSocket.stream.listen((message) {
       if (!message.toString().contains('"name":"heart"')) {
-        // print("IpcClient  message ${message}");
+        // logger.log("IpcClient  message ${message}");
       }
       isConnected = true;
       listeners.forEach((callback) {
@@ -40,33 +42,22 @@ class IpcClient {
 
   init({int port = 7999}) async {
     if (inited) {
-      // print("IpcClient has already inited");
+      // logger.log("IpcClient has already inited");
       return;
     }
     inited = true;
 
     // start deno process
 
-    Timer.periodic(const Duration(milliseconds: 5000), (timer) {
-      if (this.isConnected) {
-        timer.cancel();
-      }
-      print("Try Connect Socket ${port}");
-
-      try {
-        this.initSocket(port);
-      } catch (e) {
-        print("Try Connect Socket fail" + e.toString());
-      }
-    });
+    _tryConnect(port);
   }
 
   send(dynamic data) {
     if (mWebSocket != null) {
-      print("IpcClient send ${data}");
+      logger.log("IpcClient send ${data}");
       mWebSocket.sink.add(data);
     } else {
-      print("IpcClient is not inited ${isConnected}");
+      logger.log("IpcClient is not inited ${isConnected}");
     }
   }
 
@@ -76,5 +67,18 @@ class IpcClient {
 
   setCallback(String key, Function callback) {
     callbacks[key] = callback;
+  }
+  
+  void _tryConnect(int port) {
+    if (this.isConnected) {
+        return;
+      }
+      logger.log("Try Connect Socket ${port}");
+      try {
+        this.initSocket(port);
+      } catch (e) {
+        logger.log("Try Connect Socket fail" + e.toString());
+        Future.delayed(Duration(microseconds: 50)).then((value) => _tryConnect(port));
+      }
   }
 }

@@ -10,3 +10,6 @@
 [submodule "submodules/monaco-editor"]
 	path = submodules/monaco-editor
 	url = https://github.com/microsoft/monaco-editor.git
+[submodule "plugins/denkEidtorContainer"]
+	path = plugins/denkEidtorContainer
+	url =  https://github.com/kfdykme/denkEditorContainer.git

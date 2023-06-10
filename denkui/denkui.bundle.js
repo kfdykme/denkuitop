@@ -27,18 +27,18 @@ const isFilted = (...vars)=>{
 const __default1 = {
     info: (...vars)=>{
         if (isFilted(vars)) return;
-        console.info(new Date(), ...vars);
+        console.info(new Date().toJSON(), ...vars);
     },
     error: (...vars)=>{
         if (isFilted(vars)) return;
-        console.error(new Date(), ...vars);
+        console.error(new Date().toJSON(), ...vars);
     },
     log: (...vars)=>{
         if (isFilted(vars)) return;
-        console.log(new Date(), ...vars);
+        console.log(new Date().toJSON(), ...vars);
     },
     dev: (...vars)=>{
-        console.log(new Date(), ...vars);
+        console.log(new Date().toJSON(), ...vars);
     }
 };
 const isWindows = ()=>{
@@ -5343,7 +5343,6 @@ class KfTodoController {
         const scriptFiles = files.filter((value)=>{
             return value.name.endsWith(__default8.getFileExtByType("script", this.config));
         });
-        __default1.info("KfTodoController scriptFiles", scriptFiles);
         scriptFiles.forEach((scriptFile)=>{
             infos.push({
                 path: scriptFile.path,
@@ -5354,7 +5353,6 @@ class KfTodoController {
                 ]
             });
         });
-        __default1.info("KfTodoController ", infos);
         const item = await this.getMdHeaderInfoByPath(KfTodoController.KFTODO_CONFIG_MD_PATH, "DENKUI_CONFIG");
         const resData = {
             headerInfos: infos.concat([

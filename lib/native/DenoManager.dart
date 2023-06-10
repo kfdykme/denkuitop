@@ -1,8 +1,10 @@
 
 
+import 'package:denkuitop/common/Logger.dart';
 import 'package:denkuitop/common/Path.dart';
 import 'package:libdeno_plugin/libdeno_plugin.dart';
 
+Logger logger = Logger("DenoManager");
 class DenoManager {
 
     static int port = 8673;
@@ -30,7 +32,7 @@ class DenoManager {
       libdeno.send(data);
     }
     Future<bool> startDeno() async {
-      print("DenoManager startDeno");
+      logger.log("DenoManager startDeno");
       var runableJsPath = DenkuiRunJsPathHelper.GetDenkBundleJsPath();
       print("${runableJsPath}");
       var isDevDeno = false;

@@ -344,6 +344,7 @@ class KfToHomeState extends BaseRemotePageState {
   }
 
   void refreshByData(KfToDoIpcData data) {
+    logger.log("refreshByData");
     dataTags = [];
     setState(() {
       this.data = ListData.fromMap(data.data as Map<String, dynamic>);
@@ -377,6 +378,8 @@ class KfToHomeState extends BaseRemotePageState {
         });
       });
       dataTags.sort((left, right) => left.name.compareTo(right.name));
+      logger.log("refreshByData setState end");
+    
     });
   }
 

@@ -11,10 +11,7 @@ class Logger {
   }
 
   log(Object object) {
-    print('');
-    print('⌈ ' + baseName + '------------------');
-    print('  ' + object);
-    print('⌊ ' + baseName + '------------------');
-    print('');
+    
+    print('${new DateTime.now().toLocal()} [${baseName}] ${object}');
   }
 }

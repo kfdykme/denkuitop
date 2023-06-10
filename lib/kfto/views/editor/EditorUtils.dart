@@ -16,8 +16,8 @@ String getDefaultUrl() {
       "http://localhost:10825/index.html?isDarkMode=${ColorManager.instance().isDarkmode}&home=${homePath}/manoco-editor";
 
 
-  if (kDebugMode) {
-    url = "http://localhost:3000/";
-  }
+  // if (kDebugMode) {
+  //   url = "http://localhost:3000/";
+  // }
   return url;
 }
