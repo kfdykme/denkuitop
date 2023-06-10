@@ -7,8 +7,9 @@ import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 Logger logger = Logger("IpcClient");
+
 class IpcClient {
-  var mWebSocket;
+  IOWebSocketChannel mWebSocket;
 
   List<Function> listeners = <Function>[];
 
@@ -21,23 +22,26 @@ class IpcClient {
 //    init();
   }
 
-  initSocket(int port) {
+  initSocket(int port, {Function onError}) {
     mWebSocket = IOWebSocketChannel.connect("ws://127.0.0.1:${port}",
         headers: {'Origin': 'http://127.0.0.1'});
 
-    logger.log("IpcClient init ${port}");
-    inited = true;
-    mWebSocket.stream.listen((message) {
-      if (!message.toString().contains('"name":"heart"')) {
-        // logger.log("IpcClient  message ${message}");
-      }
-      isConnected = true;
-      listeners.forEach((callback) {
-        callback(message);
+    mWebSocket.ready.then((value) {
+      logger.log("IpcClient init ${port}");
+      inited = true;
+      mWebSocket.stream.listen((message) {
+        if (!message.toString().contains('"name":"heart"')) {
+          // logger.log("IpcClient  message ${message}");
+        }
+        isConnected = true;
+        listeners.forEach((callback) {
+          callback(message);
+        });
+        if (callbacks["onmessage"] != null) callbacks["onmessage"](message);
       });
-      if (callbacks["onmessage"] != null) callbacks["onmessage"](message);
+    }).catchError((e) {
+      onError();
     });
-    // this.send("DENKUI_START");
   }
 
   init({int port = 7999}) async {
@@ -68,17 +72,16 @@ class IpcClient {
   setCallback(String key, Function callback) {
     callbacks[key] = callback;
   }
-  
+
   void _tryConnect(int port) {
     if (this.isConnected) {
-        return;
-      }
-      logger.log("Try Connect Socket ${port}");
-      try {
-        this.initSocket(port);
-      } catch (e) {
-        logger.log("Try Connect Socket fail" + e.toString());
-        Future.delayed(Duration(microseconds: 50)).then((value) => _tryConnect(port));
-      }
+      return;
+    }
+    logger.log("Try Connect Socket ${port}");
+
+    this.initSocket(port, onError: () {
+      Future.delayed(Duration(microseconds: 50))
+          .then((value) => _tryConnect(port));
+    });
   }
 }
